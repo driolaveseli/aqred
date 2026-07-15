@@ -33,6 +33,23 @@ const fetchPermissions = async (role) => {
   }
 };
 
+// Sends a real email if SMTP is configured, otherwise logs it — same fallback
+// used everywhere in this app so the flow is demonstrable without SMTP creds.
+const sendMail = async ({ to, subject, html, fallbackLabel }) => {
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const nodemailer = require("nodemailer");
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: false,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+    await transporter.sendMail({ from: `"Aqred MIS" <${process.env.SMTP_USER}>`, to, subject, html });
+  } else {
+    console.log(`[${fallbackLabel}] To: ${to}\n${html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()}`);
+  }
+};
+
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -145,41 +162,107 @@ exports.verify2FALogin = async (req, res) => {
 
 exports.register = async (req, res) => {
   const { firstName, lastName, email, password, company } = req.body;
-  const name = `${firstName || ""} ${lastName || ""}`.trim() || email;
+  const name = `${firstName || ""} ${lastName || ""}`.trim();
+
+  if (!name)
+    return res.status(400).json({ message: "First and last name are required" });
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return res.status(400).json({ message: "A valid email address is required" });
+  if (!password || password.length < 8)
+    return res.status(400).json({ message: "Password must be at least 8 characters" });
+  if (!company || !company.trim())
+    return res.status(400).json({ message: "Company name is required" });
+
   try {
     const exists = await db.query("SELECT id FROM users WHERE email = $1", [email]);
     if (exists.rows.length > 0)
       return res.status(400).json({ message: "Email already registered" });
 
     const hashed = await bcrypt.hash(password, 10);
-    // Registration always creates an employee.
-    // Company admins are assigned exclusively by the super admin.
-    let companyId;
-    if (company) {
-      // Link to existing company — never auto-create to prevent squatting
-      const coRes = await db.query("SELECT id FROM companies WHERE LOWER(name) = LOWER($1)", [company]);
-      if (!coRes.rows[0])
-        return res.status(400).json({ message: "Company not found. Please contact your system administrator." });
+    const companyName = company.trim();
+
+    // Two paths: join an existing company as an employee, or create a brand
+    // new one and become its admin (first user of a company is always its
+    // admin — mirrors how the super-admin "create company" flow provisions
+    // the first admin in routes/superAdmin.js).
+    const coRes = await db.query("SELECT id, name FROM companies WHERE LOWER(name) = LOWER($1)", [companyName]);
+    let companyId, role, finalCompanyName;
+    if (coRes.rows[0]) {
       companyId = coRes.rows[0].id;
+      finalCompanyName = coRes.rows[0].name;
+      role = "employee";
     } else {
-      const coRes = await db.query("SELECT id FROM companies WHERE name = 'Aqred'");
-      companyId = coRes.rows[0]?.id;
+      const newCo = await db.query("INSERT INTO companies (name) VALUES ($1) RETURNING id, name", [companyName]);
+      companyId = newCo.rows[0].id;
+      finalCompanyName = newCo.rows[0].name;
+      role = "admin";
     }
 
     const result = await db.query(
       "INSERT INTO users (name, email, password, role, company_name, company_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, role, company_name, company_id",
-      [name, email, hashed, "employee", company || null, companyId]
+      [name, email, hashed, role, finalCompanyName, companyId]
     );
     const user = result.rows[0];
     const permissions = await fetchPermissions(user.role);
     const token = signToken(user, permissions);
     req.user = { id: user.id, name: user.name, role: user.role };
     logEvent({ level: "INFO", module: "auth", action: "register", req,
-      description: `New account registered: ${name} (${email})` });
+      description: role === "admin"
+        ? `New company "${finalCompanyName}" created by ${name} (${email})`
+        : `New account registered: ${name} (${email}), joined ${finalCompanyName}` });
     res.cookie("token", token, COOKIE_OPTS);
-    res.status(201).json({ user: { ...user, permissions } });
+    res.status(201).json({ token, user: { ...user, permissions }, companyCreated: role === "admin" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: "Registration failed. Please try again." });
+  }
+};
+
+// GET /api/auth/check-company?name=... — public, read-only lookup used by the
+// registration wizard to tell the user upfront whether they're joining an
+// existing company or about to create a new one.
+exports.checkCompany = async (req, res) => {
+  const name = (req.query.name || "").trim();
+  if (!name) return res.status(400).json({ message: "name is required" });
+  try {
+    const r = await db.query("SELECT name FROM companies WHERE LOWER(name) = LOWER($1)", [name]);
+    res.json({ exists: r.rows.length > 0, name: r.rows[0]?.name || name });
+  } catch (err) {
+    res.status(500).json({ message: "Lookup failed" });
+  }
+};
+
+// POST /api/auth/invite-teammates — only the admin who just created a company
+// can invite others into it (registration's "create new company" path).
+exports.inviteTeammates = async (req, res) => {
+  if (req.user.role !== "admin")
+    return res.status(403).json({ message: "Only company admins can invite teammates" });
+
+  const emails = Array.isArray(req.body.emails) ? req.body.emails.filter(Boolean).slice(0, 5) : [];
+  if (emails.length === 0) return res.status(400).json({ message: "At least one email is required" });
+
+  try {
+    const companyName = req.user.company_name || "your company";
+    const results = [];
+    for (const email of emails) {
+      const exists = await db.query("SELECT id FROM users WHERE email = $1", [email]);
+      if (exists.rows.length > 0) {
+        results.push({ email, status: "already_registered" });
+        continue;
+      }
+      await sendMail({
+        to: email,
+        subject: `${req.user.name} invited you to join ${companyName} on Aqred`,
+        fallbackLabel: "Teammate Invite",
+        html: `<p>${req.user.name} has invited you to join <strong>${companyName}</strong> on Aqred.</p>
+               <p><a href="${process.env.FRONTEND_URL || "http://localhost:3000"}/register?company=${encodeURIComponent(companyName)}">Create your account</a> to get started.</p>`,
+      });
+      results.push({ email, status: "invited" });
+    }
+    logEvent({ level: "INFO", module: "auth", action: "invite_teammates", req,
+      description: `${req.user.name} invited ${results.filter(r => r.status === "invited").length} teammate(s) to ${companyName}` });
+    res.json({ results });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to send invites" });
   }
 };
 
@@ -198,26 +281,15 @@ exports.forgotPassword = async (req, res) => {
       logEvent({ level: "SECURITY", module: "auth", action: "forgot_password",
         description: `Password reset requested for ${email}` });
 
-      if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-        const nodemailer = require("nodemailer");
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST || "smtp.gmail.com",
-          port: parseInt(process.env.SMTP_PORT) || 587,
-          secure: false,
-          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-        });
-        await transporter.sendMail({
-          from: `"Aqred MIS" <${process.env.SMTP_USER}>`,
-          to: email,
-          subject: "Rivendosja e fjalëkalimit — Aqred MIS",
-          html: `<p>Përshëndetje ${result.rows[0].name},</p>
-                 <p>Token-i juaj i rivendosjes (i vlefshëm 15 min):</p>
-                 <pre>${resetToken}</pre>
-                 <p>Nëse nuk e keni kërkuar ju, injoroni këtë email.</p>`,
-        });
-      } else {
-        console.log(`[Password Reset] Token for ${email}: ${resetToken}`);
-      }
+      await sendMail({
+        to: email,
+        subject: "Rivendosja e fjalëkalimit — Aqred MIS",
+        fallbackLabel: "Password Reset",
+        html: `<p>Përshëndetje ${result.rows[0].name},</p>
+               <p>Token-i juaj i rivendosjes (i vlefshëm 15 min):</p>
+               <pre>${resetToken}</pre>
+               <p>Nëse nuk e keni kërkuar ju, injoroni këtë email.</p>`,
+      });
     }
     res.json({ message: "If this email is registered, you will receive reset instructions." });
   } catch (err) {
