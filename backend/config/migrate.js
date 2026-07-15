@@ -26,6 +26,86 @@ const migrate = async () => {
       )
     `);
 
+    // Core business tables — these were historically created by hand outside
+    // of any migration script, so a genuinely fresh database was missing them
+    // entirely (every ALTER TABLE below would fail silently). Shapes here
+    // match the columns added further down, so those ALTERs become no-ops
+    // on a table created fresh from this block.
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS employees (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) NOT NULL,
+        password VARCHAR(255),
+        position VARCHAR(50),
+        salary NUMERIC,
+        department VARCHAR(50),
+        status VARCHAR(20) DEFAULT 'Active',
+        company_id INTEGER REFERENCES companies(id),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        price NUMERIC NOT NULL,
+        stock INTEGER DEFAULT 0,
+        sku VARCHAR(50) UNIQUE,
+        category VARCHAR(50),
+        reorder_point INTEGER DEFAULT 10,
+        company_id INTEGER REFERENCES companies(id),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) NOT NULL UNIQUE,
+        phone VARCHAR(20),
+        address TEXT,
+        company VARCHAR(100),
+        status VARCHAR(20) DEFAULT 'Active',
+        company_id INTEGER REFERENCES companies(id),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        customer_id INTEGER REFERENCES customers(id),
+        employee_id INTEGER REFERENCES employees(id),
+        order_date TIMESTAMP DEFAULT NOW(),
+        status VARCHAR(50) DEFAULT 'pending',
+        total NUMERIC,
+        due_date DATE,
+        notes TEXT,
+        company_id INTEGER REFERENCES companies(id),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS suppliers (
+        id SERIAL PRIMARY KEY,
+        company_name VARCHAR(255) NOT NULL,
+        contact_person VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        location VARCHAR(255),
+        category VARCHAR(100),
+        status VARCHAR(50) DEFAULT 'Active',
+        products_supplied TEXT,
+        company_id INTEGER REFERENCES companies(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Add missing columns (safe — IF NOT EXISTS)
     await db.query(`ALTER TABLE employees ADD COLUMN IF NOT EXISTS department VARCHAR(50)`);
     await db.query(`ALTER TABLE employees ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'Active'`);
@@ -82,6 +162,9 @@ const migrate = async () => {
     `);
     // Add company_id to system_logs for multi-tenant scoping
     await db.query(`ALTER TABLE system_logs ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id)`);
+    // users.company_id is normally added further down, but the backfill below
+    // reads it — ensure it exists first (safe/idempotent if already added).
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id)`);
     // Backfill existing logs by looking up the user's company
     await db.query(`
       UPDATE system_logs sl SET company_id = u.company_id
