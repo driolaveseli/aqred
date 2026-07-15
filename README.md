@@ -2,6 +2,18 @@
 
 A full-stack Management Information System for tracking staff, inventory, customers, orders, sales, and revenue — built as a Bachelor's thesis project.
 
+## Screenshots
+
+![Landing page](docs/screenshots/landing.png)
+
+| Dashboard | Products |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Products](docs/screenshots/products.png) |
+
+| Orders | Revenue Analytics |
+|---|---|
+| ![Orders](docs/screenshots/orders.png) | ![Revenue Analytics](docs/screenshots/revenue-analytics.png) |
+
 ## Tech Stack
 
 **Frontend:** React 19, React Router DOM v7, Tailwind CSS v3, Recharts, Lucide React
