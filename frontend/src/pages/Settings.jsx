@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { useSystem } from "../context/SystemContext";
 import {
   getProfile, updateProfile, changePassword,
+  getCompany, updateCompany,
   setup2FA, verify2FA, disable2FA,
   getPreferences, updatePreferences,
   getSystemSettings, updateSystemSettings,
@@ -98,6 +99,7 @@ const SectionHeader = ({ icon: Icon, title, desc, accent = "violet" }) => {
 
 const TABS = [
   { id: "profile",       label: "Profile",       desc: "Personal info",     icon: User  },
+  { id: "company",       label: "Company",       desc: "Workspace details", icon: Building2, adminOnly: true },
   { id: "notifications", label: "Notifications", desc: "Alerts & emails",   icon: Bell  },
   { id: "security",      label: "Security",      desc: "Password & 2FA",    icon: Lock  },
   { id: "system",        label: "System",        desc: "App preferences",   icon: Globe },
@@ -154,11 +156,29 @@ export default function Settings() {
     setLoad("profile", true);
     try {
       const name = `${profile.firstName} ${profile.lastName}`.trim();
-      await updateProfile({ name, email: profile.email, company_name: profile.company_name, timezone: profile.timezone });
+      await updateProfile({ name, email: profile.email, timezone: profile.timezone });
       showToast("Profile saved successfully.");
     } catch (err) {
       showToast(err.response?.data?.error || "Failed to save profile", "error");
     } finally { setLoad("profile", false); }
+  };
+
+  // ── Company (admin only — renames the company itself, not a personal field) ─
+  const [company, setCompany] = useState({ name: "", memberCount: 0 });
+  useEffect(() => {
+    if (!isAdmin) return;
+    getCompany().then(r => setCompany({ name: r.data.name || "", memberCount: r.data.memberCount || 0 })).catch(() => {});
+  }, [isAdmin]);
+
+  const handleSaveCompany = async () => {
+    setLoad("company", true);
+    try {
+      await updateCompany({ name: company.name });
+      setProfile(p => ({ ...p, company_name: company.name }));
+      showToast("Company name updated.");
+    } catch (err) {
+      showToast(err.response?.data?.error || "Failed to update company", "error");
+    } finally { setLoad("company", false); }
   };
 
   // ── Notifications ──────────────────────────────────────────────────────────
@@ -367,7 +387,7 @@ export default function Settings() {
         {/* ── Sidebar nav ── */}
         <div className="md:w-52 flex-shrink-0">
           <nav className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-2 space-y-1">
-            {TABS.map((tab) => {
+            {TABS.filter(tab => !tab.adminOnly || isAdmin).map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
               return (
@@ -473,15 +493,10 @@ export default function Settings() {
                       <input className={inputCls} placeholder="Last name" value={profile.lastName}
                         onChange={e => setProfile(p => ({ ...p, lastName: e.target.value }))} />
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <label className={labelCls}><span className="flex items-center gap-1"><AtSign size={10} />{t("Email Address")}</span></label>
                       <input type="email" className={inputCls} placeholder="email@company.com" value={profile.email}
                         onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} />
-                    </div>
-                    <div>
-                      <label className={labelCls}><span className="flex items-center gap-1"><Building2 size={10} />{t("Company")}</span></label>
-                      <input className={inputCls} placeholder="Company name" value={profile.company_name}
-                        onChange={e => setProfile(p => ({ ...p, company_name: e.target.value }))} />
                     </div>
                     <div className="sm:col-span-2">
                       <label className={labelCls}><span className="flex items-center gap-1"><MapPin size={10} />{t("Timezone")}</span></label>
@@ -497,6 +512,26 @@ export default function Settings() {
                 </div>
               </SectionCard>
             </>
+          )}
+
+          {/* ── COMPANY (admin only) ──────────────────────────────────────────── */}
+          {activeTab === "company" && isAdmin && (
+            <SectionCard>
+              <SectionHeader icon={Building2} title={t("Company")} desc="Manage your workspace's name" accent="violet" />
+              <div className="p-6 space-y-5">
+                <div className="max-w-sm">
+                  <label className={labelCls}><span className="flex items-center gap-1"><Building2 size={10} />{t("Company Name")}</span></label>
+                  <input className={inputCls} placeholder="Company name" value={company.name}
+                    onChange={e => setCompany(c => ({ ...c, name: e.target.value }))} />
+                  <p className="mt-2 text-xs text-gray-400 dark:text-gray-600">
+                    {company.memberCount} member{company.memberCount === 1 ? "" : "s"} will see this name update immediately.
+                  </p>
+                </div>
+                <div className="flex justify-end pt-1">
+                  <SaveButton onClick={handleSaveCompany} loading={loading.company} />
+                </div>
+              </div>
+            </SectionCard>
           )}
 
           {/* ── NOTIFICATIONS ───────────────────────────────────────────────── */}

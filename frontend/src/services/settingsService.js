@@ -2,6 +2,8 @@ import api from "./api";
 
 export const getProfile        = ()       => api.get("/settings/profile");
 export const updateProfile     = (data)   => api.put("/settings/profile", data);
+export const getCompany        = ()       => api.get("/settings/company");
+export const updateCompany     = (data)   => api.put("/settings/company", data);
 export const changePassword    = (data)   => api.put("/settings/password", data);
 export const setup2FA          = ()       => api.post("/settings/2fa/setup");
 export const verify2FA         = (token)  => api.post("/settings/2fa/verify", { token });
