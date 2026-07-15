@@ -1,0 +1,559 @@
+import { useState, useEffect, useMemo } from "react";
+import {
+  Boxes, Search, AlertTriangle, TrendingDown, Package, X, CheckCircle,
+  Download, ExternalLink, Minus, Plus, Edit2,
+  ChevronUp, ChevronDown, ChevronsUpDown,
+} from "lucide-react";
+import EmptyState from "../components/UI/EmptyState";
+import { getProducts, updateStock } from "../services/productsService";
+import { exportToCSV } from "../utils/exportCSV";
+import { useSystem } from "../context/SystemContext";
+import { useNavigate, Link } from "react-router-dom";
+
+/* ─── Helpers ────────────────────────────────────────────────────────────── */
+const fmt = (v) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(v || 0);
+const fmtValue = (v) =>
+  v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M`
+  : v >= 1_000   ? `$${(v / 1_000).toFixed(1)}k`
+  : `$${Number(v || 0).toFixed(0)}`;
+
+const getStatus = (stock, reorder) => {
+  const r = Number(reorder) || 10;
+  const s = Number(stock)  || 0;
+  if (s === 0) return { label: "Out of Stock", cls: "bg-red-50 text-red-600",    bar: "bg-red-400",    filter: "Out of Stock" };
+  if (s <= r)  return { label: "Low Stock",    cls: "bg-amber-50 text-amber-600", bar: "bg-amber-400",  filter: "Low Stock"    };
+  return              { label: "In Stock",     cls: "bg-green-50 text-green-600", bar: "bg-green-400",  filter: "In Stock"     };
+};
+
+/* ─── Toast ──────────────────────────────────────────────────────────────── */
+const Toast = ({ msg, type, onClose }) => (
+  <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium
+    ${type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
+    <CheckCircle size={16} /> {msg}
+    <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100"><X size={14} /></button>
+  </div>
+);
+
+/* ─── Sort icon ──────────────────────────────────────────────────────────── */
+const SortIcon = ({ field, sortField, sortDir }) => {
+  if (sortField !== field) return <ChevronsUpDown size={12} className="text-gray-300 ml-1 inline-block" />;
+  return sortDir === "asc"
+    ? <ChevronUp   size={12} className="text-violet-500 ml-1 inline-block" />
+    : <ChevronDown size={12} className="text-violet-500 ml-1 inline-block" />;
+};
+
+const DELTA_PRESETS = [-10, -5, -1, +1, +5, +10];
+
+/* ─── Inventory ──────────────────────────────────────────────────────────── */
+const Inventory = () => {
+  const navigate                  = useNavigate();
+  const { t }                     = useSystem();
+
+  const [products, setProducts]   = useState([]);
+  const [search, setSearch]       = useState("");
+  const [stockFilter, setStockFilter] = useState("All");
+  const [catFilter, setCatFilter] = useState("All");
+  const [sortField, setSortField] = useState("name");
+  const [sortDir, setSortDir]     = useState("asc");
+
+  /* Adjust modal */
+  const [adjusting, setAdjusting] = useState(null);
+  const [newStock, setNewStock]   = useState("");
+  const [saving, setSaving]       = useState(false);
+
+  const [toast, setToast]         = useState(null);
+
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  /* ── Load ── */
+  const load = async () => {
+    try { const { data } = await getProducts(); setProducts(data); }
+    catch { showToast("Failed to load inventory.", "error"); }
+  };
+  useEffect(() => { load(); }, []);
+
+  /* ── Adjust modal ── */
+  const openAdjust = (p) => { setAdjusting(p); setNewStock(String(p.stock ?? 0)); };
+
+  const applyDelta = (delta) => {
+    setNewStock((prev) => String(Math.max(0, Number(prev || 0) + delta)));
+  };
+
+  const handleAdjust = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await updateStock(adjusting.id, Number(newStock));
+      showToast(`Stock updated for "${adjusting.name}"`);
+      setAdjusting(null);
+      load();
+    } catch { showToast("Failed to update stock.", "error"); }
+    finally { setSaving(false); }
+  };
+
+  /* ── Inline quick adjust ── */
+  const handleQuickAdjust = async (product, delta) => {
+    const next = Math.max(0, Number(product.stock) + delta);
+    setProducts((prev) => prev.map((p) => p.id === product.id ? { ...p, stock: next } : p));
+    try {
+      await updateStock(product.id, next);
+    } catch {
+      setProducts((prev) => prev.map((p) => p.id === product.id ? { ...p, stock: product.stock } : p));
+      showToast("Stock update failed.", "error");
+    }
+  };
+
+  /* ── Sort ── */
+  const handleSort = (field) => {
+    if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortField(field); setSortDir("asc"); }
+  };
+
+  /* ── Unique categories from data ── */
+  const categories = useMemo(() => {
+    const cats = [...new Set(products.map((p) => p.category).filter(Boolean))].sort();
+    return cats;
+  }, [products]);
+
+  /* ── Filter + sort pipeline ── */
+  const filtered = products
+    .filter((p) => {
+      const q = search.toLowerCase();
+      const matchSearch =
+        (p.name     || "").toLowerCase().includes(q) ||
+        (p.sku      || "").toLowerCase().includes(q) ||
+        (p.category || "").toLowerCase().includes(q);
+      const matchStatus = stockFilter === "All" || getStatus(p.stock, p.reorder_point).filter === stockFilter;
+      const matchCat    = catFilter   === "All" || (p.category || "") === catFilter;
+      return matchSearch && matchStatus && matchCat;
+    })
+    .sort((a, b) => {
+      let aVal, bVal;
+      if (sortField === "name")     { aVal = (a.name     || "").toLowerCase();  bVal = (b.name     || "").toLowerCase(); }
+      if (sortField === "category") { aVal = (a.category || "").toLowerCase();  bVal = (b.category || "").toLowerCase(); }
+      if (sortField === "stock")    { aVal = Number(a.stock  ?? 0);             bVal = Number(b.stock  ?? 0); }
+      if (sortField === "value")    { aVal = Number(a.stock || 0) * Number(a.price || 0); bVal = Number(b.stock || 0) * Number(b.price || 0); }
+      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDir === "asc" ?  1 : -1;
+      return 0;
+    });
+
+  /* ── Stats ── */
+  const totalValue      = products.reduce((a, p) => a + (Number(p.stock) || 0) * (Number(p.price) || 0), 0);
+  const lowStockCount   = products.filter((p) => Number(p.stock) > 0 && Number(p.stock) <= (Number(p.reorder_point) || 10)).length;
+  const outOfStockCount = products.filter((p) => !Number(p.stock)).length;
+  const inStockCount    = products.filter((p) => Number(p.stock) > (Number(p.reorder_point) || 10)).length;
+
+  /* ── Export ── */
+  const handleExport = () => exportToCSV(
+    filtered.map((p) => ({
+      SKU:             p.sku || "",
+      Name:            p.name,
+      Category:        p.category || "",
+      Stock:           p.stock ?? 0,
+      "Reorder Point": p.reorder_point ?? 10,
+      "Unit Price":    p.price,
+      "Total Value":   ((Number(p.stock) || 0) * (Number(p.price) || 0)).toFixed(2),
+      Status:          getStatus(p.stock, p.reorder_point).label,
+    })),
+    "inventory"
+  );
+
+  /* ── Sortable TH ── */
+  const SortTh = ({ field, children, className = "" }) => (
+    <th
+      onClick={() => handleSort(field)}
+      className={`px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:text-gray-600 transition-colors ${className}`}
+    >
+      {children}<SortIcon field={field} sortField={sortField} sortDir={sortDir} />
+    </th>
+  );
+
+  /* ── Adjust modal preview ── */
+  const previewStatus  = adjusting ? getStatus(Number(newStock || 0), adjusting.reorder_point) : null;
+  const previewChanged = adjusting ? Number(newStock || 0) !== Number(adjusting.stock ?? 0) : false;
+  const previewDelta   = adjusting ? Number(newStock || 0) - Number(adjusting.stock ?? 0) : 0;
+
+  /* ════════════════════════════════════════════════════════════════════════ */
+  return (
+    <div>
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t("Inventory")}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t("Real-time stock levels — adjust quantities directly here")}</p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 active:scale-95 transition-all">
+            <Download size={15} /> {t("Export CSV")}
+          </button>
+          <button
+            onClick={() => navigate("/products")}
+            className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all"
+          >
+            <ExternalLink size={15} /> {t("Manage Products")}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Stat cards (clickable filter shortcuts) ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: t("Total Items"),    value: products.length, icon: Boxes,         color: "text-violet-600", bg: "bg-violet-50",  filter: "All"          },
+          { label: t("In Stock"),       value: inStockCount,    icon: CheckCircle,   color: "text-green-600",  bg: "bg-green-50",   filter: "In Stock"     },
+          { label: t("Low Stock"),      value: lowStockCount,   icon: TrendingDown,  color: "text-amber-600",  bg: "bg-amber-50",   filter: "Low Stock"    },
+          { label: t("Out of Stock"),   value: outOfStockCount, icon: AlertTriangle, color: "text-red-600",    bg: "bg-red-50",     filter: "Out of Stock" },
+        ].map(({ label, value, icon: Icon, color, bg, filter }) => (
+          <button
+            key={label}
+            onClick={() => setStockFilter(stockFilter === filter ? "All" : filter)}
+            className={`text-left bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer
+              ${stockFilter === filter ? "border-violet-300 ring-2 ring-violet-100" : "border-gray-100"}`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-gray-500">{label}</p>
+              <div className={`w-9 h-9 ${bg} rounded-xl flex items-center justify-center`}>
+                <Icon size={17} className={color} />
+              </div>
+            </div>
+            <p className={`text-2xl font-bold ${color}`}>{value}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* ── Total value banner ── */}
+      <div className="flex items-center justify-between px-5 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Package size={15} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-xs text-gray-400">{t("Total Inventory Value")}</p>
+            <p className="text-lg font-bold text-blue-600">{fmt(totalValue)}</p>
+          </div>
+        </div>
+        <div className="hidden sm:flex items-center gap-6 text-xs text-gray-400">
+          <span>{products.length} {t("products tracked")}</span>
+          {(lowStockCount + outOfStockCount) > 0 && (
+            <span className="flex items-center gap-1 text-amber-600 font-medium">
+              <AlertTriangle size={12} />
+              {lowStockCount + outOfStockCount} {t("need attention")}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Filters row ── */}
+      <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 mb-3">
+        {/* Search */}
+        <div className="relative w-full sm:flex-1 sm:max-w-sm">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder={t("Search by name, SKU, or category...")}
+            className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+              <X size={13} />
+            </button>
+          )}
+        </div>
+
+        {/* Stock status filter */}
+        <div className="flex items-center gap-1 bg-white border border-gray-100 rounded-xl p-1 flex-shrink-0">
+          {["All", "In Stock", "Low Stock", "Out of Stock"].map((f) => (
+            <button
+              key={f}
+              onClick={() => setStockFilter(f)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${stockFilter === f ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
+            >
+              {t(f)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Category tabs (horizontal scrollable) ── */}
+      {categories.length > 0 && (
+        <div className="overflow-x-auto mb-4 -mx-0.5 px-0.5">
+          <div className="flex items-center gap-1 bg-white border border-gray-100 rounded-xl p-1 w-max">
+            <button
+              onClick={() => setCatFilter("All")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${catFilter === "All" ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
+            >
+              {t("All Categories")}
+            </button>
+            {categories.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCatFilter(catFilter === c ? "All" : c)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${catFilter === c ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Table ── */}
+      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px]">
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("SKU")}</th>
+                <SortTh field="name">{t("Product")}</SortTh>
+                <SortTh field="category">{t("Category")}</SortTh>
+                <SortTh field="stock">{t("Stock")}</SortTh>
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Reorder")}</th>
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Unit Price")}</th>
+                <SortTh field="value">{t("Value")}</SortTh>
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Status")}</th>
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((p, idx) => {
+                const stock   = Number(p.stock)  || 0;
+                const reorder = Number(p.reorder_point) || 10;
+                const status  = getStatus(stock, reorder);
+                const barMax  = Math.max(stock, reorder * 3, 1);
+                const barPct  = Math.min((stock / barMax) * 100, 100);
+                return (
+                  <tr
+                    key={p.id}
+                    className={`${idx !== filtered.length - 1 ? "border-b border-gray-50" : ""} hover:bg-violet-50/30 transition-colors`}
+                  >
+                    <td className="px-4 py-4 text-xs font-mono text-gray-400">{p.sku || "—"}</td>
+
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Package size={14} className="text-violet-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{p.name}</p>
+                          {p.description && <p className="text-xs text-gray-400 truncate max-w-[140px]">{p.description}</p>}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <span className="px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded-full">
+                        {p.category || "—"}
+                      </span>
+                    </td>
+
+                    {/* ── Stock cell with inline ±1 ── */}
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-1.5 group/stock">
+                        <button
+                          onClick={() => handleQuickAdjust(p, -1)}
+                          disabled={stock === 0}
+                          className="opacity-0 group-hover/stock:opacity-100 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all disabled:opacity-0 disabled:cursor-not-allowed"
+                          title={t("Decrease by 1")}
+                        >
+                          <Minus size={11} />
+                        </button>
+                        <div>
+                          <div className="flex items-center gap-1">
+                            <span className={`text-sm font-bold ${stock === 0 ? "text-red-600" : stock <= reorder ? "text-amber-600" : "text-gray-900"}`}>
+                              {stock}
+                            </span>
+                            <span className="text-xs text-gray-400">{t("units")}</span>
+                          </div>
+                          <div className="mt-1 w-20 bg-gray-100 rounded-full h-1.5">
+                            <div className={`h-1.5 rounded-full transition-all duration-300 ${status.bar}`} style={{ width: `${barPct}%` }} />
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleQuickAdjust(p, 1)}
+                          className="opacity-0 group-hover/stock:opacity-100 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all"
+                          title={t("Increase by 1")}
+                        >
+                          <Plus size={11} />
+                        </button>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4 text-sm text-gray-500">{reorder}</td>
+                    <td className="px-4 py-4 text-sm text-gray-700">{fmt(p.price)}</td>
+                    <td className="px-4 py-4 text-sm font-semibold text-gray-900">{fmt(stock * Number(p.price || 0))}</td>
+                    <td className="px-4 py-4">
+                      <span className={`px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${status.cls}`}>
+                        {t(status.label)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <button
+                        onClick={() => openAdjust(p)}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-violet-600 hover:bg-violet-50 rounded-lg transition-colors border border-violet-100 active:scale-95"
+                      >
+                        <Edit2 size={12} /> {t("Adjust")}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {filtered.length === 0 && (
+          <EmptyState
+            icon={Boxes}
+            title={t("No inventory items found")}
+            description={search || stockFilter !== "All" || catFilter !== "All"
+              ? t("Try adjusting your search or filters")
+              : t("Add products to start tracking inventory.")}
+            actionLabel={!search && stockFilter === "All" && catFilter === "All" ? t("Go to Products") : undefined}
+            onAction={!search && stockFilter === "All" && catFilter === "All" ? () => navigate("/products") : undefined}
+          />
+        )}
+      </div>
+
+      {/* ── Result count ── */}
+      <p className="text-xs text-gray-400 mt-3">
+        {t("Showing")} {filtered.length} {t("of")} {products.length} {t("items")}
+        {(stockFilter !== "All" || catFilter !== "All") && (
+          <span className="ml-1">
+            · {t("filtered by")}
+            {stockFilter !== "All" && <span className="font-medium text-gray-500 ml-1">{t(stockFilter)}</span>}
+            {stockFilter !== "All" && catFilter !== "All" && " &"}
+            {catFilter !== "All" && <span className="font-medium text-gray-500 ml-1">{catFilter}</span>}
+          </span>
+        )}
+        <span className="ml-2 text-gray-500">
+          · {t("Total value")}: <strong className="text-blue-600">{fmt(totalValue)}</strong>
+        </span>
+      </p>
+
+      {/* ── Adjust Stock Modal ── */}
+      {adjusting && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h2 className="font-bold text-gray-900">{t("Adjust Stock")}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{t("Update quantity for this product")}</p>
+              </div>
+              <button onClick={() => setAdjusting(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+            </div>
+
+            <div className="px-6 py-5 space-y-5">
+              {/* Product info */}
+              <div className="flex items-center gap-3 p-3.5 bg-gray-50 rounded-xl">
+                <div className="w-9 h-9 bg-violet-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Package size={16} className="text-violet-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{adjusting.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {adjusting.sku ? `${adjusting.sku} · ` : ""}{t("Reorder at")} {adjusting.reorder_point ?? 10} {t("units")}
+                  </p>
+                </div>
+                <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getStatus(adjusting.stock, adjusting.reorder_point).cls}`}>
+                  {getStatus(adjusting.stock, adjusting.reorder_point).label}
+                </span>
+              </div>
+
+              {/* Current stock */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">{t("Current stock")}</span>
+                <span className="text-lg font-bold text-gray-900">{adjusting.stock ?? 0} <span className="text-sm font-normal text-gray-400">{t("units")}</span></span>
+              </div>
+
+              <form onSubmit={handleAdjust} className="space-y-4">
+                {/* Quick delta buttons */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{t("Quick Adjust")}</p>
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {DELTA_PRESETS.map((d) => {
+                      const wouldGoNegative = Number(newStock || 0) + d < 0;
+                      return (
+                        <button
+                          key={d}
+                          type="button"
+                          disabled={wouldGoNegative}
+                          onClick={() => applyDelta(d)}
+                          className={`py-2 text-xs font-semibold rounded-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed
+                            ${d < 0
+                              ? "bg-red-50 text-red-600 hover:bg-red-100"
+                              : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                        >
+                          {d > 0 ? `+${d}` : d}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Set exact value */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{t("Set Exact Quantity")}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    autoFocus
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-lg font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                    value={newStock}
+                    onChange={(e) => setNewStock(e.target.value)}
+                  />
+                </div>
+
+                {/* Preview */}
+                {previewChanged && previewStatus && (
+                  <div className={`flex items-center justify-between px-4 py-3 rounded-xl border
+                    ${previewDelta > 0 ? "bg-emerald-50 border-emerald-100" : previewDelta < 0 ? "bg-red-50 border-red-100" : "bg-gray-50 border-gray-100"}`}>
+                    <div className="text-xs text-gray-600">
+                      <span className="font-semibold">{adjusting.stock ?? 0}</span>
+                      <span className="mx-1.5 text-gray-400">→</span>
+                      <span className={`font-bold text-base ${previewDelta > 0 ? "text-emerald-600" : "text-red-600"}`}>
+                        {newStock}
+                      </span>
+                      <span className="text-gray-400 ml-1">{t("units")}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-semibold ${previewDelta > 0 ? "text-emerald-600" : "text-red-600"}`}>
+                        {previewDelta > 0 ? `+${previewDelta}` : previewDelta}
+                      </span>
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${previewStatus.cls}`}>
+                        {t(previewStatus.label)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-1">
+                  <button type="button" onClick={() => setAdjusting(null)} className="flex-1 px-4 py-2 text-sm border border-gray-200 rounded-xl hover:bg-gray-50 active:scale-95 transition-all">
+                    {t("Cancel")}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving || String(newStock) === String(adjusting.stock ?? 0)}
+                    className="flex-1 px-4 py-2 text-sm font-semibold bg-violet-600 text-white rounded-xl hover:bg-violet-700 disabled:opacity-60 active:scale-95 transition-all"
+                  >
+                    {saving ? t("Saving...") : t("Update Stock")}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+    </div>
+  );
+};
+
+export default Inventory;

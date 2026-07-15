@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const SECRET = process.env.JWT_SECRET || "mis_secret_key_2024";
+const SECRET = require("../config/jwtSecret");
 
 /**
  * Non-blocking middleware: attaches req.user from JWT if present and valid.

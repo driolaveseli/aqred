@@ -4,15 +4,7 @@
  * Safe to re-run — skips duplicates via ON CONFLICT on sku.
  */
 
-const { Pool } = require("pg");
-
-const pool = new Pool({
-  user:     "postgres",
-  host:     "localhost",
-  database: "mis_db",
-  password: "***REMOVED***",
-  port:     5432,
-});
+const pool = require("../config/db");
 
 // ── Product catalogue data ────────────────────────────────────────────────────
 

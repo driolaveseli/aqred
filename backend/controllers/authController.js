@@ -4,12 +4,12 @@ const bcrypt = require("bcrypt");
 const speakeasy = require("speakeasy");
 const { logEvent } = require("../utils/logger");
 
-const SECRET = process.env.JWT_SECRET || "mis_secret_key_2024";
+const SECRET = require("../config/jwtSecret");
 
 const COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  sameSite: "lax",
   maxAge: 8 * 60 * 60 * 1000,
 };
 
@@ -79,6 +79,7 @@ exports.login = async (req, res) => {
 
     res.cookie("token", token, COOKIE_OPTS);
     res.json({
+      token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions },
     });
   } catch (err) {
@@ -134,6 +135,7 @@ exports.verify2FALogin = async (req, res) => {
 
     res.cookie("token", token, COOKIE_OPTS);
     res.json({
+      token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions },
     });
   } catch (err) {
@@ -193,9 +195,29 @@ exports.forgotPassword = async (req, res) => {
     const result = await db.query("SELECT id, name FROM users WHERE email = $1", [email]);
     if (result.rows[0]) {
       const resetToken = jwt.sign({ id: result.rows[0].id, purpose: "reset" }, SECRET, { expiresIn: "15m" });
-      console.log(`[Password Reset] Token for ${email}: ${resetToken}`);
       logEvent({ level: "SECURITY", module: "auth", action: "forgot_password",
         description: `Password reset requested for ${email}` });
+
+      if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+        const nodemailer = require("nodemailer");
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || "smtp.gmail.com",
+          port: parseInt(process.env.SMTP_PORT) || 587,
+          secure: false,
+          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+        });
+        await transporter.sendMail({
+          from: `"Aqred MIS" <${process.env.SMTP_USER}>`,
+          to: email,
+          subject: "Rivendosja e fjalëkalimit — Aqred MIS",
+          html: `<p>Përshëndetje ${result.rows[0].name},</p>
+                 <p>Token-i juaj i rivendosjes (i vlefshëm 15 min):</p>
+                 <pre>${resetToken}</pre>
+                 <p>Nëse nuk e keni kërkuar ju, injoroni këtë email.</p>`,
+        });
+      } else {
+        console.log(`[Password Reset] Token for ${email}: ${resetToken}`);
+      }
     }
     res.json({ message: "If this email is registered, you will receive reset instructions." });
   } catch (err) {

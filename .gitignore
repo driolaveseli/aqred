@@ -29,3 +29,23 @@ __pycache__/
 
 # Backups
 backups/
+
+# Thesis documents and figures
+*.docx
+*.pdf
+*.xlsx
+*.png
+*.html
+*.drawio
+*.txt
+*.py
+listimet.txt
+questionnaire.html
+
+# Backup files
+*.bak
+
+# One-off local scripts (not part of the app)
+/generate_class_diagram.js
+/generate_erd.js
+/backend/load_test.js
