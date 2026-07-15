@@ -57,10 +57,12 @@ cd backend
 npm run dev
 ```
 
-This runs database migrations automatically on startup and starts the API at `http://localhost:5000`. A default admin account is seeded on first run:
+This runs database migrations automatically on startup and starts the API at `http://localhost:5000`. On a fresh database, migrations auto-seed two accounts:
 
-- **Email:** `admin@bizmis.com`
-- **Password:** `admin123`
+- **Company admin** (full access to Dashboard, Business Operations, Reports, Administration): `admin@aqred.com` / `admin123`
+- **Platform super-admin** (manages companies across the platform, at `/super-admin/companies`): `superadmin@aqred.com` / `superadmin123`
+
+Log in at `http://localhost:3000/login` with either.
 
 Optional: seed sample data for a fuller demo:
 
