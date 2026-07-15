@@ -424,24 +424,36 @@ export default function Settings() {
           {/* ── PROFILE ────────────────────────────────────────────────────── */}
           {activeTab === "profile" && (
             <>
-              {/* Avatar card */}
-              <SectionCard>
-                <div className="relative overflow-hidden h-24 bg-gradient-to-br from-violet-500 to-indigo-600">
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,255,255,0.15),transparent_70%)]" />
-                </div>
-                <div className="px-6 pb-5 -mt-10">
-                  <div className="flex items-end justify-between">
-                    <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl flex items-center justify-center border-4 border-white dark:border-gray-900 shadow-xl">
-                      <span className="text-2xl font-black text-white">{avatarInitials}</span>
-                    </div>
-                    <div className={`mb-1 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold uppercase tracking-wider ${ROLE_STYLE[user?.role] || ROLE_STYLE.employee}`}>
-                      <ShieldCheck size={12} />
-                      {user?.role?.replace("_", " ")}
-                    </div>
+              {/* Identity card */}
+              <SectionCard className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-50/80 via-white to-white dark:from-violet-900/10 dark:via-gray-900 dark:to-gray-900 pointer-events-none" />
+                <div className="absolute -right-14 -top-14 w-52 h-52 bg-violet-100/50 dark:bg-violet-900/10 rounded-full pointer-events-none" />
+                <div className="relative px-6 py-6 flex flex-col sm:flex-row sm:items-center gap-5">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/25 ring-4 ring-white dark:ring-gray-900 flex-shrink-0">
+                    <span className="text-2xl font-black text-white">{avatarInitials}</span>
                   </div>
-                  <div className="mt-3">
-                    <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{profile.firstName} {profile.lastName}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{profile.email}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                        {profile.firstName} {profile.lastName}
+                      </h2>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-wider flex-shrink-0 ${ROLE_STYLE[user?.role] || ROLE_STYLE.employee}`}>
+                        <ShieldCheck size={11} />
+                        {user?.role?.replace("_", " ")}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
+                      <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 min-w-0">
+                        <AtSign size={13} className="text-gray-400 flex-shrink-0" />
+                        <span className="truncate">{profile.email}</span>
+                      </span>
+                      {profile.company_name && (
+                        <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 min-w-0">
+                          <Building2 size={13} className="text-gray-400 flex-shrink-0" />
+                          <span className="truncate">{profile.company_name}</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </SectionCard>
