@@ -42,6 +42,9 @@ backups/
 listimet.txt
 questionnaire.html
 
+# ...except README screenshots
+!docs/screenshots/*.png
+
 # Backup files
 *.bak
 
