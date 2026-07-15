@@ -25,7 +25,9 @@ const getPrefsRow = async (userId) => {
 exports.getProfile = async (req, res) => {
   try {
     const r = await db.query(
-      "SELECT id, name, email, role, company_name FROM users WHERE id = $1",
+      `SELECT u.id, u.name, u.email, u.role, COALESCE(c.name, u.company_name) AS company_name
+       FROM users u LEFT JOIN companies c ON c.id = u.company_id
+       WHERE u.id = $1`,
       [req.user.id]
     );
     if (!r.rows[0]) return res.status(404).json({ error: "User not found" });
@@ -34,8 +36,11 @@ exports.getProfile = async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
+// Company name is a property of the company (see getCompany/updateCompany
+// below), never edited from an individual's own profile — only name, email
+// and timezone are personal.
 exports.updateProfile = async (req, res) => {
-  const { name, email, company_name, timezone } = req.body;
+  const { name, email, timezone } = req.body;
   try {
     // Check email uniqueness (excluding self)
     if (email) {
@@ -46,10 +51,9 @@ exports.updateProfile = async (req, res) => {
         return res.status(400).json({ error: "Email already in use by another account" });
     }
     const r = await db.query(
-      `UPDATE users SET name=COALESCE($1,name), email=COALESCE($2,email),
-       company_name=COALESCE($3,company_name), updated_at=NOW()
-       WHERE id=$4 RETURNING id, name, email, role, company_name`,
-      [name || null, email || null, company_name || null, req.user.id]
+      `UPDATE users SET name=COALESCE($1,name), email=COALESCE($2,email), updated_at=NOW()
+       WHERE id=$3 RETURNING id, name, email, role, company_name`,
+      [name || null, email || null, req.user.id]
     );
     if (timezone) {
       await ensurePrefs(req.user.id);
@@ -60,6 +64,40 @@ exports.updateProfile = async (req, res) => {
     }
     logEvent({ module: "settings", action: "profile_updated", req,
       description: `Profile updated for user ${req.user.id}` });
+    res.json(r.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+};
+
+// ─── Company ─────────────────────────────────────────────────────────────────
+
+exports.getCompany = async (req, res) => {
+  try {
+    if (!req.user.company_id) return res.status(404).json({ error: "No company associated with this account" });
+    const co = await db.query("SELECT id, name FROM companies WHERE id = $1", [req.user.company_id]);
+    if (!co.rows[0]) return res.status(404).json({ error: "Company not found" });
+    const count = await db.query("SELECT count(*) FROM users WHERE company_id = $1", [req.user.company_id]);
+    res.json({ id: co.rows[0].id, name: co.rows[0].name, memberCount: parseInt(count.rows[0].count, 10) });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+};
+
+exports.updateCompany = async (req, res) => {
+  if (req.user.role !== "admin")
+    return res.status(403).json({ error: "Only company admins can rename the company" });
+  const name = (req.body.name || "").trim();
+  if (!name) return res.status(400).json({ error: "Company name is required" });
+  try {
+    const taken = await db.query(
+      "SELECT id FROM companies WHERE LOWER(name) = LOWER($1) AND id != $2",
+      [name, req.user.company_id]
+    );
+    if (taken.rows.length > 0)
+      return res.status(400).json({ error: "That company name is already taken" });
+    const r = await db.query(
+      "UPDATE companies SET name = $1 WHERE id = $2 RETURNING id, name",
+      [name, req.user.company_id]
+    );
+    logEvent({ module: "settings", action: "company_renamed", req,
+      description: `Company renamed to "${name}" by ${req.user.name}` });
     res.json(r.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
 };

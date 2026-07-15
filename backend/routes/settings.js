@@ -10,6 +10,10 @@ router.use(requireAuth);
 router.get("/profile",    ctrl.getProfile);
 router.put("/profile",    ctrl.updateProfile);
 
+// Company (all users can read; admin check is inside the PUT handler)
+router.get("/company", ctrl.getCompany);
+router.put("/company", ctrl.updateCompany);
+
 // Password
 router.put("/password",   ctrl.changePassword);
 
