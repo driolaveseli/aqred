@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, Fragment } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   CheckCircle, Users, BarChart2, Shield, Package,
   Mail, Lock, Eye, EyeOff, Activity, TrendingUp,
-  ArrowRight, User, Briefcase, ShieldCheck,
+  ArrowRight, ArrowLeft, User, Briefcase, ShieldCheck,
+  Check, Loader, Sparkles, Plus, X, PartyPopper,
 } from "lucide-react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -111,7 +112,7 @@ const LeftPanel = () => (
         Everything your<br />team needs,<br />in one place.
       </h2>
       <p className="text-violet-200/75 text-sm leading-relaxed mb-8 max-w-[280px]">
-        Set up your workspace in seconds and bring your entire operation under one roof.
+        Create your own workspace or join your team's — employees, customers, inventory, orders and analytics, all in one place.
       </p>
 
       <div className="space-y-3 mb-8">
@@ -164,40 +165,137 @@ const LeftPanel = () => (
   </div>
 );
 
+// ── Wizard step chrome ────────────────────────────────────────────────────────
+const STEPS_JOIN   = ["Account", "Workspace", "Go live"];
+const STEPS_CREATE = ["Account", "Workspace", "Invite team", "Go live"];
+
+const STEP_INDEX = {
+  join:   { account: 0, workspace: 1, success: 2 },
+  create: { account: 0, workspace: 1, invite: 2, success: 3 },
+};
+
+const HEADER_COPY = {
+  account:   { title: "Create your account",   desc: "Join your company's workspace in seconds" },
+  workspace: { title: "Set up your workspace", desc: "Tell us which company you're joining or creating" },
+  invite:    { title: "Invite your team",      desc: "Bring your teammates into the workspace" },
+  success:   { title: "You're all set!",       desc: "Your workspace is ready to go" },
+};
+
+const ProgressStrip = ({ step, companyCreated }) => {
+  const labels = companyCreated ? STEPS_CREATE : STEPS_JOIN;
+  const index  = (companyCreated ? STEP_INDEX.create : STEP_INDEX.join)[step] ?? 0;
+  return (
+    <div className="flex items-center gap-1">
+      {labels.map((label, i) => (
+        <Fragment key={label}>
+          <div className={`flex items-center gap-1.5 ${i > index ? "opacity-45" : ""}`}>
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0 shadow-sm ${
+              i <= index ? "bg-white text-violet-700" : "bg-white/20 border border-white/30 text-white"
+            }`}>
+              {i < index ? <Check size={11} strokeWidth={3} /> : i + 1}
+            </div>
+            <span className="text-xs font-semibold text-white whitespace-nowrap">{label}</span>
+          </div>
+          {i < labels.length - 1 && <div className="flex-1 h-px bg-white/25 mx-2" />}
+        </Fragment>
+      ))}
+    </div>
+  );
+};
+
 // ── Main component ────────────────────────────────────────────────────────────
 const Register = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [step, setStep] = useState("account"); // account -> workspace -> [invite] -> success
   const [formData, setFormData] = useState({
     firstName: "", lastName: "", email: "",
     company: "", password: "", confirmPassword: "",
   });
-  const [agreed, setAgreed]               = useState(false);
-  const [error, setError]                 = useState("");
-  const [loading, setLoading]             = useState(false);
-  const [showPassword, setShowPassword]   = useState(false);
-  const [showConfirm, setShowConfirm]     = useState(false);
-  const navigate  = useNavigate();
-  const { login } = useAuth();
+  const [agreed, setAgreed]     = useState(false);
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm]   = useState(false);
+
+  const [companyCheck, setCompanyCheck] = useState({ loading: false, checked: false, exists: false, name: "" });
+  const debounceRef = useRef(null);
+
+  const [registeredUser, setRegisteredUser] = useState(null);
+  const [companyCreated, setCompanyCreated] = useState(false);
+
+  const [inviteEmails, setInviteEmails] = useState(["", "", ""]);
+  const [inviteResults, setInviteResults] = useState(null);
 
   const set = (field) => (e) => setFormData({ ...formData, [field]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  // Pre-fill company name from an invite link (?company=...)
+  useEffect(() => {
+    const prefill = new URLSearchParams(location.search).get("company");
+    if (prefill) setFormData((f) => ({ ...f, company: prefill }));
+  }, [location.search]);
+
+  // Live "does this company already exist?" lookup while on the workspace step
+  useEffect(() => {
+    if (step !== "workspace") return;
+    const name = formData.company.trim();
+    if (!name) { setCompanyCheck({ loading: false, checked: false, exists: false, name: "" }); return; }
+    setCompanyCheck((c) => ({ ...c, loading: true }));
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const { data } = await api.get(`/auth/check-company?name=${encodeURIComponent(name)}`);
+        setCompanyCheck({ loading: false, checked: true, exists: data.exists, name: data.name });
+      } catch {
+        setCompanyCheck({ loading: false, checked: false, exists: false, name: "" });
+      }
+    }, 400);
+    return () => clearTimeout(debounceRef.current);
+  }, [formData.company, step]);
+
+  const handleAccountContinue = (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (!agreed) {
-      setError("You must agree to the terms and conditions.");
-      return;
-    }
+    if (formData.password.length < 8) { setError("Password must be at least 8 characters."); return; }
+    if (formData.password !== formData.confirmPassword) { setError("Passwords do not match."); return; }
+    if (!agreed) { setError("You must agree to the terms and conditions."); return; }
+    setError("");
+    setStep("workspace");
+  };
+
+  const handleWorkspaceSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.company.trim()) { setError("Company name is required."); return; }
     setError("");
     setLoading(true);
     try {
       const { data } = await api.post("/auth/register", formData);
+      if (data.token) localStorage.setItem("mis_token", data.token);
       login(data.user);
-      navigate("/dashboard");
+      setRegisteredUser(data.user);
+      setCompanyCreated(data.companyCreated);
+      setStep(data.companyCreated ? "invite" : "success");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateInviteEmail = (i, val) => setInviteEmails((prev) => prev.map((e, idx) => (idx === i ? val : e)));
+  const addInviteRow = () => setInviteEmails((prev) => (prev.length < 5 ? [...prev, ""] : prev));
+  const removeInviteRow = (i) => setInviteEmails((prev) => prev.filter((_, idx) => idx !== i));
+
+  const handleSendInvites = async () => {
+    const emails = inviteEmails.map((e) => e.trim()).filter(Boolean);
+    if (emails.length === 0) { setStep("success"); return; }
+    setLoading(true);
+    try {
+      const { data } = await api.post("/auth/invite-teammates", { emails });
+      setInviteResults(data.results);
+    } catch {
+      setInviteResults(emails.map((email) => ({ email, status: "failed" })));
     } finally {
       setLoading(false);
     }
@@ -212,22 +310,22 @@ const Register = () => {
 
   const labelClass = "block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.08em] mb-1.5";
 
+  const header = HEADER_COPY[step];
+  const invitedCount = (inviteResults || []).filter((r) => r.status === "invited").length;
+
   return (
     <div className="min-h-screen flex bg-white dark:bg-gray-900">
       <LeftPanel />
 
       {/* Right panel */}
       <div className="flex-1 flex items-center justify-center py-8 px-6 lg:px-12 xl:px-16 relative overflow-hidden bg-slate-50 dark:bg-gray-900">
-        {/* Dot grid */}
         <div className="absolute inset-0 pointer-events-none" style={{
           backgroundImage: "radial-gradient(circle, rgba(139,92,246,0.05) 1px, transparent 1px)",
           backgroundSize: "28px 28px",
         }} />
-        {/* Top glow */}
         <div className="absolute top-0 left-0 right-0 h-64 pointer-events-none" style={{
           background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.07) 0%, transparent 70%)",
         }} />
-        {/* Corner blob */}
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-100/60 dark:bg-indigo-900/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative w-full max-w-md">
@@ -260,7 +358,6 @@ const Register = () => {
               }} />
 
               <div className="relative">
-                {/* Logo row */}
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className="w-8 h-8 bg-white/20 border border-white/25 rounded-xl flex items-center justify-center shadow-md shadow-black/10">
                     <span className="text-white text-xs font-black select-none">A</span>
@@ -272,227 +369,317 @@ const Register = () => {
                 </div>
 
                 <h1 className="text-[22px] font-extrabold text-white tracking-tight leading-none mb-1">
-                  Create your account
+                  {header.title}
                 </h1>
-                <p className="text-violet-200/70 text-sm mb-5">
-                  Set up your workspace in seconds
-                </p>
+                <p className="text-violet-200/70 text-sm mb-5">{header.desc}</p>
 
-                {/* Onboarding step strip */}
-                <div className="flex items-center gap-1">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-full bg-white text-violet-700 flex items-center justify-center text-[10px] font-black flex-shrink-0 shadow-sm">
-                      1
-                    </div>
-                    <span className="text-xs font-semibold text-white">Account</span>
-                  </div>
-                  <div className="flex-1 h-px bg-white/25 mx-2" />
-                  <div className="flex items-center gap-1.5 opacity-45">
-                    <div className="w-5 h-5 rounded-full bg-white/20 border border-white/30 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-                      2
-                    </div>
-                    <span className="text-xs font-medium text-white">Team setup</span>
-                  </div>
-                  <div className="flex-1 h-px bg-white/25 mx-2" />
-                  <div className="flex items-center gap-1.5 opacity-45">
-                    <div className="w-5 h-5 rounded-full bg-white/20 border border-white/30 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-                      3
-                    </div>
-                    <span className="text-xs font-medium text-white">Go live</span>
-                  </div>
-                </div>
+                <ProgressStrip step={step} companyCreated={companyCreated} />
               </div>
             </div>
 
             {/* ── Form body ── */}
             <div className="px-8 py-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
 
-                {/* Name row */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className={labelClass}>First Name</label>
-                    <div className="relative">
-                      <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                      <input
-                        type="text"
-                        className={`${inputBase} pl-9`}
-                        placeholder="John"
-                        value={formData.firstName}
-                        onChange={set("firstName")}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Last Name</label>
-                    <div className="relative">
-                      <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                      <input
-                        type="text"
-                        className={`${inputBase} pl-9`}
-                        placeholder="Doe"
-                        value={formData.lastName}
-                        onChange={set("lastName")}
-                        required
-                      />
-                    </div>
-                  </div>
+              {/* Error */}
+              {error && (
+                <div className="mb-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl px-4 py-3">
+                  {error}
                 </div>
+              )}
 
-                {/* Email */}
-                <div>
-                  <label className={labelClass}>Email address</label>
-                  <div className="relative">
-                    <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
+              {/* ── Step 1: Account ── */}
+              {step === "account" && (
+                <form onSubmit={handleAccountContinue} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelClass}>First Name</label>
+                      <div className="relative">
+                        <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
+                        <input type="text" className={`${inputBase} pl-9`} placeholder="John"
+                          value={formData.firstName} onChange={set("firstName")} required />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelClass}>Last Name</label>
+                      <div className="relative">
+                        <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
+                        <input type="text" className={`${inputBase} pl-9`} placeholder="Doe"
+                          value={formData.lastName} onChange={set("lastName")} required />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Email address</label>
+                    <div className="relative">
+                      <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
+                      <input type="email" className={`${inputBase} pl-10`} placeholder="you@company.com"
+                        value={formData.email} onChange={set("email")} required />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Password</label>
+                    <div className="relative">
+                      <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        className={`${inputBase} pl-10 pr-10`}
+                        placeholder="Min. 8 characters"
+                        value={formData.password}
+                        onChange={set("password")}
+                        required
+                      />
+                      <button type="button" onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                        tabIndex={-1}>
+                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                    <StrengthBar password={formData.password} />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Confirm Password</label>
+                    <div className="relative">
+                      <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
+                      <input
+                        type={showConfirm ? "text" : "password"}
+                        className={`${inputBase} pl-10 pr-10`}
+                        placeholder="Repeat password"
+                        value={formData.confirmPassword}
+                        onChange={set("confirmPassword")}
+                        required
+                      />
+                      <button type="button" onClick={() => setShowConfirm((v) => !v)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                        tabIndex={-1}>
+                        {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                    {formData.confirmPassword && (
+                      <p className={`mt-1.5 text-[10px] font-semibold ${
+                        formData.password === formData.confirmPassword ? "text-emerald-600" : "text-red-500"
+                      }`}>
+                        {formData.password === formData.confirmPassword ? "✓ Passwords match" : "✗ Passwords don't match"}
+                      </p>
+                    )}
+                  </div>
+
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
                     <input
-                      type="email"
-                      className={`${inputBase} pl-10`}
-                      placeholder="you@company.com"
-                      value={formData.email}
-                      onChange={set("email")}
-                      required
+                      type="checkbox"
+                      checked={agreed}
+                      onChange={(e) => setAgreed(e.target.checked)}
+                      className="w-4 h-4 mt-0.5 rounded border-gray-300 text-violet-600 focus:ring-violet-500/40 cursor-pointer flex-shrink-0"
                     />
-                  </div>
-                </div>
-
-                {/* Company */}
-                <div>
-                  <label className={labelClass}>
-                    Company Name
-                    <span className="ml-1.5 text-slate-400 normal-case font-normal tracking-normal text-[10px]">optional</span>
+                    <span className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                      I agree to the{" "}
+                      <Link to="/terms" target="_blank" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 font-semibold transition-colors">
+                        terms and conditions
+                      </Link>
+                    </span>
                   </label>
-                  <div className="relative">
-                    <Briefcase size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                    <input
-                      type="text"
-                      className={`${inputBase} pl-10`}
-                      placeholder="Your Company Inc."
-                      value={formData.company}
-                      onChange={set("company")}
-                    />
-                  </div>
-                </div>
 
-                {/* Password */}
-                <div>
-                  <label className={labelClass}>Password</label>
-                  <div className="relative">
-                    <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      className={`${inputBase} pl-10 pr-10`}
-                      placeholder="Min. 8 characters"
-                      value={formData.password}
-                      onChange={set("password")}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  <button type="submit"
+                    className="w-full rounded-xl px-4 py-3.5 text-sm font-bold text-white
+                      bg-gradient-to-r from-violet-600 to-indigo-600
+                      hover:from-violet-700 hover:to-indigo-700
+                      transition-all shadow-lg shadow-violet-500/25
+                      hover:shadow-xl hover:shadow-violet-500/35 hover:-translate-y-0.5
+                      flex items-center justify-center gap-2 group">
+                    Continue
+                    <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                </form>
+              )}
+
+              {/* ── Step 2: Workspace ── */}
+              {step === "workspace" && (
+                <form onSubmit={handleWorkspaceSubmit} className="space-y-4">
+                  <div>
+                    <label className={labelClass}>Company Name</label>
+                    <div className="relative">
+                      <Briefcase size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
+                      <input type="text" className={`${inputBase} pl-10`} placeholder="Your Company Inc."
+                        value={formData.company} onChange={set("company")} required autoFocus />
+                    </div>
+
+                    {/* Live join-vs-create feedback */}
+                    <div className="mt-2 min-h-[20px]">
+                      {companyCheck.loading && (
+                        <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                          <Loader size={11} className="animate-spin" /> Checking…
+                        </p>
+                      )}
+                      {!companyCheck.loading && companyCheck.checked && companyCheck.exists && (
+                        <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                          <Check size={12} /> Joining <strong>{companyCheck.name}</strong> as an employee
+                        </p>
+                      )}
+                      {!companyCheck.loading && companyCheck.checked && !companyCheck.exists && (
+                        <p className="text-[11px] font-semibold text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
+                          <Sparkles size={12} /> Creating <strong>{formData.company.trim()}</strong> — you'll be its admin
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button type="button" onClick={() => setStep("account")}
+                      className="px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex items-center gap-1.5">
+                      <ArrowLeft size={14} /> Back
+                    </button>
+                    <button type="submit" disabled={loading}
+                      className="flex-1 rounded-xl px-4 py-3.5 text-sm font-bold text-white
+                        bg-gradient-to-r from-violet-600 to-indigo-600
+                        hover:from-violet-700 hover:to-indigo-700
+                        transition-all shadow-lg shadow-violet-500/25
+                        hover:shadow-xl hover:shadow-violet-500/35 hover:-translate-y-0.5
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                        flex items-center justify-center gap-2 group">
+                      {loading ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Creating account…
+                        </>
+                      ) : (
+                        <>
+                          Create Account
+                          <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+                        </>
+                      )}
                     </button>
                   </div>
-                  <StrengthBar password={formData.password} />
-                </div>
 
-                {/* Confirm password */}
-                <div>
-                  <label className={labelClass}>Confirm Password</label>
-                  <div className="relative">
-                    <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                    <input
-                      type={showConfirm ? "text" : "password"}
-                      className={`${inputBase} pl-10 pr-10`}
-                      placeholder="Repeat password"
-                      value={formData.confirmPassword}
-                      onChange={set("confirmPassword")}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm((v) => !v)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
-                  </div>
-                  {/* Match indicator */}
-                  {formData.confirmPassword && (
-                    <p className={`mt-1.5 text-[10px] font-semibold ${
-                      formData.password === formData.confirmPassword
-                        ? "text-emerald-600"
-                        : "text-red-500"
-                    }`}>
-                      {formData.password === formData.confirmPassword ? "✓ Passwords match" : "✗ Passwords don't match"}
-                    </p>
-                  )}
-                </div>
+                  <SecurityBadges />
+                </form>
+              )}
 
-                {/* Terms */}
-                <label className="flex items-start gap-3 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={agreed}
-                    onChange={(e) => setAgreed(e.target.checked)}
-                    className="w-4 h-4 mt-0.5 rounded border-gray-300 text-violet-600 focus:ring-violet-500/40 cursor-pointer flex-shrink-0"
-                  />
-                  <span className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                    I agree to the{" "}
-                    <a href="#" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 font-semibold transition-colors">
-                      terms and conditions
-                    </a>
-                  </span>
-                </label>
-
-                {/* Error */}
-                {error && (
-                  <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-xl px-4 py-3">
-                    {error}
-                  </div>
-                )}
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-xl px-4 py-3.5 text-sm font-bold text-white
-                    bg-gradient-to-r from-violet-600 to-indigo-600
-                    hover:from-violet-700 hover:to-indigo-700
-                    transition-all shadow-lg shadow-violet-500/25
-                    hover:shadow-xl hover:shadow-violet-500/35 hover:-translate-y-0.5
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    flex items-center justify-center gap-2 group"
-                >
-                  {loading ? (
+              {/* ── Step 3: Invite teammates (only when a new company was created) ── */}
+              {step === "invite" && (
+                <div className="space-y-4">
+                  {inviteResults === null ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Creating account…
+                      <p className="text-sm text-slate-500 dark:text-slate-400 -mt-1 mb-1">
+                        Invite up to 5 teammates to <strong>{formData.company.trim()}</strong>. You can always do this later from Settings.
+                      </p>
+                      <div className="space-y-2.5">
+                        {inviteEmails.map((email, i) => (
+                          <div key={i} className="relative flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
+                              <input
+                                type="email"
+                                className={`${inputBase} pl-10`}
+                                placeholder="teammate@company.com"
+                                value={email}
+                                onChange={(e) => updateInviteEmail(i, e.target.value)}
+                              />
+                            </div>
+                            {inviteEmails.length > 1 && (
+                              <button type="button" onClick={() => removeInviteRow(i)}
+                                className="p-2 text-slate-400 hover:text-red-500 transition-colors flex-shrink-0">
+                                <X size={16} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {inviteEmails.length < 5 && (
+                        <button type="button" onClick={addInviteRow}
+                          className="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 flex items-center gap-1">
+                          <Plus size={13} /> Add another
+                        </button>
+                      )}
+
+                      <div className="flex gap-3 pt-1">
+                        <button type="button" onClick={() => setStep("success")}
+                          className="px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                          Skip for now
+                        </button>
+                        <button type="button" onClick={handleSendInvites} disabled={loading}
+                          className="flex-1 rounded-xl px-4 py-3.5 text-sm font-bold text-white
+                            bg-gradient-to-r from-violet-600 to-indigo-600
+                            hover:from-violet-700 hover:to-indigo-700
+                            transition-all shadow-lg shadow-violet-500/25
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                            flex items-center justify-center gap-2">
+                          {loading ? <Loader size={15} className="animate-spin" /> : <ArrowRight size={15} />}
+                          {loading ? "Sending…" : "Send Invites"}
+                        </button>
+                      </div>
                     </>
                   ) : (
                     <>
-                      Create Account
-                      <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+                      <div className="space-y-2">
+                        {inviteResults.map(({ email, status }) => (
+                          <div key={email} className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700">
+                            <span className="text-sm text-slate-700 dark:text-slate-300 truncate">{email}</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${
+                              status === "invited"
+                                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400"
+                                : status === "already_registered"
+                                ? "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                                : "bg-red-50 text-red-500 dark:bg-red-900/20 dark:text-red-400"
+                            }`}>
+                              {status === "invited" ? "Invited" : status === "already_registered" ? "Already a member" : "Failed"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <button type="button" onClick={() => setStep("success")}
+                        className="w-full rounded-xl px-4 py-3.5 text-sm font-bold text-white
+                          bg-gradient-to-r from-violet-600 to-indigo-600
+                          hover:from-violet-700 hover:to-indigo-700
+                          transition-all shadow-lg shadow-violet-500/25
+                          flex items-center justify-center gap-2 group">
+                        Continue
+                        <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+                      </button>
                     </>
                   )}
-                </button>
-              </form>
+                </div>
+              )}
 
-              <SecurityBadges />
+              {/* ── Step 4: Success ── */}
+              {step === "success" && (
+                <div className="text-center py-2">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                    <PartyPopper size={28} className="text-white" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1.5">
+                    Welcome, {registeredUser?.name?.split(" ")[0] || "there"}!
+                  </h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                    {companyCreated
+                      ? <>You've created <strong>{registeredUser?.company_name}</strong> and you're its admin{invitedCount > 0 ? ` — ${invitedCount} teammate${invitedCount > 1 ? "s" : ""} invited.` : "."}</>
+                      : <>You've joined <strong>{registeredUser?.company_name}</strong> as an employee.</>}
+                  </p>
+                  <button onClick={() => navigate("/dashboard")}
+                    className="w-full rounded-xl px-4 py-3.5 text-sm font-bold text-white
+                      bg-gradient-to-r from-violet-600 to-indigo-600
+                      hover:from-violet-700 hover:to-indigo-700
+                      transition-all shadow-lg shadow-violet-500/25
+                      hover:shadow-xl hover:shadow-violet-500/35 hover:-translate-y-0.5
+                      flex items-center justify-center gap-2 group">
+                    Go to Dashboard
+                    <ArrowRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Sign in link */}
-          <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-5">
-            Already have an account?{" "}
-            <Link to="/login" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 font-semibold transition-colors">
-              Sign in →
-            </Link>
-          </p>
+          {step === "account" && (
+            <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-5">
+              Already have an account?{" "}
+              <Link to="/login" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 font-semibold transition-colors">
+                Sign in →
+              </Link>
+            </p>
+          )}
 
         </div>
       </div>

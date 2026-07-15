@@ -11,6 +11,7 @@ import FeaturesPage from "./pages/FeaturesPage";
 import DocumentationPage from "./pages/DocumentationPage";
 import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
+import TermsPage from "./pages/TermsPage";
 import Dashboard from "./pages/Dashboard";
 import ActivityFeed from "./pages/ActivityFeed";
 import Staff from "./pages/Staff";
@@ -65,6 +66,7 @@ const App = () => (
         <Route path="/documentation" element={<DocumentationPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/terms" element={<TermsPage />} />
 
         {/* ── Dashboard ────────────────────────────────────────────────── */}
         <Route path="/dashboard"     element={<Protected permission="View Dashboard"><Dashboard /></Protected>} />

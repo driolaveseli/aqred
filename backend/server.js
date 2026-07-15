@@ -18,6 +18,13 @@ const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHead
 app.use("/api/auth/login",  loginLimiter);
 app.use("/api/auth/2fa",    loginLimiter);
 
+const registerLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
+app.use("/api/auth/register", registerLimiter);
+
+// Public, unauthenticated lookup used by the registration wizard — more generous than register/login
+const checkCompanyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+app.use("/api/auth/check-company", checkCompanyLimiter);
+
 // ── Routes that bypass maintenance mode (auth + settings always accessible) ──
 app.use("/api/auth",     require("./routes/auth"));
 app.use("/api/settings", require("./routes/settings"));
