@@ -10,15 +10,7 @@
  * Safe to re-run: customers use ON CONFLICT, orders are appended.
  */
 
-const { Pool } = require("pg");
-
-const pool = new Pool({
-  user:     "postgres",
-  host:     "localhost",
-  database: "mis_db",
-  password: "REDACTED_ROTATED_CREDENTIAL",
-  port:     5432,
-});
+const pool = require("../config/db");
 
 // ── Extra customers ───────────────────────────────────────────────────────────
 

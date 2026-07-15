@@ -1,0 +1,7 @@
+import api from "./api";
+
+export const getProducts = () => api.get("/products");
+export const createProduct = (data) => api.post("/products", data);
+export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
+export const updateStock = (id, stock) => api.patch(`/products/${id}/stock`, { stock });
+export const deleteProduct = (id) => api.delete(`/products/${id}`);

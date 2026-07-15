@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const SECRET = process.env.JWT_SECRET || "mis_secret_key_2024";
+const SECRET = require("../config/jwtSecret");
 
 /**
  * Strict middleware for admin-only routes.

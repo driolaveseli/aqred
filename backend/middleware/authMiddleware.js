@@ -1,8 +1,11 @@
 const jwt = require("jsonwebtoken");
-const SECRET = process.env.JWT_SECRET || "mis_secret_key_2024";
+const SECRET = require("../config/jwtSecret");
 
 const verifyToken = (req, res, next) => {
-  const token = req.cookies?.token;
+  const authHeader = req.headers.authorization;
+  const token = (authHeader && authHeader.startsWith("Bearer "))
+    ? authHeader.slice(7)
+    : req.cookies?.token;
   if (!token) {
     return res.status(401).json({ message: "No token provided" });
   }
