@@ -1,6 +1,7 @@
 const pool = require("../config/db");
 const Order = require("../models/orderModel");
 const { createNotification } = require("../utils/notify");
+const { logEvent } = require("../utils/logger");
 
 const getOrders = async (req, res) => {
   try {
@@ -116,6 +117,9 @@ const createOrder = async (req, res) => {
 
     await client.query("COMMIT");
 
+    logEvent({ module: "orders", action: "created", req,
+      description: `Order #${order.id} created for customer ${customer_id} — $${total.toFixed(2)}`,
+      metadata: { id: order.id, total, items: items.length } });
     createNotification({
       company_id: req.user.company_id,
       title: "New Order",
@@ -219,6 +223,13 @@ const updateOrder = async (req, res) => {
     }
 
     await client.query("COMMIT");
+
+    logEvent({ module: "orders", action: "updated", req,
+      description: status
+        ? `Order #${req.params.id} status changed to ${status}`
+        : `Order #${req.params.id} updated`,
+      metadata: { id: req.params.id, status } });
+
     res.json(result.rows[0]);
   } catch (err) {
     await client.query("ROLLBACK");
@@ -264,6 +275,11 @@ const deleteOrder = async (req, res) => {
     );
 
     await client.query("COMMIT");
+
+    logEvent({ level: "WARNING", module: "orders", action: "deleted", req,
+      description: `Order #${req.params.id} deleted`,
+      metadata: { id: req.params.id } });
+
     res.json(result.rows[0]);
   } catch (err) {
     await client.query("ROLLBACK");
