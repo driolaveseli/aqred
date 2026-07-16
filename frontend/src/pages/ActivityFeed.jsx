@@ -16,13 +16,13 @@ import {
 } from "lucide-react";
 
 const typeConfig = {
-  employee: { icon: UserPlus, color: "text-blue-500", bg: "bg-blue-50" },
-  order: { icon: ShoppingCart, color: "text-violet-500", bg: "bg-violet-50" },
-  product: { icon: Package, color: "text-amber-500", bg: "bg-amber-50" },
-  customer: { icon: UserCheck, color: "text-green-500", bg: "bg-green-50" },
-  payment: { icon: CreditCard, color: "text-emerald-500", bg: "bg-emerald-50" },
-  alert: { icon: AlertTriangle, color: "text-red-500", bg: "bg-red-50" },
-  system: { icon: CheckCircle, color: "text-gray-500", bg: "bg-gray-100" },
+  employee: { icon: UserPlus, color: "text-blue-500 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/20" },
+  order: { icon: ShoppingCart, color: "text-violet-500 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-900/20" },
+  product: { icon: Package, color: "text-amber-500 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-900/20" },
+  customer: { icon: UserCheck, color: "text-green-500 dark:text-emerald-400", bg: "bg-green-50 dark:bg-emerald-900/20" },
+  payment: { icon: CreditCard, color: "text-emerald-500 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/20" },
+  alert: { icon: AlertTriangle, color: "text-red-500 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/20" },
+  system: { icon: CheckCircle, color: "text-gray-500 dark:text-gray-400", bg: "bg-gray-100 dark:bg-gray-800" },
 };
 
 const FILTERS = ["All", "Orders", "Employees", "Customers", "Products", "Payments", "Alerts"];
@@ -92,18 +92,18 @@ const ActivityFeed = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">{t("Activity Feed")}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t("Track all system events and user actions in real-time")}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{t("Activity Feed")}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Track all system events and user actions in real-time")}</p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Activity size={16} className="text-violet-500" />
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <Activity size={16} className="text-violet-500 dark:text-violet-400" />
           <span>{total} {t("events")}</span>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-1 mb-6 bg-white border border-gray-100 rounded-xl p-1.5 w-full sm:w-fit overflow-x-auto">
-        <Filter size={14} className="text-gray-400 ml-1" />
+      <div className="flex flex-wrap items-center gap-1 mb-6 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-1.5 w-full sm:w-fit overflow-x-auto">
+        <Filter size={14} className="text-gray-400 dark:text-gray-500 ml-1" />
         {FILTERS.map((f) => (
           <button
             key={f}
@@ -111,7 +111,7 @@ const ActivityFeed = () => {
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
               activeFilter === f
                 ? "bg-violet-600 text-white shadow-sm"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
             }`}
           >
             {t(f)}
@@ -124,8 +124,8 @@ const ActivityFeed = () => {
         <div className="space-y-6">
           {Object.entries(grouped).map(([date, items]) => (
             <div key={date}>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{t(date)}</h3>
-              <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+              <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">{t(date)}</h3>
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
                 {items.map((activity, idx) => {
                   const cfg = typeConfig[activity.type] || typeConfig.system;
                   const Icon = cfg.icon;
@@ -133,18 +133,18 @@ const ActivityFeed = () => {
                     <div
                       key={activity.id}
                       className={`flex items-start gap-4 px-5 py-4 ${
-                        idx !== items.length - 1 ? "border-b border-gray-50" : ""
+                        idx !== items.length - 1 ? "border-b border-gray-50 dark:border-gray-800/60" : ""
                       }`}
                     >
                       <div className={`w-9 h-9 ${cfg.bg} rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5`}>
                         <Icon size={16} className={cfg.color} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-700">
-                          <span className="font-semibold text-gray-900">{activity.user_name || t("System")}</span>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="font-semibold text-gray-900 dark:text-white">{activity.user_name || t("System")}</span>
                           {" "}{activity.description}
                         </p>
-                        <p className="text-xs text-gray-400 mt-0.5">{timeAgo(activity.timestamp)}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{timeAgo(activity.timestamp)}</p>
                       </div>
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.color} flex-shrink-0`}>
                         {t(activity.type)}
