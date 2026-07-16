@@ -32,10 +32,10 @@ const filterOrdersByRange = (orders, range) => {
 };
 
 const STATUS_COLORS = {
-  Completed:  "bg-green-50 text-green-600",
-  Cancelled:  "bg-red-50 text-red-600",
-  Processing: "bg-blue-50 text-blue-600",
-  Pending:    "bg-amber-50 text-amber-600",
+  Completed:  "bg-green-50 dark:bg-emerald-900/20 text-green-600 dark:text-emerald-400",
+  Cancelled:  "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400",
+  Processing: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
+  Pending:    "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400",
 };
 
 const SalesReports = () => {
@@ -120,16 +120,16 @@ const SalesReports = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">{t("Sales Reports")}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t("Live analytics from orders, payments, and customers")}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{t("Sales Reports")}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Live analytics from orders, payments, and customers")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button onClick={load}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 active:scale-95 transition-all">
+            className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
             <RefreshCw size={14} /> {t("Refresh")}
           </button>
           <button onClick={handleExportRevenue}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 active:scale-95 transition-all">
+            className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
             <Download size={15} /> {t("Export Revenue")}
           </button>
           <button onClick={handleExportOrders}
@@ -140,11 +140,11 @@ const SalesReports = () => {
       </div>
 
       {/* Date Range Filter */}
-      <div className="flex flex-wrap items-center gap-1 bg-white border border-gray-100 rounded-xl p-1 mb-6 w-fit">
+      <div className="flex flex-wrap items-center gap-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-1 mb-6 w-fit">
         {DATE_RANGES.map((r) => (
           <button key={r} onClick={() => setRange(r)}
             className={`px-4 py-2 text-xs font-medium rounded-lg transition-all ${
-              range === r ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"
+              range === r ? "bg-violet-600 text-white" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}>
             {t(r)}
           </button>
@@ -154,29 +154,29 @@ const SalesReports = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: t("Revenue"),            value: formatCurrency(totalRevenue),   sub: t(range),              icon: DollarSign, color: "text-green-600",  bg: "bg-green-50"  },
-          { label: t("Orders"),             value: totalOrders,                    sub: t(range),              icon: ShoppingBag,color: "text-blue-600",   bg: "bg-blue-50"   },
-          { label: t("Avg. Order Value"),   value: formatCurrency(avgOrder),       sub: t("Per transaction"),  icon: TrendingUp, color: "text-violet-600", bg: "bg-violet-50" },
-          { label: t("Payments Collected"), value: formatCurrency(totalCollected), sub: t(range),              icon: BarChart2,  color: "text-amber-600",  bg: "bg-amber-50"  },
+          { label: t("Revenue"),            value: formatCurrency(totalRevenue),   sub: t(range),              icon: DollarSign, color: "text-green-600 dark:text-emerald-400",  bg: "bg-green-50 dark:bg-emerald-900/20"  },
+          { label: t("Orders"),             value: totalOrders,                    sub: t(range),              icon: ShoppingBag,color: "text-blue-600 dark:text-blue-400",   bg: "bg-blue-50 dark:bg-blue-900/20"   },
+          { label: t("Avg. Order Value"),   value: formatCurrency(avgOrder),       sub: t("Per transaction"),  icon: TrendingUp, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-900/20" },
+          { label: t("Payments Collected"), value: formatCurrency(totalCollected), sub: t(range),              icon: BarChart2,  color: "text-amber-600 dark:text-amber-400",  bg: "bg-amber-50 dark:bg-amber-900/20"  },
         ].map(({ label, value, sub, icon: Icon, color, bg }) => (
-          <div key={label} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div key={label} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-500">{label}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
               <div className={`w-9 h-9 ${bg} rounded-xl flex items-center justify-center`}>
                 <Icon size={17} className={color} />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-xs text-gray-400 mt-1">{sub}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{sub}</p>
           </div>
         ))}
       </div>
 
       {/* Monthly Revenue Bar Chart */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-4">
-        <h3 className="font-semibold text-gray-900 mb-4">{t("Monthly Revenue")}</h3>
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-4">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t("Monthly Revenue")}</h3>
         {reportData.monthly.length === 0 ? (
-          <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
+          <div className="flex items-center justify-center h-40 text-gray-400 dark:text-gray-500 text-sm">
             {t("No data for selected period.")}
           </div>
         ) : (
@@ -194,10 +194,10 @@ const SalesReports = () => {
       </div>
 
       {/* Orders per Month Line Chart */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-4">
-        <h3 className="font-semibold text-gray-900 mb-4">{t("Orders per Month")}</h3>
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-4">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t("Orders per Month")}</h3>
         {reportData.monthly.length === 0 ? (
-          <div className="h-40 flex items-center justify-center text-gray-400 text-sm">{t("No data for selected period.")}</div>
+          <div className="h-40 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
         ) : (
           <ResponsiveContainer width="100%" height={160}>
             <LineChart data={reportData.monthly.map((m) => ({ ...m, orders: parseInt(m.orders || 0) }))}>
@@ -214,21 +214,21 @@ const SalesReports = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         {/* Top Products */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-5">
-          <h3 className="font-semibold text-gray-900 mb-1">{t("Top Products by Revenue")}</h3>
-          <p className="text-xs text-gray-400 mb-4">{range}</p>
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t("Top Products by Revenue")}</h3>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{range}</p>
           {reportData.topProducts.length === 0 ? (
-            <div className="h-40 flex items-center justify-center text-gray-400 text-sm">{t("No data for selected period.")}</div>
+            <div className="h-40 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
           ) : (
             <div className="space-y-3">
               {reportData.topProducts.map((p, i) => (
                 <div key={p.name} className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
+                  <span className="text-xs font-bold text-gray-400 dark:text-gray-500 w-4">{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-700 truncate">{p.name}</p>
-                    <p className="text-xs text-gray-400">{p.units} unit{p.units !== 1 ? "s" : ""} · {p.category || "—"}</p>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{p.name}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{p.units} unit{p.units !== 1 ? "s" : ""} · {p.category || "—"}</p>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">{formatCurrency(p.revenue)}</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(p.revenue)}</span>
                 </div>
               ))}
             </div>
@@ -236,11 +236,11 @@ const SalesReports = () => {
         </div>
 
         {/* Category Breakdown */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-5">
-          <h3 className="font-semibold text-gray-900 mb-1">{t("Revenue by Category")}</h3>
-          <p className="text-xs text-gray-400 mb-4">{range}</p>
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t("Revenue by Category")}</h3>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{range}</p>
           {reportData.categoryRevenue.length === 0 ? (
-            <div className="h-40 flex items-center justify-center text-gray-400 text-sm">{t("No data for selected period.")}</div>
+            <div className="h-40 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
           ) : (
             <div className="space-y-3">
               {reportData.categoryRevenue.map((cat) => {
@@ -248,13 +248,13 @@ const SalesReports = () => {
                 return (
                   <div key={cat.category}>
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-700">{cat.category}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{cat.category}</span>
                       <div className="text-right">
-                        <span className="text-sm font-semibold text-gray-900">{formatCurrency(cat.revenue)}</span>
-                        <span className="text-xs text-gray-400 ml-2">{pct}%</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(cat.revenue)}</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">{pct}%</span>
                       </div>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
                       <div className="h-2 rounded-full bg-violet-500" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
@@ -266,10 +266,10 @@ const SalesReports = () => {
       </div>
 
       {/* Orders Table — filtered by selected date range */}
-      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">Orders — {range}</h3>
-          <span className="text-xs text-gray-400">{filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""}</span>
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900 dark:text-white">Orders — {range}</h3>
+          <span className="text-xs text-gray-400 dark:text-gray-500">{filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""}</span>
         </div>
         {filteredOrders.length === 0 ? (
           <EmptyState
@@ -281,28 +281,28 @@ const SalesReports = () => {
           <div className="overflow-x-auto">
           <table className="w-full min-w-[520px]">
             <thead>
-              <tr className="border-b border-gray-50">
+              <tr className="border-b border-gray-50 dark:border-gray-800/60">
                 {[t("Order"), t("Customer"), t("Items"), t("Total"), t("Status"), t("Date")].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filteredOrders.map((o, idx) => (
-                <tr key={o.id} className={`hover:bg-violet-50/30 transition-colors ${idx !== filteredOrders.length - 1 ? "border-b border-gray-50" : ""}`}>
-                  <td className="px-5 py-3 text-xs font-mono text-violet-600">ORD-{String(o.id).padStart(4, "0")}</td>
+                <tr key={o.id} className={`hover:bg-violet-50/30 dark:hover:bg-violet-900/10 transition-colors ${idx !== filteredOrders.length - 1 ? "border-b border-gray-50 dark:border-gray-800/60" : ""}`}>
+                  <td className="px-5 py-3 text-xs font-mono text-violet-600 dark:text-violet-400">ORD-{String(o.id).padStart(4, "0")}</td>
                   <td className="px-5 py-3">
-                    <p className="text-sm text-gray-700">{o.customer_name || "—"}</p>
-                    {o.customer_email && <p className="text-xs text-gray-400">{o.customer_email}</p>}
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{o.customer_name || "—"}</p>
+                    {o.customer_email && <p className="text-xs text-gray-400 dark:text-gray-500">{o.customer_email}</p>}
                   </td>
-                  <td className="px-5 py-3 text-sm text-gray-500">{o.item_count || 0}</td>
-                  <td className="px-5 py-3 text-sm font-semibold text-gray-900">{formatCurrency(o.total)}</td>
+                  <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400">{o.item_count || 0}</td>
+                  <td className="px-5 py-3 text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(o.total)}</td>
                   <td className="px-5 py-3">
-                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${STATUS_COLORS[o.status] || "bg-gray-100 text-gray-500"}`}>
+                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${STATUS_COLORS[o.status] || "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"}`}>
                       {t(o.status)}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-xs text-gray-400">{formatDate(o.order_date || o.created_at)}</td>
+                  <td className="px-5 py-3 text-xs text-gray-400 dark:text-gray-500">{formatDate(o.order_date || o.created_at)}</td>
                 </tr>
               ))}
             </tbody>
