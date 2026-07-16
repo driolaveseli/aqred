@@ -31,11 +31,13 @@ export const SkeletonTable = ({ rows = 5, cols = 5 }) => (
         <div key={i} className="h-3 bg-gray-100 rounded" style={{ width: `${50 + i * 10}px` }} />
       ))}
     </div>
-    <tbody>
-      {Array.from({ length: rows }).map((_, i) => (
-        <SkeletonRow key={i} cols={cols} />
-      ))}
-    </tbody>
+    <table className="w-full">
+      <tbody>
+        {Array.from({ length: rows }).map((_, i) => (
+          <SkeletonRow key={i} cols={cols} />
+        ))}
+      </tbody>
+    </table>
   </div>
 );
 

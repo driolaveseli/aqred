@@ -225,10 +225,13 @@ const Navbar = ({ onMenuToggle }) => {
             const NotifRow = ({ n }) => {
               const { Icon, bg, color, accent } = getNotifStyle(n);
               return (
-                <button
+                <div
                   key={n.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleNotifClick(n)}
-                  className={`w-full text-left flex items-start gap-3.5 px-4 py-3.5 transition-all duration-150 relative group
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleNotifClick(n); } }}
+                  className={`w-full text-left flex items-start gap-3.5 px-4 py-3.5 transition-all duration-150 relative group cursor-pointer
                     ${!n.is_read
                       ? 'bg-gradient-to-r from-violet-50/70 via-violet-50/30 to-transparent dark:from-violet-950/30 dark:via-violet-950/10 dark:to-transparent hover:from-violet-100/70 dark:hover:from-violet-950/50'
                       : 'hover:bg-gray-50/70 dark:hover:bg-white/[0.03]'
@@ -275,7 +278,7 @@ const Navbar = ({ onMenuToggle }) => {
                       <Check size={10} className="text-gray-400 group-hover:text-green-500" />
                     </button>
                   )}
-                </button>
+                </div>
               );
             };
 
