@@ -5,9 +5,10 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Attach JWT token from localStorage as Authorization header
+// Attach JWT token as Authorization header — localStorage if "remember me" was
+// checked at login, sessionStorage otherwise (see Login.jsx/Register.jsx).
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("mis_token");
+  const token = localStorage.getItem("mis_token") || sessionStorage.getItem("mis_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -22,6 +23,7 @@ api.interceptors.response.use(
       localStorage.removeItem("mis_user");
       localStorage.removeItem("mis_token");
       sessionStorage.removeItem("mis_user");
+      sessionStorage.removeItem("mis_token");
       window.location.href = "/login";
     } else if (
       error.response?.status === 503 &&

@@ -6,6 +6,12 @@ const { logEvent } = require("../utils/logger");
 
 const SECRET = require("../config/jwtSecret");
 
+// A bcrypt hash with no matching password, used to keep login's response time
+// constant whether or not the email exists — otherwise a nonexistent email
+// returns immediately while a wrong password takes a real bcrypt.compare,
+// letting an attacker enumerate valid emails purely by timing the response.
+const DUMMY_HASH = "$2b$10$FC9EM8HbhN6l6gEZdTn8kOgotn2BRf.iwTmDvptWWuv/Oxr5XLfmi";
+
 const COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
@@ -61,6 +67,7 @@ exports.login = async (req, res) => {
       [email]
     );
     if (result.rows.length === 0) {
+      await bcrypt.compare(password, DUMMY_HASH); // constant-time-ish: don't let timing reveal the email doesn't exist
       logEvent({ level: "SECURITY", module: "auth", action: "login_failed", req,
         description: `Failed login attempt for email: ${email}` });
       return res.status(401).json({ message: "Invalid email or password" });
@@ -267,7 +274,7 @@ exports.inviteTeammates = async (req, res) => {
 };
 
 exports.logout = (_req, res) => {
-  res.clearCookie("token", { httpOnly: true, sameSite: "strict" });
+  res.clearCookie("token", { httpOnly: true, sameSite: "lax" });
   res.json({ message: "Logged out" });
 };
 

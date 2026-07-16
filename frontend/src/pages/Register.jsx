@@ -277,7 +277,11 @@ const Register = () => {
       setCompanyCreated(data.companyCreated);
       setStep(data.companyCreated ? "invite" : "success");
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      if (err.response?.status === 429) {
+        setError("Too many attempts. Please wait a few minutes and try again.");
+      } else {
+        setError(err.response?.data?.message || "Registration failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -395,7 +399,7 @@ const Register = () => {
                       <label className={labelClass}>First Name</label>
                       <div className="relative">
                         <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                        <input type="text" className={`${inputBase} pl-9`} placeholder="John"
+                        <input type="text" autoComplete="given-name" className={`${inputBase} pl-9`} placeholder="John"
                           value={formData.firstName} onChange={set("firstName")} required />
                       </div>
                     </div>
@@ -403,7 +407,7 @@ const Register = () => {
                       <label className={labelClass}>Last Name</label>
                       <div className="relative">
                         <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                        <input type="text" className={`${inputBase} pl-9`} placeholder="Doe"
+                        <input type="text" autoComplete="family-name" className={`${inputBase} pl-9`} placeholder="Doe"
                           value={formData.lastName} onChange={set("lastName")} required />
                       </div>
                     </div>
@@ -413,7 +417,7 @@ const Register = () => {
                     <label className={labelClass}>Email address</label>
                     <div className="relative">
                       <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                      <input type="email" className={`${inputBase} pl-10`} placeholder="you@company.com"
+                      <input type="email" autoComplete="username" className={`${inputBase} pl-10`} placeholder="you@company.com"
                         value={formData.email} onChange={set("email")} required />
                     </div>
                   </div>
@@ -424,6 +428,7 @@ const Register = () => {
                       <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
                       <input
                         type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
                         className={`${inputBase} pl-10 pr-10`}
                         placeholder="Min. 8 characters"
                         value={formData.password}
@@ -445,6 +450,7 @@ const Register = () => {
                       <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
                       <input
                         type={showConfirm ? "text" : "password"}
+                        autoComplete="new-password"
                         className={`${inputBase} pl-10 pr-10`}
                         placeholder="Repeat password"
                         value={formData.confirmPassword}
@@ -501,7 +507,7 @@ const Register = () => {
                     <label className={labelClass}>Company Name</label>
                     <div className="relative">
                       <Briefcase size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
-                      <input type="text" className={`${inputBase} pl-10`} placeholder="Your Company Inc."
+                      <input type="text" autoComplete="organization" className={`${inputBase} pl-10`} placeholder="Your Company Inc."
                         value={formData.company} onChange={set("company")} required autoFocus />
                     </div>
 
