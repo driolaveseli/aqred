@@ -271,7 +271,6 @@ const Register = () => {
     setLoading(true);
     try {
       const { data } = await api.post("/auth/register", formData);
-      if (data.token) localStorage.setItem("mis_token", data.token);
       login(data.user);
       setRegisteredUser(data.user);
       setCompanyCreated(data.companyCreated);

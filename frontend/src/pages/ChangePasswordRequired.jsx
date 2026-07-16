@@ -25,9 +25,9 @@ const ChangePasswordRequired = () => {
     try {
       const { data } = await changePassword({ currentPassword, newPassword });
       // Preserve whichever storage this session already lives in (localStorage
-      // if "remember me" was checked at login, sessionStorage otherwise).
+      // if "remember me" was checked at login, sessionStorage otherwise). The
+      // server already refreshed the httpOnly cookie itself.
       const remembered = !!localStorage.getItem("mis_user");
-      if (data.token) (remembered ? localStorage : sessionStorage).setItem("mis_token", data.token);
       login(data.user, remembered);
       navigate("/dashboard");
     } catch (err) {

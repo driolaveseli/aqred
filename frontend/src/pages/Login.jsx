@@ -143,12 +143,6 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const storeToken = (token) => {
-    if (!token) return;
-    const storage = rememberMe ? localStorage : sessionStorage;
-    storage.setItem("mis_token", token);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -159,7 +153,6 @@ const Login = () => {
         setTempToken(data.tempToken);
         setStep("totp");
       } else {
-        storeToken(data.token);
         login(data.user, rememberMe);
         navigate(data.user.role === "super_admin" ? "/super-admin/companies" : "/dashboard");
       }
@@ -181,7 +174,6 @@ const Login = () => {
     setLoading(true);
     try {
       const { data } = await api.post("/auth/2fa/verify", { tempToken, totpCode });
-      storeToken(data.token);
       login(data.user, rememberMe);
       navigate(data.user.role === "super_admin" ? "/super-admin/companies" : "/dashboard");
     } catch (err) {

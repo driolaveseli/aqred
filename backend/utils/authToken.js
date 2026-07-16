@@ -22,4 +22,11 @@ const fetchPermissions = async (role) => {
   }
 };
 
-module.exports = { signToken, fetchPermissions };
+const COOKIE_OPTS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  maxAge: 8 * 60 * 60 * 1000,
+};
+
+module.exports = { signToken, fetchPermissions, COOKIE_OPTS };

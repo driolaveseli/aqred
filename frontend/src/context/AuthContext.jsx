@@ -50,10 +50,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     try { await api.post("/auth/logout"); } catch { /* ignore */ }
-    [localStorage, sessionStorage].forEach(s => {
-      s.removeItem(STORAGE_KEY_USER);
-      s.removeItem("mis_token");
-    });
+    [localStorage, sessionStorage].forEach(s => s.removeItem(STORAGE_KEY_USER));
     setUser(null);
   }, []);
 

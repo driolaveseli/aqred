@@ -1,10 +1,10 @@
 const express = require("express");
 const router  = express.Router();
-const requireAuth = require("../middleware/requireAuth");
+const { verifyToken } = require("../middleware/authMiddleware");
 const ctrl = require("../controllers/settingsController");
 
 // All settings routes require authentication
-router.use(requireAuth);
+router.use(verifyToken);
 
 // Profile
 router.get("/profile",    ctrl.getProfile);
