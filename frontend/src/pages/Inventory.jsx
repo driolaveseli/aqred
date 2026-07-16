@@ -19,15 +19,15 @@ const fmt = (v) => new Intl.NumberFormat("en-US", { style: "currency", currency:
 const getStatus = (stock, reorder) => {
   const r = Number(reorder) || 10;
   const s = Number(stock)  || 0;
-  if (s === 0) return { label: "Out of Stock", cls: "bg-red-50 text-red-600",    bar: "bg-red-400",    filter: "Out of Stock" };
-  if (s <= r)  return { label: "Low Stock",    cls: "bg-amber-50 text-amber-600", bar: "bg-amber-400",  filter: "Low Stock"    };
-  return              { label: "In Stock",     cls: "bg-green-50 text-green-600", bar: "bg-green-400",  filter: "In Stock"     };
+  if (s === 0) return { label: "Out of Stock", cls: "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400",    bar: "bg-red-400",    filter: "Out of Stock" };
+  if (s <= r)  return { label: "Low Stock",    cls: "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400", bar: "bg-amber-400",  filter: "Low Stock"    };
+  return              { label: "In Stock",     cls: "bg-green-50 dark:bg-emerald-900/20 text-green-600 dark:text-emerald-400", bar: "bg-green-400",  filter: "In Stock"     };
 };
 
 /* ─── Toast ──────────────────────────────────────────────────────────────── */
 const Toast = ({ msg, type, onClose }) => (
   <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium
-    ${type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
+    ${type === "success" ? "bg-green-50 dark:bg-emerald-900/30 text-green-700 dark:text-emerald-300 border border-green-100 dark:border-emerald-800" : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-800"}`}>
     <CheckCircle size={16} /> {msg}
     <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100"><X size={14} /></button>
   </div>
@@ -35,10 +35,10 @@ const Toast = ({ msg, type, onClose }) => (
 
 /* ─── Sort icon ──────────────────────────────────────────────────────────── */
 const SortIcon = ({ field, sortField, sortDir }) => {
-  if (sortField !== field) return <ChevronsUpDown size={12} className="text-gray-300 ml-1 inline-block" />;
+  if (sortField !== field) return <ChevronsUpDown size={12} className="text-gray-300 dark:text-gray-600 ml-1 inline-block" />;
   return sortDir === "asc"
-    ? <ChevronUp   size={12} className="text-violet-500 ml-1 inline-block" />
-    : <ChevronDown size={12} className="text-violet-500 ml-1 inline-block" />;
+    ? <ChevronUp   size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />
+    : <ChevronDown size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />;
 };
 
 const DELTA_PRESETS = [-10, -5, -1, +1, +5, +10];
@@ -178,7 +178,7 @@ const Inventory = () => {
   const SortTh = ({ field, children, className = "" }) => (
     <th
       onClick={() => handleSort(field)}
-      className={`px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:text-gray-600 transition-colors ${className}`}
+      className={`px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300 transition-colors ${className}`}
     >
       {children}<SortIcon field={field} sortField={sortField} sortDir={sortDir} />
     </th>
@@ -195,11 +195,11 @@ const Inventory = () => {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t("Inventory")}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t("Real-time stock levels — adjust quantities directly here")}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t("Inventory")}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Real-time stock levels — adjust quantities directly here")}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 active:scale-95 transition-all">
+          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
             <Download size={15} /> {t("Export CSV")}
           </button>
           <button
@@ -214,19 +214,19 @@ const Inventory = () => {
       {/* ── Stat cards (clickable filter shortcuts) ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: t("Total Items"),    value: stats.total,     icon: Boxes,         color: "text-violet-600", bg: "bg-violet-50",  filter: "All"          },
-          { label: t("In Stock"),       value: inStockCount,    icon: CheckCircle,   color: "text-green-600",  bg: "bg-green-50",   filter: "In Stock"     },
-          { label: t("Low Stock"),      value: lowStockCount,   icon: TrendingDown,  color: "text-amber-600",  bg: "bg-amber-50",   filter: "Low Stock"    },
-          { label: t("Out of Stock"),   value: outOfStockCount, icon: AlertTriangle, color: "text-red-600",    bg: "bg-red-50",     filter: "Out of Stock" },
+          { label: t("Total Items"),    value: stats.total,     icon: Boxes,         color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-900/20",  filter: "All"          },
+          { label: t("In Stock"),       value: inStockCount,    icon: CheckCircle,   color: "text-green-600 dark:text-emerald-400",  bg: "bg-green-50 dark:bg-emerald-900/20",   filter: "In Stock"     },
+          { label: t("Low Stock"),      value: lowStockCount,   icon: TrendingDown,  color: "text-amber-600 dark:text-amber-400",  bg: "bg-amber-50 dark:bg-amber-900/20",   filter: "Low Stock"    },
+          { label: t("Out of Stock"),   value: outOfStockCount, icon: AlertTriangle, color: "text-red-600 dark:text-red-400",    bg: "bg-red-50 dark:bg-red-900/20",     filter: "Out of Stock" },
         ].map(({ label, value, icon: Icon, color, bg, filter }) => (
           <button
             key={label}
             onClick={() => setStockFilter(stockFilter === filter ? "All" : filter)}
-            className={`text-left bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer
-              ${stockFilter === filter ? "border-violet-300 ring-2 ring-violet-100" : "border-gray-100"}`}
+            className={`text-left bg-white dark:bg-gray-900 border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer
+              ${stockFilter === filter ? "border-violet-300 dark:border-violet-700 ring-2 ring-violet-100 dark:ring-violet-900/30" : "border-gray-100 dark:border-gray-800"}`}
           >
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-gray-500">{label}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
               <div className={`w-9 h-9 ${bg} rounded-xl flex items-center justify-center`}>
                 <Icon size={17} className={color} />
               </div>
@@ -237,20 +237,20 @@ const Inventory = () => {
       </div>
 
       {/* ── Total value banner ── */}
-      <div className="flex items-center justify-between px-5 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm mb-4">
+      <div className="flex items-center justify-between px-5 py-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Package size={15} className="text-blue-600" />
+          <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Package size={15} className="text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="text-xs text-gray-400">{t("Total Inventory Value")}</p>
-            <p className="text-lg font-bold text-blue-600">{fmt(totalValue)}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{t("Total Inventory Value")}</p>
+            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{fmt(totalValue)}</p>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-6 text-xs text-gray-400">
+        <div className="hidden sm:flex items-center gap-6 text-xs text-gray-400 dark:text-gray-500">
           <span>{stats.total} {t("products tracked")}</span>
           {(lowStockCount + outOfStockCount) > 0 && (
-            <span className="flex items-center gap-1 text-amber-600 font-medium">
+            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
               <AlertTriangle size={12} />
               {lowStockCount + outOfStockCount} {t("need attention")}
             </span>
@@ -262,28 +262,28 @@ const Inventory = () => {
       <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 mb-3">
         {/* Search */}
         <div className="relative w-full sm:flex-1 sm:max-w-sm">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t("Search by name, SKU, or category...")}
-            className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+            className="w-full pl-9 pr-9 py-2.5 bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400">
               <X size={13} />
             </button>
           )}
         </div>
 
         {/* Stock status filter */}
-        <div className="flex items-center gap-1 bg-white border border-gray-100 rounded-xl p-1 flex-shrink-0">
+        <div className="flex items-center gap-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-1 flex-shrink-0">
           {["All", "In Stock", "Low Stock", "Out of Stock"].map((f) => (
             <button
               key={f}
               onClick={() => setStockFilter(f)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${stockFilter === f ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${stockFilter === f ? "bg-violet-600 text-white" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"}`}
             >
               {t(f)}
             </button>
@@ -294,10 +294,10 @@ const Inventory = () => {
       {/* ── Category tabs (horizontal scrollable) ── */}
       {categories.length > 0 && (
         <div className="overflow-x-auto mb-4 -mx-0.5 px-0.5">
-          <div className="flex items-center gap-1 bg-white border border-gray-100 rounded-xl p-1 w-max">
+          <div className="flex items-center gap-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-1 w-max">
             <button
               onClick={() => setCatFilter("All")}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${catFilter === "All" ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${catFilter === "All" ? "bg-violet-600 text-white" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"}`}
             >
               {t("All Categories")}
             </button>
@@ -305,7 +305,7 @@ const Inventory = () => {
               <button
                 key={c}
                 onClick={() => setCatFilter(catFilter === c ? "All" : c)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${catFilter === c ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${catFilter === c ? "bg-violet-600 text-white" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"}`}
               >
                 {c}
               </button>
@@ -315,20 +315,20 @@ const Inventory = () => {
       )}
 
       {/* ── Table ── */}
-      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px]">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("SKU")}</th>
+              <tr className="border-b border-gray-100 dark:border-gray-800">
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("SKU")}</th>
                 <SortTh field="name">{t("Product")}</SortTh>
                 <SortTh field="category">{t("Category")}</SortTh>
                 <SortTh field="stock">{t("Stock")}</SortTh>
-                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Reorder")}</th>
-                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Unit Price")}</th>
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Reorder")}</th>
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Unit Price")}</th>
                 <SortTh field="value">{t("Value")}</SortTh>
-                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Status")}</th>
-                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Actions")}</th>
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Status")}</th>
+                <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -341,24 +341,24 @@ const Inventory = () => {
                 return (
                   <tr
                     key={p.id}
-                    className={`${idx !== filtered.length - 1 ? "border-b border-gray-50" : ""} hover:bg-violet-50/30 transition-colors`}
+                    className={`${idx !== filtered.length - 1 ? "border-b border-gray-50 dark:border-gray-800/60" : ""} hover:bg-violet-50/30 dark:hover:bg-violet-900/10 transition-colors`}
                   >
-                    <td className="px-4 py-4 text-xs font-mono text-gray-400">{p.sku || "—"}</td>
+                    <td className="px-4 py-4 text-xs font-mono text-gray-400 dark:text-gray-500">{p.sku || "—"}</td>
 
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Package size={14} className="text-violet-400" />
+                        <div className="w-8 h-8 bg-violet-50 dark:bg-violet-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Package size={14} className="text-violet-400 dark:text-violet-500" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{p.name}</p>
-                          {p.description && <p className="text-xs text-gray-400 truncate max-w-[140px]">{p.description}</p>}
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{p.name}</p>
+                          {p.description && <p className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[140px]">{p.description}</p>}
                         </div>
                       </div>
                     </td>
 
                     <td className="px-4 py-4">
-                      <span className="px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded-full">
+                      <span className="px-2.5 py-1 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full">
                         {p.category || "—"}
                       </span>
                     </td>
@@ -369,25 +369,25 @@ const Inventory = () => {
                         <button
                           onClick={() => handleQuickAdjust(p, -1)}
                           disabled={stock === 0}
-                          className="opacity-0 group-hover/stock:opacity-100 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all disabled:opacity-0 disabled:cursor-not-allowed"
+                          className="opacity-0 group-hover/stock:opacity-100 w-6 h-6 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all disabled:opacity-0 disabled:cursor-not-allowed"
                           title={t("Decrease by 1")}
                         >
                           <Minus size={11} />
                         </button>
                         <div>
                           <div className="flex items-center gap-1">
-                            <span className={`text-sm font-bold ${stock === 0 ? "text-red-600" : stock <= reorder ? "text-amber-600" : "text-gray-900"}`}>
+                            <span className={`text-sm font-bold ${stock === 0 ? "text-red-600 dark:text-red-400" : stock <= reorder ? "text-amber-600 dark:text-amber-400" : "text-gray-900 dark:text-white"}`}>
                               {stock}
                             </span>
-                            <span className="text-xs text-gray-400">{t("units")}</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500">{t("units")}</span>
                           </div>
-                          <div className="mt-1 w-20 bg-gray-100 rounded-full h-1.5">
+                          <div className="mt-1 w-20 bg-gray-100 dark:bg-gray-800 rounded-full h-1.5">
                             <div className={`h-1.5 rounded-full transition-all duration-300 ${status.bar}`} style={{ width: `${barPct}%` }} />
                           </div>
                         </div>
                         <button
                           onClick={() => handleQuickAdjust(p, 1)}
-                          className="opacity-0 group-hover/stock:opacity-100 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all"
+                          className="opacity-0 group-hover/stock:opacity-100 w-6 h-6 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-md transition-all"
                           title={t("Increase by 1")}
                         >
                           <Plus size={11} />
@@ -395,9 +395,9 @@ const Inventory = () => {
                       </div>
                     </td>
 
-                    <td className="px-4 py-4 text-sm text-gray-500">{reorder}</td>
-                    <td className="px-4 py-4 text-sm text-gray-700">{fmt(p.price)}</td>
-                    <td className="px-4 py-4 text-sm font-semibold text-gray-900">{fmt(stock * Number(p.price || 0))}</td>
+                    <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{reorder}</td>
+                    <td className="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">{fmt(p.price)}</td>
+                    <td className="px-4 py-4 text-sm font-semibold text-gray-900 dark:text-white">{fmt(stock * Number(p.price || 0))}</td>
                     <td className="px-4 py-4">
                       <span className={`px-2.5 py-1 text-xs font-medium rounded-full whitespace-nowrap ${status.cls}`}>
                         {t(status.label)}
@@ -406,7 +406,7 @@ const Inventory = () => {
                     <td className="px-4 py-4">
                       <button
                         onClick={() => openAdjust(p)}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-violet-600 hover:bg-violet-50 rounded-lg transition-colors border border-violet-100 active:scale-95"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors border border-violet-100 dark:border-violet-800/50 active:scale-95"
                       >
                         <Edit2 size={12} /> {t("Adjust")}
                       </button>
@@ -443,26 +443,26 @@ const Inventory = () => {
       {/* ── Adjust Stock Modal ── */}
       {adjusting && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-auto">
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
               <div>
-                <h2 className="font-bold text-gray-900">{t("Adjust Stock")}</h2>
-                <p className="text-xs text-gray-400 mt-0.5">{t("Update quantity for this product")}</p>
+                <h2 className="font-bold text-gray-900 dark:text-white">{t("Adjust Stock")}</h2>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{t("Update quantity for this product")}</p>
               </div>
-              <button onClick={() => setAdjusting(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+              <button onClick={() => setAdjusting(null)} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"><X size={18} /></button>
             </div>
 
             <div className="px-6 py-5 space-y-5">
               {/* Product info */}
-              <div className="flex items-center gap-3 p-3.5 bg-gray-50 rounded-xl">
-                <div className="w-9 h-9 bg-violet-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Package size={16} className="text-violet-500" />
+              <div className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
+                <div className="w-9 h-9 bg-violet-50 dark:bg-violet-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Package size={16} className="text-violet-500 dark:text-violet-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{adjusting.name}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{adjusting.name}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                     {adjusting.sku ? `${adjusting.sku} · ` : ""}{t("Reorder at")} {adjusting.reorder_point ?? 10} {t("units")}
                   </p>
                 </div>
@@ -473,14 +473,14 @@ const Inventory = () => {
 
               {/* Current stock */}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">{t("Current stock")}</span>
-                <span className="text-lg font-bold text-gray-900">{adjusting.stock ?? 0} <span className="text-sm font-normal text-gray-400">{t("units")}</span></span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">{t("Current stock")}</span>
+                <span className="text-lg font-bold text-gray-900 dark:text-white">{adjusting.stock ?? 0} <span className="text-sm font-normal text-gray-400 dark:text-gray-500">{t("units")}</span></span>
               </div>
 
               <form onSubmit={handleAdjust} className="space-y-4">
                 {/* Quick delta buttons */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{t("Quick Adjust")}</p>
+                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">{t("Quick Adjust")}</p>
                   <div className="grid grid-cols-6 gap-1.5">
                     {DELTA_PRESETS.map((d) => {
                       const wouldGoNegative = Number(newStock || 0) + d < 0;
@@ -492,8 +492,8 @@ const Inventory = () => {
                           onClick={() => applyDelta(d)}
                           className={`py-2 text-xs font-semibold rounded-lg transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed
                             ${d < 0
-                              ? "bg-red-50 text-red-600 hover:bg-red-100"
-                              : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                              ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30"
+                              : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"}`}
                         >
                           {d > 0 ? `+${d}` : d}
                         </button>
@@ -504,13 +504,13 @@ const Inventory = () => {
 
                 {/* Set exact value */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{t("Set Exact Quantity")}</label>
+                  <label className="block text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">{t("Set Exact Quantity")}</label>
                   <input
                     type="number"
                     min="0"
                     required
                     autoFocus
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-lg font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                    className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl px-4 py-3 text-lg font-bold text-gray-900 dark:text-white text-center focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                     value={newStock}
                     onChange={(e) => setNewStock(e.target.value)}
                   />
@@ -519,17 +519,17 @@ const Inventory = () => {
                 {/* Preview */}
                 {previewChanged && previewStatus && (
                   <div className={`flex items-center justify-between px-4 py-3 rounded-xl border
-                    ${previewDelta > 0 ? "bg-emerald-50 border-emerald-100" : previewDelta < 0 ? "bg-red-50 border-red-100" : "bg-gray-50 border-gray-100"}`}>
-                    <div className="text-xs text-gray-600">
+                    ${previewDelta > 0 ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/50" : previewDelta < 0 ? "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/50" : "bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700"}`}>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
                       <span className="font-semibold">{adjusting.stock ?? 0}</span>
-                      <span className="mx-1.5 text-gray-400">→</span>
-                      <span className={`font-bold text-base ${previewDelta > 0 ? "text-emerald-600" : "text-red-600"}`}>
+                      <span className="mx-1.5 text-gray-400 dark:text-gray-500">→</span>
+                      <span className={`font-bold text-base ${previewDelta > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
                         {newStock}
                       </span>
-                      <span className="text-gray-400 ml-1">{t("units")}</span>
+                      <span className="text-gray-400 dark:text-gray-500 ml-1">{t("units")}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs font-semibold ${previewDelta > 0 ? "text-emerald-600" : "text-red-600"}`}>
+                      <span className={`text-xs font-semibold ${previewDelta > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
                         {previewDelta > 0 ? `+${previewDelta}` : previewDelta}
                       </span>
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${previewStatus.cls}`}>
@@ -540,7 +540,7 @@ const Inventory = () => {
                 )}
 
                 <div className="flex gap-3 pt-1">
-                  <button type="button" onClick={() => setAdjusting(null)} className="flex-1 px-4 py-2 text-sm border border-gray-200 rounded-xl hover:bg-gray-50 active:scale-95 transition-all">
+                  <button type="button" onClick={() => setAdjusting(null)} className="flex-1 px-4 py-2 text-sm border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95 transition-all">
                     {t("Cancel")}
                   </button>
                   <button
