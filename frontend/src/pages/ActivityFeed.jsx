@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSystem } from "../context/SystemContext";
+import { getActivity } from "../services/activityService";
+import Pagination from "../components/UI/Pagination";
+import EmptyState from "../components/UI/EmptyState";
 import {
   Activity,
   UserPlus,
@@ -22,44 +25,65 @@ const typeConfig = {
   system: { icon: CheckCircle, color: "text-gray-500", bg: "bg-gray-100" },
 };
 
-const activities = [
-  { id: 1, type: "order", user: "John Smith", action: "placed a new order", target: "Order #1042", time: "2 minutes ago", date: "Today" },
-  { id: 2, type: "employee", user: "Admin", action: "added new employee", target: "Sarah Connor", time: "15 minutes ago", date: "Today" },
-  { id: 3, type: "payment", user: "System", action: "payment received for", target: "Invoice #INV-2024-089", time: "32 minutes ago", date: "Today" },
-  { id: 4, type: "product", user: "Admin", action: "updated stock for", target: "Wireless Keyboard", time: "1 hour ago", date: "Today" },
-  { id: 5, type: "alert", user: "System", action: "low stock alert triggered for", target: "USB-C Hub (3 remaining)", time: "2 hours ago", date: "Today" },
-  { id: 6, type: "customer", user: "Admin", action: "registered new customer", target: "TechCorp Ltd.", time: "3 hours ago", date: "Today" },
-  { id: 7, type: "order", user: "Emily Davis", action: "updated status of", target: "Order #1039 → Shipped", time: "5 hours ago", date: "Today" },
-  { id: 8, type: "system", user: "System", action: "completed daily backup", target: "Database snapshot saved", time: "6 hours ago", date: "Today" },
-  { id: 9, type: "employee", user: "Admin", action: "updated role for", target: "Mike Johnson → Manager", time: "Yesterday", date: "Yesterday" },
-  { id: 10, type: "payment", user: "System", action: "payment failed for", target: "Invoice #INV-2024-085", time: "Yesterday", date: "Yesterday" },
-  { id: 11, type: "product", user: "Admin", action: "added new product", target: "Ergonomic Chair Pro", time: "Yesterday", date: "Yesterday" },
-  { id: 12, type: "customer", user: "Sales Team", action: "updated contact for", target: "GlobalTech Inc.", time: "2 days ago", date: "Earlier" },
-];
-
 const FILTERS = ["All", "Orders", "Employees", "Customers", "Products", "Payments", "Alerts"];
 
 const filterMap = {
-  All: null,
-  Orders: "order",
-  Employees: "employee",
-  Customers: "customer",
-  Products: "product",
-  Payments: "payment",
-  Alerts: "alert",
+  All: "All", Orders: "order", Employees: "employee", Customers: "customer",
+  Products: "product", Payments: "payment", Alerts: "alert",
+};
+
+const timeAgo = (ts) => {
+  const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 172800) return "Yesterday";
+  return `${Math.floor(diff / 86400)}d ago`;
+};
+
+const dateGroup = (ts) => {
+  const d = new Date(ts);
+  const now = new Date();
+  const isSameDay = (a, b) => a.toDateString() === b.toDateString();
+  if (isSameDay(d, now)) return "Today";
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (isSameDay(d, yesterday)) return "Yesterday";
+  return "Earlier";
 };
 
 const ActivityFeed = () => {
   const { t } = useSystem();
   const [activeFilter, setActiveFilter] = useState("All");
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = activities.filter(
-    (a) => filterMap[activeFilter] === null || a.type === filterMap[activeFilter]
-  );
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const grouped = filtered.reduce((acc, item) => {
-    if (!acc[item.date]) acc[item.date] = [];
-    acc[item.date].push(item);
+  useEffect(() => { setPage(1); }, [activeFilter]);
+
+  const load = useCallback(async () => {
+    try {
+      const { data } = await getActivity({ page, limit: pageSize, type: filterMap[activeFilter] });
+      setEvents(data.data);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
+    } catch {
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, pageSize, activeFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const grouped = events.reduce((acc, item) => {
+    const group = dateGroup(item.timestamp);
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(item);
     return acc;
   }, {});
 
@@ -73,7 +97,7 @@ const ActivityFeed = () => {
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <Activity size={16} className="text-violet-500" />
-          <span>{activities.length} total events</span>
+          <span>{total} {t("events")}</span>
         </div>
       </div>
 
@@ -90,56 +114,67 @@ const ActivityFeed = () => {
                 : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
           >
-            {f}
+            {t(f)}
           </button>
         ))}
       </div>
 
       {/* Timeline */}
-      <div className="space-y-6">
-        {Object.entries(grouped).map(([date, items]) => (
-          <div key={date}>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{date}</h3>
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-              {items.map((activity, idx) => {
-                const cfg = typeConfig[activity.type];
-                const Icon = cfg.icon;
-                return (
-                  <div
-                    key={activity.id}
-                    className={`flex items-start gap-4 px-5 py-4 ${
-                      idx !== items.length - 1 ? "border-b border-gray-50" : ""
-                    }`}
-                  >
-                    <div className={`w-9 h-9 ${cfg.bg} rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                      <Icon size={16} className={cfg.color} />
+      {!loading && (
+        <div className="space-y-6">
+          {Object.entries(grouped).map(([date, items]) => (
+            <div key={date}>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{t(date)}</h3>
+              <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+                {items.map((activity, idx) => {
+                  const cfg = typeConfig[activity.type] || typeConfig.system;
+                  const Icon = cfg.icon;
+                  return (
+                    <div
+                      key={activity.id}
+                      className={`flex items-start gap-4 px-5 py-4 ${
+                        idx !== items.length - 1 ? "border-b border-gray-50" : ""
+                      }`}
+                    >
+                      <div className={`w-9 h-9 ${cfg.bg} rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                        <Icon size={16} className={cfg.color} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-700">
+                          <span className="font-semibold text-gray-900">{activity.user_name || t("System")}</span>
+                          {" "}{activity.description}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">{timeAgo(activity.timestamp)}</p>
+                      </div>
+                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.color} flex-shrink-0`}>
+                        {t(activity.type)}
+                      </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-700">
-                        <span className="font-semibold text-gray-900">{activity.user}</span>
-                        {" "}{activity.action}{" "}
-                        <span className="font-medium text-violet-600">{activity.target}</span>
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{activity.time}</p>
-                    </div>
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.color} flex-shrink-0`}>
-                      {activity.type}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {filtered.length === 0 && (
-          <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center">
-            <Activity size={32} className="text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">No activity found</p>
-            <p className="text-sm text-gray-400 mt-1">Try a different filter</p>
-          </div>
-        )}
-      </div>
+          {events.length === 0 && (
+            <EmptyState
+              icon={Activity}
+              title={t("No activity found")}
+              description={activeFilter !== "All" ? t("Try a different filter") : t("Actions across the app will show up here.")}
+            />
+          )}
+        </div>
+      )}
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+        itemLabel={t("events")}
+      />
     </div>
   );
 };
