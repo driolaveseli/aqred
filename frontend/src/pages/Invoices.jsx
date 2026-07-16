@@ -18,11 +18,11 @@ import Pagination from "../components/UI/Pagination";
 // in SQL — the row already arrives with `invoice_status` set.
 
 const statusConfig = {
-  Paid:             { icon: CheckCircle,  cls: "bg-green-50 text-green-600 border-green-200" },
-  "Partially Paid": { icon: Clock,        cls: "bg-blue-50 text-blue-600 border-blue-200" },
-  Unpaid:           { icon: Clock,        cls: "bg-amber-50 text-amber-600 border-amber-200" },
-  Overdue:          { icon: AlertCircle,  cls: "bg-red-50 text-red-600 border-red-200" },
-  Cancelled:        { icon: MinusCircle,  cls: "bg-gray-100 text-gray-500 border-gray-200" },
+  Paid:             { icon: CheckCircle,  cls: "bg-green-50 dark:bg-emerald-900/20 text-green-600 dark:text-emerald-400 border-green-200 dark:border-emerald-800" },
+  "Partially Paid": { icon: Clock,        cls: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800" },
+  Unpaid:           { icon: Clock,        cls: "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800" },
+  Overdue:          { icon: AlertCircle,  cls: "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800" },
+  Cancelled:        { icon: MinusCircle,  cls: "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700" },
 };
 
 const FILTERS = ["All", "Paid", "Partially Paid", "Unpaid", "Overdue"];
@@ -30,6 +30,9 @@ const FILTERS = ["All", "Paid", "Partially Paid", "Unpaid", "Overdue"];
 const canPay = (status) => ["Unpaid", "Overdue", "Partially Paid"].includes(status);
 
 // ─── print helper ────────────────────────────────────────────────────────────
+// Renders a standalone printable document in a new window - deliberately kept
+// as plain light-on-white HTML regardless of the app's theme, since it's meant
+// to be printed on paper, not viewed on screen.
 
 const printInvoice = (inv, items, companyName, formatCurrency) => {
   const displayItems = items.length > 0
@@ -168,21 +171,21 @@ const InvoiceModal = ({ inv, onClose, onMarkPaid, markingId, formatCurrency, com
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
 
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
-          <p className="text-sm font-semibold text-gray-500">{t("Invoice Preview")}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
+          <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">{t("Invoice Preview")}</p>
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => onPrint(inv, items)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gray-50 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-100 active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 active:scale-95"
             >
               <Printer size={13} /> {t("Print / Save PDF")}
             </button>
             <button
               onClick={() => onEmail(inv, items)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-50 border border-blue-100 text-blue-600 rounded-lg hover:bg-blue-100 active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 active:scale-95"
             >
               <Mail size={13} /> {t("Send Email")}
             </button>
@@ -196,7 +199,7 @@ const InvoiceModal = ({ inv, onClose, onMarkPaid, markingId, formatCurrency, com
                 {inv.invoiceStatus === "Partially Paid" ? t("Pay Balance") : t("Mark as Paid")}
               </button>
             )}
-            <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg">
+            <button onClick={onClose} className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">
               <X size={16} />
             </button>
           </div>
@@ -219,23 +222,23 @@ const InvoiceModal = ({ inv, onClose, onMarkPaid, markingId, formatCurrency, com
           </div>
 
           {/* Meta strip */}
-          <div className="bg-violet-50 border border-violet-100 border-t-0 rounded-b-xl px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-6">
+          <div className="bg-violet-50 dark:bg-violet-900/10 border border-violet-100 dark:border-violet-800/40 border-t-0 rounded-b-xl px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-6">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">{t("Bill To")}</p>
-              <p className="font-semibold text-gray-800">{inv.customer_name || "—"}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{inv.customer_email || ""}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">{t("Bill To")}</p>
+              <p className="font-semibold text-gray-800 dark:text-gray-100">{inv.customer_name || "—"}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{inv.customer_email || ""}</p>
             </div>
             <div className="flex flex-wrap gap-4 sm:gap-8 sm:text-right">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">{t("Issue Date")}</p>
-                <p className="text-sm font-semibold text-gray-700">{inv.issued}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">{t("Issue Date")}</p>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{inv.issued}</p>
               </div>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">{t("Due Date")}</p>
-                <p className="text-sm font-semibold text-gray-700">{inv.dueDisplay}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">{t("Due Date")}</p>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{inv.dueDisplay}</p>
               </div>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">{t("Status")}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">{t("Status")}</p>
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full border ${cfg.cls}`}>
                   <Icon size={10} /> {t(inv.invoiceStatus)}
                 </span>
@@ -247,24 +250,24 @@ const InvoiceModal = ({ inv, onClose, onMarkPaid, markingId, formatCurrency, com
           <div className="mb-6 overflow-x-auto">
             <table className="w-full min-w-[400px]">
               <thead>
-                <tr className="border-b-2 border-gray-100">
+                <tr className="border-b-2 border-gray-100 dark:border-gray-800">
                   {[t("Description"), t("Qty"), t("Unit Price"), t("Amount")].map((h, i) => (
-                    <th key={h} className={`pb-2.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400 ${i === 0 ? "text-left" : i === 1 ? "text-center" : "text-right"}`}>{h}</th>
+                    <th key={h} className={`pb-2.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 ${i === 0 ? "text-left" : i === 1 ? "text-center" : "text-right"}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {loadingItems ? (
-                  <tr><td colSpan={4} className="py-6 text-center text-sm text-gray-400">Loading items...</td></tr>
+                  <tr><td colSpan={4} className="py-6 text-center text-sm text-gray-400 dark:text-gray-500">Loading items...</td></tr>
                 ) : displayItems.map((it, idx) => (
-                  <tr key={idx} className="border-b border-gray-50">
-                    <td className="py-3 text-sm text-gray-800">
+                  <tr key={idx} className="border-b border-gray-50 dark:border-gray-800/60">
+                    <td className="py-3 text-sm text-gray-800 dark:text-gray-200">
                       {it.product_name || "—"}
-                      {it._fallback && <span className="ml-2 text-[10px] text-gray-400 italic">line items not recorded</span>}
+                      {it._fallback && <span className="ml-2 text-[10px] text-gray-400 dark:text-gray-500 italic">line items not recorded</span>}
                     </td>
-                    <td className="py-3 text-sm text-gray-600 text-center">{it.quantity}</td>
-                    <td className="py-3 text-sm text-gray-600 text-right">{formatCurrency(it.unit_price || 0)}</td>
-                    <td className="py-3 text-sm font-medium text-gray-800 text-right">
+                    <td className="py-3 text-sm text-gray-600 dark:text-gray-400 text-center">{it.quantity}</td>
+                    <td className="py-3 text-sm text-gray-600 dark:text-gray-400 text-right">{formatCurrency(it.unit_price || 0)}</td>
+                    <td className="py-3 text-sm font-medium text-gray-800 dark:text-gray-200 text-right">
                       {formatCurrency((it.unit_price || 0) * (it.quantity || 0))}
                     </td>
                   </tr>
@@ -276,27 +279,27 @@ const InvoiceModal = ({ inv, onClose, onMarkPaid, markingId, formatCurrency, com
           {/* Totals */}
           <div className="flex justify-end mb-6">
             <div className="w-64 space-y-1.5">
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
                 <span>{t("Subtotal")}</span>
-                <span className="font-medium text-gray-700">{formatCurrency(subtotal)}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-300">{formatCurrency(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
                 <span>{t("Tax (0%)")}</span>
-                <span className="font-medium text-gray-700">{formatCurrency(0)}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-300">{formatCurrency(0)}</span>
               </div>
-              <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t-2 border-gray-100">
+              <div className="flex justify-between text-base font-bold text-gray-900 dark:text-white pt-2 border-t-2 border-gray-100 dark:border-gray-800">
                 <span>{t("Total")}</span>
-                <span className="text-violet-600 text-lg">{formatCurrency(subtotal)}</span>
+                <span className="text-violet-600 dark:text-violet-400 text-lg">{formatCurrency(subtotal)}</span>
               </div>
               {amountPaid > 0 && (
                 <>
                   <div className="flex justify-between text-sm">
-                    <span className="text-green-600 font-medium">{t("Amount Paid")}</span>
-                    <span className="text-green-600 font-semibold">−{formatCurrency(amountPaid)}</span>
+                    <span className="text-green-600 dark:text-emerald-400 font-medium">{t("Amount Paid")}</span>
+                    <span className="text-green-600 dark:text-emerald-400 font-semibold">−{formatCurrency(amountPaid)}</span>
                   </div>
-                  <div className="flex justify-between text-sm font-bold pt-1 border-t border-gray-100">
-                    <span className="text-gray-700">{t("Balance Due")}</span>
-                    <span className={balance > 0 ? "text-red-600" : "text-green-600"}>
+                  <div className="flex justify-between text-sm font-bold pt-1 border-t border-gray-100 dark:border-gray-800">
+                    <span className="text-gray-700 dark:text-gray-300">{t("Balance Due")}</span>
+                    <span className={balance > 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-emerald-400"}>
                       {formatCurrency(balance)}
                     </span>
                   </div>
@@ -307,18 +310,18 @@ const InvoiceModal = ({ inv, onClose, onMarkPaid, markingId, formatCurrency, com
 
           {/* Notes */}
           {inv.notes && (
-            <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-6 text-sm text-amber-800">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 rounded-xl px-4 py-3 mb-6 text-sm text-amber-800 dark:text-amber-300">
               <span className="font-semibold">Note: </span>{inv.notes}
             </div>
           )}
 
           {/* Footer */}
-          <div className="border-t-2 border-gray-100 pt-4 flex justify-between items-center">
-            <p className="text-xs text-gray-400">
+          <div className="border-t-2 border-gray-100 dark:border-gray-800 pt-4 flex justify-between items-center">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
               Thank you for your business. Please make payment by{" "}
-              <span className="font-semibold text-gray-600">{inv.dueDisplay}</span>.
+              <span className="font-semibold text-gray-600 dark:text-gray-300">{inv.dueDisplay}</span>.
             </p>
-            <p className="text-[10px] text-gray-300 font-mono">{inv.invoiceId} · Generated by Aqred</p>
+            <p className="text-[10px] text-gray-300 dark:text-gray-600 font-mono">{inv.invoiceId} · Generated by Aqred</p>
           </div>
         </div>
       </div>
@@ -329,7 +332,7 @@ const InvoiceModal = ({ inv, onClose, onMarkPaid, markingId, formatCurrency, com
 // ─── Toast ───────────────────────────────────────────────────────────────────
 
 const Toast = ({ msg, type, onClose }) => (
-  <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium ${type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
+  <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium ${type === "success" ? "bg-green-50 dark:bg-emerald-900/30 text-green-700 dark:text-emerald-300 border border-green-100 dark:border-emerald-800" : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-800"}`}>
     <CheckCircle size={16} /> {msg}
     <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100"><X size={14} /></button>
   </div>
@@ -497,10 +500,10 @@ const Invoices = () => {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-y-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t("Invoices")}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t("Generated automatically from Sales orders with at least one item")}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("Invoices")}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Generated automatically from Sales orders with at least one item")}</p>
         </div>
-        <button onClick={handleExportCSV} className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 active:scale-95 transition-all">
+        <button onClick={handleExportCSV} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
           <Download size={15} /> Export CSV
         </button>
       </div>
@@ -508,12 +511,12 @@ const Invoices = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {[
-          { label: t("Total Collected"),      value: totalPaid,    color: "text-green-600" },
-          { label: t("Partially Paid (Due)"), value: totalPartial, color: "text-blue-600" },
-          { label: t("Overdue"),              value: totalOverdue, color: "text-red-600" },
+          { label: t("Total Collected"),      value: totalPaid,    color: "text-green-600 dark:text-emerald-400" },
+          { label: t("Partially Paid (Due)"), value: totalPartial, color: "text-blue-600 dark:text-blue-400" },
+          { label: t("Overdue"),              value: totalOverdue, color: "text-red-600 dark:text-red-400" },
         ].map((s) => (
-          <div key={s.label} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-            <p className="text-sm text-gray-500 mb-1">{s.label}</p>
+          <div key={s.label} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{s.label}</p>
             <p className={`text-xl font-bold ${s.color}`}>{formatCurrency(s.value)}</p>
           </div>
         ))}
@@ -522,34 +525,34 @@ const Invoices = () => {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
         <div className="relative w-full sm:flex-1 sm:max-w-xs">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder="Search by invoice or customer..."
-            className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex flex-wrap items-center gap-1 bg-white border border-gray-100 rounded-xl p-1">
+        <div className="flex flex-wrap items-center gap-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-1">
           {FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${filter === f ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${filter === f ? "bg-violet-600 text-white" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"}`}
             >{t(f)}</button>
           ))}
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead>
-            <tr className="border-b border-gray-100">
+            <tr className="border-b border-gray-100 dark:border-gray-800">
               {[t("Invoice"), t("Customer"), t("Total"), t("Paid"), t("Balance"), t("Items"), t("Issued"), t("Due Date"), t("Status"), t("Actions")].map((h) => (
-                <th key={h} className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{h}</th>
+                <th key={h} className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
@@ -562,21 +565,21 @@ const Invoices = () => {
                 <tr
                   key={inv.id}
                   onClick={() => setPreviewInv(inv)}
-                  className={`cursor-pointer transition-colors hover:bg-violet-50/40 ${idx !== filtered.length - 1 ? "border-b border-gray-50" : ""}`}
+                  className={`cursor-pointer transition-colors hover:bg-violet-50/40 dark:hover:bg-violet-900/10 ${idx !== filtered.length - 1 ? "border-b border-gray-50 dark:border-gray-800/60" : ""}`}
                 >
-                  <td className="px-4 py-4 text-xs font-mono text-violet-600">{inv.invoiceId}</td>
+                  <td className="px-4 py-4 text-xs font-mono text-violet-600 dark:text-violet-400">{inv.invoiceId}</td>
                   <td className="px-4 py-4">
-                    <p className="text-sm font-medium text-gray-800">{inv.customer_name || "—"}</p>
-                    <p className="text-xs text-gray-400">{inv.customer_email || ""}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{inv.customer_name || "—"}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{inv.customer_email || ""}</p>
                   </td>
-                  <td className="px-4 py-4 text-sm font-bold text-gray-900">{formatCurrency(inv.amount)}</td>
-                  <td className="px-4 py-4 text-sm text-green-600 font-medium">{formatCurrency(inv.amount_paid)}</td>
+                  <td className="px-4 py-4 text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(inv.amount)}</td>
+                  <td className="px-4 py-4 text-sm text-green-600 dark:text-emerald-400 font-medium">{formatCurrency(inv.amount_paid)}</td>
                   <td className="px-4 py-4 text-sm font-medium">
-                    <span className={balance > 0 ? "text-red-500" : "text-gray-400"}>{formatCurrency(balance)}</span>
+                    <span className={balance > 0 ? "text-red-500 dark:text-red-400" : "text-gray-400 dark:text-gray-500"}>{formatCurrency(balance)}</span>
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">{inv.item_count} item{inv.item_count !== 1 ? "s" : ""}</td>
-                  <td className="px-4 py-4 text-sm text-gray-500">{inv.issued}</td>
-                  <td className="px-4 py-4 text-sm text-gray-500">{inv.dueDisplay}</td>
+                  <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{inv.item_count} item{inv.item_count !== 1 ? "s" : ""}</td>
+                  <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{inv.issued}</td>
+                  <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">{inv.dueDisplay}</td>
                   <td className="px-4 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border ${cfg.cls}`}>
                       <Icon size={11} /> {t(inv.invoiceStatus)}
@@ -584,10 +587,10 @@ const Invoices = () => {
                   </td>
                   <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => setPreviewInv(inv)} title="Preview" className="p-1.5 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg">
+                      <button onClick={() => setPreviewInv(inv)} title="Preview" className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg">
                         <Eye size={14} />
                       </button>
-                      <button onClick={() => handleSendEmail(inv)} title="Send Email" className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                      <button onClick={() => handleSendEmail(inv)} title="Send Email" className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg">
                         <Mail size={14} />
                       </button>
                       {canPay(inv.invoiceStatus) && (
@@ -595,7 +598,7 @@ const Invoices = () => {
                           onClick={() => handleMarkPaid(inv)}
                           disabled={markingId === inv.id}
                           title="Mark as Paid"
-                          className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50"
+                          className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-emerald-400 hover:bg-green-50 dark:hover:bg-emerald-900/20 rounded-lg disabled:opacity-50"
                         >
                           <DollarSign size={14} />
                         </button>
