@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Boxes, Search, AlertTriangle, TrendingDown, Package, X, CheckCircle,
   Download, ExternalLink, Minus, Plus, Edit2,
@@ -8,14 +8,13 @@ import EmptyState from "../components/UI/EmptyState";
 import { getProducts, updateStock } from "../services/productsService";
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import Pagination from "../components/UI/Pagination";
+
+const STANDARD_CATEGORIES = ["Electronics", "Furniture", "Accessories", "Office Supplies", "Software", "Hardware", "Other"];
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 const fmt = (v) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(v || 0);
-const fmtValue = (v) =>
-  v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M`
-  : v >= 1_000   ? `$${(v / 1_000).toFixed(1)}k`
-  : `$${Number(v || 0).toFixed(0)}`;
 
 const getStatus = (stock, reorder) => {
   const r = Number(reorder) || 10;
@@ -51,10 +50,18 @@ const Inventory = () => {
 
   const [products, setProducts]   = useState([]);
   const [search, setSearch]       = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [stockFilter, setStockFilter] = useState("All");
   const [catFilter, setCatFilter] = useState("All");
-  const [sortField, setSortField] = useState("name");
+  const [sortField, setSortField] = useState("stock");
   const [sortDir, setSortDir]     = useState("asc");
+
+  const [page, setPage]             = useState(1);
+  const [pageSize, setPageSize]     = useState(25);
+  const [total, setTotal]           = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats]           = useState({ total: 0, totalValue: 0, lowStockCount: 0, outOfStockCount: 0 });
+  const [categories, setCategories] = useState(STANDARD_CATEGORIES);
 
   /* Adjust modal */
   const [adjusting, setAdjusting] = useState(null);
@@ -68,12 +75,35 @@ const Inventory = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  /* ── Load ── */
-  const load = async () => {
-    try { const { data } = await getProducts(); setProducts(data); }
+  /* ── Debounce search ── */
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  /* ── Reset to page 1 whenever filters/search/sort change ── */
+  useEffect(() => { setPage(1); }, [debouncedSearch, catFilter, stockFilter, sortField, sortDir]);
+
+  /* ── Load (server-side pagination/filter/sort/stats) ── */
+  const load = useCallback(async () => {
+    try {
+      const { data } = await getProducts({
+        page, limit: pageSize, search: debouncedSearch,
+        category: catFilter, stockFilter, sort: sortField, order: sortDir,
+      });
+      if (data.data.length === 0 && data.total > 0 && page > 1) {
+        setPage(data.totalPages);
+        return;
+      }
+      setProducts(data.data);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
+      setStats(data.stats);
+      setCategories(data.categories?.length ? data.categories : STANDARD_CATEGORIES);
+    }
     catch { showToast("Failed to load inventory.", "error"); }
-  };
-  useEffect(() => { load(); }, []);
+  }, [page, pageSize, debouncedSearch, catFilter, stockFilter, sortField, sortDir]);
+  useEffect(() => { load(); }, [load]);
 
   /* ── Adjust modal ── */
   const openAdjust = (p) => { setAdjusting(p); setNewStock(String(p.stock ?? 0)); };
@@ -112,55 +142,37 @@ const Inventory = () => {
     else { setSortField(field); setSortDir("asc"); }
   };
 
-  /* ── Unique categories from data ── */
-  const categories = useMemo(() => {
-    const cats = [...new Set(products.map((p) => p.category).filter(Boolean))].sort();
-    return cats;
-  }, [products]);
+  /* ── Current page is already filtered/sorted server-side ── */
+  const filtered = products;
 
-  /* ── Filter + sort pipeline ── */
-  const filtered = products
-    .filter((p) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        (p.name     || "").toLowerCase().includes(q) ||
-        (p.sku      || "").toLowerCase().includes(q) ||
-        (p.category || "").toLowerCase().includes(q);
-      const matchStatus = stockFilter === "All" || getStatus(p.stock, p.reorder_point).filter === stockFilter;
-      const matchCat    = catFilter   === "All" || (p.category || "") === catFilter;
-      return matchSearch && matchStatus && matchCat;
-    })
-    .sort((a, b) => {
-      let aVal, bVal;
-      if (sortField === "name")     { aVal = (a.name     || "").toLowerCase();  bVal = (b.name     || "").toLowerCase(); }
-      if (sortField === "category") { aVal = (a.category || "").toLowerCase();  bVal = (b.category || "").toLowerCase(); }
-      if (sortField === "stock")    { aVal = Number(a.stock  ?? 0);             bVal = Number(b.stock  ?? 0); }
-      if (sortField === "value")    { aVal = Number(a.stock || 0) * Number(a.price || 0); bVal = Number(b.stock || 0) * Number(b.price || 0); }
-      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDir === "asc" ?  1 : -1;
-      return 0;
-    });
+  /* ── Stats (server-computed over the full filtered dataset, not just this page) ── */
+  const totalValue      = stats.totalValue;
+  const lowStockCount   = stats.lowStockCount;
+  const outOfStockCount = stats.outOfStockCount;
+  const inStockCount    = stats.total - stats.lowStockCount - stats.outOfStockCount;
 
-  /* ── Stats ── */
-  const totalValue      = products.reduce((a, p) => a + (Number(p.stock) || 0) * (Number(p.price) || 0), 0);
-  const lowStockCount   = products.filter((p) => Number(p.stock) > 0 && Number(p.stock) <= (Number(p.reorder_point) || 10)).length;
-  const outOfStockCount = products.filter((p) => !Number(p.stock)).length;
-  const inStockCount    = products.filter((p) => Number(p.stock) > (Number(p.reorder_point) || 10)).length;
-
-  /* ── Export ── */
-  const handleExport = () => exportToCSV(
-    filtered.map((p) => ({
-      SKU:             p.sku || "",
-      Name:            p.name,
-      Category:        p.category || "",
-      Stock:           p.stock ?? 0,
-      "Reorder Point": p.reorder_point ?? 10,
-      "Unit Price":    p.price,
-      "Total Value":   ((Number(p.stock) || 0) * (Number(p.price) || 0)).toFixed(2),
-      Status:          getStatus(p.stock, p.reorder_point).label,
-    })),
-    "inventory"
-  );
+  /* ── Export all filtered (re-fetches the whole matching set, not just the current page) ── */
+  const handleExport = async () => {
+    try {
+      const { data } = await getProducts({
+        limit: Math.max(total, 1), search: debouncedSearch,
+        category: catFilter, stockFilter, sort: sortField, order: sortDir,
+      });
+      exportToCSV(
+        data.data.map((p) => ({
+          SKU:             p.sku || "",
+          Name:            p.name,
+          Category:        p.category || "",
+          Stock:           p.stock ?? 0,
+          "Reorder Point": p.reorder_point ?? 10,
+          "Unit Price":    p.price,
+          "Total Value":   ((Number(p.stock) || 0) * (Number(p.price) || 0)).toFixed(2),
+          Status:          getStatus(p.stock, p.reorder_point).label,
+        })),
+        "inventory"
+      );
+    } catch { showToast("Export failed.", "error"); }
+  };
 
   /* ── Sortable TH ── */
   const SortTh = ({ field, children, className = "" }) => (
@@ -202,7 +214,7 @@ const Inventory = () => {
       {/* ── Stat cards (clickable filter shortcuts) ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: t("Total Items"),    value: products.length, icon: Boxes,         color: "text-violet-600", bg: "bg-violet-50",  filter: "All"          },
+          { label: t("Total Items"),    value: stats.total,     icon: Boxes,         color: "text-violet-600", bg: "bg-violet-50",  filter: "All"          },
           { label: t("In Stock"),       value: inStockCount,    icon: CheckCircle,   color: "text-green-600",  bg: "bg-green-50",   filter: "In Stock"     },
           { label: t("Low Stock"),      value: lowStockCount,   icon: TrendingDown,  color: "text-amber-600",  bg: "bg-amber-50",   filter: "Low Stock"    },
           { label: t("Out of Stock"),   value: outOfStockCount, icon: AlertTriangle, color: "text-red-600",    bg: "bg-red-50",     filter: "Out of Stock" },
@@ -236,7 +248,7 @@ const Inventory = () => {
           </div>
         </div>
         <div className="hidden sm:flex items-center gap-6 text-xs text-gray-400">
-          <span>{products.length} {t("products tracked")}</span>
+          <span>{stats.total} {t("products tracked")}</span>
           {(lowStockCount + outOfStockCount) > 0 && (
             <span className="flex items-center gap-1 text-amber-600 font-medium">
               <AlertTriangle size={12} />
@@ -418,21 +430,15 @@ const Inventory = () => {
         )}
       </div>
 
-      {/* ── Result count ── */}
-      <p className="text-xs text-gray-400 mt-3">
-        {t("Showing")} {filtered.length} {t("of")} {products.length} {t("items")}
-        {(stockFilter !== "All" || catFilter !== "All") && (
-          <span className="ml-1">
-            · {t("filtered by")}
-            {stockFilter !== "All" && <span className="font-medium text-gray-500 ml-1">{t(stockFilter)}</span>}
-            {stockFilter !== "All" && catFilter !== "All" && " &"}
-            {catFilter !== "All" && <span className="font-medium text-gray-500 ml-1">{catFilter}</span>}
-          </span>
-        )}
-        <span className="ml-2 text-gray-500">
-          · {t("Total value")}: <strong className="text-blue-600">{fmt(totalValue)}</strong>
-        </span>
-      </p>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+        itemLabel={t("items")}
+      />
 
       {/* ── Adjust Stock Modal ── */}
       {adjusting && (

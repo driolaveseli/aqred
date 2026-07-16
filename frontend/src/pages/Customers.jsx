@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   UserCheck, Users, Clock, Plus, Search, Download, Edit2, Trash2, X,
   Mail, Phone, MapPin, CheckCircle, Building2, Calendar,
@@ -8,6 +8,7 @@ import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "..
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
+import Pagination from "../components/UI/Pagination";
 
 const BLANK       = { name: "", email: "", phone: "", address: "", company: "", status: "Active" };
 const inputCls    = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent";
@@ -56,10 +57,17 @@ const Customers = () => {
 
   const [customers, setCustomers]           = useState([]);
   const [search, setSearch]                 = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusTab, setStatusTab]           = useState("All");
   const [view, setView]                     = useState("table");
   const [sortField, setSortField]           = useState("name");
   const [sortDir, setSortDir]               = useState("asc");
+
+  const [page, setPage]             = useState(1);
+  const [pageSize, setPageSize]     = useState(25);
+  const [total, setTotal]           = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats]           = useState({ total: 0, activeCount: 0, inactiveCount: 0, pendingCount: 0 });
 
   /* Modals */
   const [showModal, setShowModal]           = useState(false);
@@ -78,11 +86,33 @@ const Customers = () => {
   /* Inline status popover */
   const [statusPopover, setStatusPopover]   = useState(null); // customer id
 
-  /* ── Load ── */
-  const load = async () => {
-    try { const { data } = await getCustomers(); setCustomers(data); } catch {}
-  };
-  useEffect(() => { load(); }, []);
+  /* ── Debounce search ── */
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  /* ── Reset to page 1 whenever filters/search/sort change ── */
+  useEffect(() => { setPage(1); }, [debouncedSearch, statusTab, sortField, sortDir]);
+
+  /* ── Load (server-side pagination/filter/sort/stats) ── */
+  const load = useCallback(async () => {
+    try {
+      const { data } = await getCustomers({
+        page, limit: pageSize, search: debouncedSearch,
+        status: statusTab, sort: sortField, order: sortDir,
+      });
+      if (data.data.length === 0 && data.total > 0 && page > 1) {
+        setPage(data.totalPages);
+        return;
+      }
+      setCustomers(data.data);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
+      setStats(data.stats);
+    } catch {}
+  }, [page, pageSize, debouncedSearch, statusTab, sortField, sortDir]);
+  useEffect(() => { load(); }, [load]);
 
   /* ── Toast ── */
   const showToast = (msg, type = "success") => {
@@ -121,24 +151,8 @@ const Customers = () => {
     else { setSortField(field); setSortDir("asc"); }
   };
 
-  /* ── Filter + sort pipeline ── */
-  const filtered = customers
-    .filter((c) => {
-      const q = search.toLowerCase();
-      const matchSearch = c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || (c.company || "").toLowerCase().includes(q);
-      const matchStatus = statusTab === "All" || (c.status || "Active") === statusTab;
-      return matchSearch && matchStatus;
-    })
-    .sort((a, b) => {
-      let aVal, bVal;
-      if (sortField === "name")    { aVal = a.name.toLowerCase();             bVal = b.name.toLowerCase(); }
-      if (sortField === "company") { aVal = (a.company || "").toLowerCase();  bVal = (b.company || "").toLowerCase(); }
-      if (sortField === "status")  { aVal = (a.status  || "Active").toLowerCase(); bVal = (b.status || "Active").toLowerCase(); }
-      if (sortField === "date")    { aVal = new Date(a.created_at || 0);      bVal = new Date(b.created_at || 0); }
-      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDir === "asc" ?  1 : -1;
-      return 0;
-    });
+  /* ── Current page is already filtered/sorted server-side ── */
+  const filtered = customers;
 
   /* ── Bulk selection ── */
   const allSelected  = filtered.length > 0 && filtered.every((c) => selected.has(c.id));
@@ -148,8 +162,8 @@ const Customers = () => {
     if (selectAllRef.current) selectAllRef.current.indeterminate = someSelected && !allSelected;
   }, [someSelected, allSelected]);
 
-  // Clear selection whenever search or filter changes
-  useEffect(() => { setSelected(new Set()); }, [search, statusTab]);
+  // Clear selection whenever search, filter, or page changes
+  useEffect(() => { setSelected(new Set()); }, [debouncedSearch, statusTab, page]);
 
   const toggleSelect    = (id) => setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleSelectAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map((c) => c.id)));
@@ -189,24 +203,32 @@ const Customers = () => {
     if (!customer) return;
     try {
       await updateCustomer(id, { ...customer, status: newStatus });
-      setCustomers((prev) => prev.map((c) => c.id === id ? { ...c, status: newStatus } : c));
       showToast(t("Status updated."));
+      load(); // refresh KPI stat cards along with the row
     } catch { showToast(t("Update failed."), "error"); }
     setStatusPopover(null);
   };
 
-  /* ── Stat counts ── */
-  const activeCount   = customers.filter((c) => (c.status || "Active") === "Active").length;
-  const inactiveCount = customers.filter((c) => c.status === "Inactive").length;
-  const pendingCount  = customers.filter((c) => c.status === "Pending").length;
+  /* ── Stat counts (server-computed over the full filtered dataset, not just this page) ── */
+  const activeCount   = stats.activeCount;
+  const inactiveCount = stats.inactiveCount;
+  const pendingCount  = stats.pendingCount;
 
-  /* ── Export all ── */
-  const handleExport = () => exportToCSV(filtered.map((c) => ({
-    Name: c.name, Email: c.email, Phone: c.phone || "",
-    Company: c.company || "", Address: c.address || "",
-    Status: c.status || "Active",
-    "Member Since": c.created_at ? formatDate(c.created_at) : "",
-  })), "customers");
+  /* ── Export all filtered (re-fetches the whole matching set, not just the current page) ── */
+  const handleExport = async () => {
+    try {
+      const { data } = await getCustomers({
+        limit: Math.max(total, 1), search: debouncedSearch, status: statusTab,
+        sort: sortField, order: sortDir,
+      });
+      exportToCSV(data.data.map((c) => ({
+        Name: c.name, Email: c.email, Phone: c.phone || "",
+        Company: c.company || "", Address: c.address || "",
+        Status: c.status || "Active",
+        "Member Since": c.created_at ? formatDate(c.created_at) : "",
+      })), "customers");
+    } catch { showToast(t("Export failed."), "error"); }
+  };
 
   /* ── Sortable TH ── */
   const SortTh = ({ field, children, className = "" }) => (
@@ -288,17 +310,17 @@ const Customers = () => {
         {/* Composition bar in violet shades */}
         <div className="flex h-2">
           <div className="bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-700"
-            style={{ width: customers.length > 0 ? `${Math.round((activeCount/customers.length)*100)}%` : "0%" }} />
+            style={{ width: stats.total > 0 ? `${Math.round((activeCount/stats.total)*100)}%` : "0%" }} />
           <div className="bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-700"
-            style={{ width: customers.length > 0 ? `${Math.round((pendingCount/customers.length)*100)}%` : "0%" }} />
+            style={{ width: stats.total > 0 ? `${Math.round((pendingCount/stats.total)*100)}%` : "0%" }} />
           <div className="bg-gradient-to-r from-gray-300 to-gray-400 transition-all duration-700"
-            style={{ width: customers.length > 0 ? `${Math.round((inactiveCount/customers.length)*100)}%` : "0%" }} />
+            style={{ width: stats.total > 0 ? `${Math.round((inactiveCount/stats.total)*100)}%` : "0%" }} />
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100/60">
           {[
             {
-              label: t("Total"), value: customers.length, tab: "All",
+              label: t("Total"), value: stats.total, tab: "All",
               icon: Users,        iconBg: "bg-gradient-to-br from-violet-500 to-violet-700 text-white",
               color: "text-violet-700", pctColor: "text-violet-400",
               barCls: "bg-gradient-to-r from-violet-500 to-violet-600",
@@ -311,7 +333,7 @@ const Customers = () => {
               color: "text-emerald-700", pctColor: "text-emerald-400",
               barCls: "bg-gradient-to-r from-emerald-400 to-emerald-600",
               baseBg: "bg-emerald-50/30", activeBg: "bg-emerald-50/70",
-              pct: customers.length > 0 ? Math.round((activeCount/customers.length)*100) : 0,
+              pct: stats.total > 0 ? Math.round((activeCount/stats.total)*100) : 0,
             },
             {
               label: t("Inactive"), value: inactiveCount, tab: "Inactive",
@@ -319,7 +341,7 @@ const Customers = () => {
               color: "text-gray-600", pctColor: "text-gray-400",
               barCls: "bg-gradient-to-r from-gray-300 to-gray-400",
               baseBg: "bg-gray-50/60", activeBg: "bg-gray-100/80",
-              pct: customers.length > 0 ? Math.round((inactiveCount/customers.length)*100) : 0,
+              pct: stats.total > 0 ? Math.round((inactiveCount/stats.total)*100) : 0,
             },
             {
               label: t("Pending"), value: pendingCount, tab: "Pending",
@@ -327,7 +349,7 @@ const Customers = () => {
               color: "text-amber-700", pctColor: "text-amber-400",
               barCls: "bg-gradient-to-r from-amber-400 to-amber-500",
               baseBg: "bg-amber-50/30", activeBg: "bg-amber-50/70",
-              pct: customers.length > 0 ? Math.round((pendingCount/customers.length)*100) : 0,
+              pct: stats.total > 0 ? Math.round((pendingCount/stats.total)*100) : 0,
             },
           ].map((s) => (
             <button
@@ -592,11 +614,15 @@ const Customers = () => {
         </div>
       )}
 
-      {/* ── Result count ── */}
-      <p className="text-xs text-gray-400 mt-3">
-        {t("Showing")} {filtered.length} {t("of")} {customers.length} {t("customers")}
-        {statusTab !== "All" && <span className="ml-1">· {t("filtered by")} <span className="font-medium text-gray-500">{t(statusTab)}</span></span>}
-      </p>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+        itemLabel={t("customers")}
+      />
 
       {/* ── Bulk action bar ── */}
       <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-300

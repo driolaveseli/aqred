@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Package, Plus, Minus, Search, Download, Edit2, Trash2, X,
   CheckCircle, DollarSign, AlertTriangle,
@@ -8,6 +8,7 @@ import { getProducts, createProduct, updateProduct, deleteProduct } from "../ser
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
+import Pagination from "../components/UI/Pagination";
 
 const BLANK = { name: "", description: "", price: "", stock: "", category: "Electronics", sku: "", reorder_point: "10" };
 const CATS  = ["Electronics", "Furniture", "Accessories", "Office Supplies", "Software", "Hardware", "Other"];
@@ -50,10 +51,18 @@ const Products = () => {
 
   const [products, setProducts]     = useState([]);
   const [search, setSearch]         = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [catFilter, setCatFilter]   = useState("All");
   const [stockFilter, setStockFilter] = useState("All");
   const [sortField, setSortField]   = useState("name");
   const [sortDir, setSortDir]       = useState("asc");
+
+  const [page, setPage]             = useState(1);
+  const [pageSize, setPageSize]     = useState(25);
+  const [total, setTotal]           = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats]           = useState({ total: 0, totalValue: 0, lowStockCount: 0, outOfStockCount: 0 });
+  const [categories, setCategories] = useState(CATS);
 
   /* Modals */
   const [showModal, setShowModal]   = useState(false);
@@ -69,11 +78,34 @@ const Products = () => {
   const [bulkLoading, setBulkLoading]         = useState(false);
   const selectAllRef                          = useRef(null);
 
-  /* ── Load ── */
-  const load = async () => {
-    try { const { data } = await getProducts(); setProducts(data); } catch {}
-  };
-  useEffect(() => { load(); }, []);
+  /* ── Debounce search ── */
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  /* ── Reset to page 1 whenever filters/search/sort change ── */
+  useEffect(() => { setPage(1); }, [debouncedSearch, catFilter, stockFilter, sortField, sortDir]);
+
+  /* ── Load (server-side pagination/filter/sort/stats) ── */
+  const load = useCallback(async () => {
+    try {
+      const { data } = await getProducts({
+        page, limit: pageSize, search: debouncedSearch,
+        category: catFilter, stockFilter, sort: sortField, order: sortDir,
+      });
+      if (data.data.length === 0 && data.total > 0 && page > 1) {
+        setPage(data.totalPages);
+        return;
+      }
+      setProducts(data.data);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
+      setStats(data.stats);
+      setCategories([...new Set([...CATS, ...(data.categories || [])])].sort());
+    } catch {}
+  }, [page, pageSize, debouncedSearch, catFilter, stockFilter, sortField, sortDir]);
+  useEffect(() => { load(); }, [load]);
 
   /* ── Toast ── */
   const showToast = (msg, type = "success") => {
@@ -126,29 +158,8 @@ const Products = () => {
     else { setSortField(field); setSortDir("asc"); }
   };
 
-  /* ── Filter + sort pipeline ── */
-  const filtered = products
-    .filter((p) => {
-      const q = search.toLowerCase();
-      const matchSearch = p.name.toLowerCase().includes(q) || (p.sku || "").toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q);
-      const matchCat    = catFilter === "All" || (p.category || "Electronics") === catFilter;
-      const matchStock  =
-        stockFilter === "All" ||
-        (stockFilter === "In Stock"     && Number(p.stock) > (Number(p.reorder_point) || 10)) ||
-        (stockFilter === "Low Stock"    && Number(p.stock) > 0 && Number(p.stock) <= (Number(p.reorder_point) || 10)) ||
-        (stockFilter === "Out of Stock" && Number(p.stock) === 0);
-      return matchSearch && matchCat && matchStock;
-    })
-    .sort((a, b) => {
-      let aVal, bVal;
-      if (sortField === "name")     { aVal = a.name.toLowerCase();             bVal = b.name.toLowerCase(); }
-      if (sortField === "category") { aVal = (a.category || "").toLowerCase(); bVal = (b.category || "").toLowerCase(); }
-      if (sortField === "price")    { aVal = Number(a.price  || 0);            bVal = Number(b.price  || 0); }
-      if (sortField === "stock")    { aVal = Number(a.stock  ?? 0);            bVal = Number(b.stock  ?? 0); }
-      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDir === "asc" ?  1 : -1;
-      return 0;
-    });
+  /* ── Current page is already filtered/sorted server-side ── */
+  const filtered = products;
 
   /* ── Bulk selection ── */
   const allSelected  = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
@@ -158,7 +169,7 @@ const Products = () => {
     if (selectAllRef.current) selectAllRef.current.indeterminate = someSelected && !allSelected;
   }, [someSelected, allSelected]);
 
-  useEffect(() => { setSelected(new Set()); }, [search, catFilter, stockFilter]);
+  useEffect(() => { setSelected(new Set()); }, [debouncedSearch, catFilter, stockFilter, page]);
 
   const toggleSelect    = (id) => setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleSelectAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map((p) => p.id)));
@@ -189,22 +200,30 @@ const Products = () => {
     })), "products-selected");
   };
 
-  /* ── Export all filtered ── */
-  const handleExport = () => exportToCSV(filtered.map((p) => ({
-    SKU:           p.sku || "",
-    Name:          p.name,
-    Category:      p.category || "",
-    "Unit Price":  parseFloat(p.price || 0).toFixed(2),
-    Stock:         p.stock ?? 0,
-    "Total Value": ((Number(p.stock) || 0) * (Number(p.price) || 0)).toFixed(2),
-    Status:        getStockStatus(p.stock, p.reorder_point).label,
-    Description:   p.description || "",
-  })), "products");
+  /* ── Export all filtered (re-fetches the whole matching set, not just the current page) ── */
+  const handleExport = async () => {
+    try {
+      const { data } = await getProducts({
+        limit: Math.max(total, 1), search: debouncedSearch,
+        category: catFilter, stockFilter, sort: sortField, order: sortDir,
+      });
+      exportToCSV(data.data.map((p) => ({
+        SKU:           p.sku || "",
+        Name:          p.name,
+        Category:      p.category || "",
+        "Unit Price":  parseFloat(p.price || 0).toFixed(2),
+        Stock:         p.stock ?? 0,
+        "Total Value": ((Number(p.stock) || 0) * (Number(p.price) || 0)).toFixed(2),
+        Status:        getStockStatus(p.stock, p.reorder_point).label,
+        Description:   p.description || "",
+      })), "products");
+    } catch { showToast(t("Export failed."), "error"); }
+  };
 
-  /* ── Stats ── */
-  const totalValue    = products.reduce((a, p) => a + (Number(p.price) * Number(p.stock)), 0);
-  const lowStockCount = products.filter((p) => Number(p.stock) > 0 && Number(p.stock) <= (Number(p.reorder_point) || 10)).length;
-  const outOfStockCount = products.filter((p) => Number(p.stock) === 0).length;
+  /* ── Stats (server-computed over the full filtered dataset, not just this page) ── */
+  const totalValue      = stats.totalValue;
+  const lowStockCount   = stats.lowStockCount;
+  const outOfStockCount = stats.outOfStockCount;
 
   /* ── Sortable TH ── */
   const SortTh = ({ field, children, className = "" }) => (
@@ -238,7 +257,7 @@ const Products = () => {
       {/* ── Stat cards (clickable filter shortcuts) ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: t("Total Products"), value: products.length,  icon: Package,       color: "text-violet-600", bg: "bg-violet-50",  filter: null           },
+          { label: t("Total Products"), value: stats.total,      icon: Package,       color: "text-violet-600", bg: "bg-violet-50",  filter: null           },
           { label: t("Total Value"),    value: fmtValue(totalValue), icon: DollarSign, color: "text-blue-600",   bg: "bg-blue-50",    filter: null           },
           { label: t("Low Stock"),      value: lowStockCount,    icon: AlertTriangle, color: "text-amber-600",  bg: "bg-amber-50",   filter: "Low Stock"    },
           { label: t("Out of Stock"),   value: outOfStockCount,  icon: AlertTriangle, color: "text-red-600",    bg: "bg-red-50",     filter: "Out of Stock" },
@@ -287,7 +306,7 @@ const Products = () => {
           className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
         >
           <option value="All">{t("All Categories")}</option>
-          {CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
 
         {/* Stock filter tabs */}
@@ -422,17 +441,15 @@ const Products = () => {
         )}
       </div>
 
-      <p className="text-xs text-gray-400 mt-3">
-        {t("Showing")} {filtered.length} {t("of")} {products.length} {t("products")}
-        {(catFilter !== "All" || stockFilter !== "All") && (
-          <span className="ml-1">
-            · {t("filtered by")}{" "}
-            {catFilter !== "All" && <span className="font-medium text-gray-500">{catFilter}</span>}
-            {catFilter !== "All" && stockFilter !== "All" && " & "}
-            {stockFilter !== "All" && <span className="font-medium text-gray-500">{t(stockFilter)}</span>}
-          </span>
-        )}
-      </p>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+        itemLabel={t("products")}
+      />
 
       {/* ── Bulk action bar ── */}
       <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-200
@@ -473,7 +490,7 @@ const Products = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Category")}</label>
                   <select className={inputCls} value={form.category} onChange={set("category")}>
-                    {CATS.map((c) => <option key={c}>{c}</option>)}
+                    {categories.map((c) => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>

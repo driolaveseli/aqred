@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   ShoppingCart, Plus, Search, Download, Edit2, Trash2, X,
@@ -11,6 +11,7 @@ import { getProducts } from "../services/productsService";
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
+import Pagination from "../components/UI/Pagination";
 
 const STATUSES   = ["Pending", "Processing", "Shipped", "Completed", "Cancelled"];
 const DATE_RANGES = ["All", "Today", "This Week", "This Month"];
@@ -55,10 +56,17 @@ const Orders = () => {
   const [customers, setCustomers] = useState([]);
   const [products, setProducts]   = useState([]);
   const [search, setSearch]       = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState("All");
   const [sortField, setSortField] = useState("id");
   const [sortDir, setSortDir]     = useState("desc");
+
+  const [page, setPage]             = useState(1);
+  const [pageSize, setPageSize]     = useState(25);
+  const [total, setTotal]           = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats]           = useState({ total: 0, pendingCount: 0, processingCount: 0, completedCount: 0, totalRevenue: 0 });
 
   /* Modals */
   const [showModal, setShowModal]   = useState(false);
@@ -77,15 +85,39 @@ const Orders = () => {
   const selectAllRef                              = useRef(null);
   const bulkMenuRef                               = useRef(null);
 
-  /* ── Load ── */
-  const load = async () => {
-    try { const { data } = await getOrders(); setOrders(data); } catch {}
-  };
+  /* ── Debounce search ── */
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  /* ── Reset to page 1 whenever filters/search/sort change ── */
+  useEffect(() => { setPage(1); }, [debouncedSearch, statusFilter, dateRange, sortField, sortDir]);
+
+  /* ── Load (server-side pagination/filter/sort/stats) ── */
+  const load = useCallback(async () => {
+    try {
+      const { data } = await getOrders({
+        page, limit: pageSize, search: debouncedSearch,
+        status: statusFilter, dateRange, sort: sortField, order: sortDir,
+      });
+      if (data.data.length === 0 && data.total > 0 && page > 1) {
+        setPage(data.totalPages);
+        return;
+      }
+      setOrders(data.data);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
+      setStats(data.stats);
+    } catch {}
+  }, [page, pageSize, debouncedSearch, statusFilter, dateRange, sortField, sortDir]);
+  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    load();
-    getCustomers().then(({ data }) => setCustomers(data)).catch(() => {});
-    getProducts().then(({ data }) => setProducts(data)).catch(() => {});
+    // "New Order" form needs the full customer/product lists for its dropdowns,
+    // not just one paginated page — fetch with a limit comfortably above current volumes.
+    getCustomers({ limit: 5000 }).then(({ data }) => setCustomers(data.data)).catch(() => {});
+    getProducts({ limit: 5000 }).then(({ data }) => setProducts(data.data)).catch(() => {});
     if (location.state?.openCreate) openAdd();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -227,42 +259,8 @@ const Orders = () => {
     else { setSortField(field); setSortDir("asc"); }
   };
 
-  /* ── Date range helper ── */
-  const matchesDateRange = (o) => {
-    if (dateRange === "All") return true;
-    const raw = o.order_date || o.created_at;
-    if (!raw) return false;
-    const d   = new Date(raw);
-    const now = new Date();
-    if (dateRange === "Today")
-      return d.toDateString() === now.toDateString();
-    if (dateRange === "This Week") {
-      const weekAgo = new Date(now);
-      weekAgo.setDate(now.getDate() - 7);
-      return d >= weekAgo;
-    }
-    if (dateRange === "This Month")
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    return true;
-  };
-
-  /* ── Filter + sort pipeline ── */
-  const filtered = orders
-    .filter((o) => {
-      const name        = (o.customer_name || customerName(o.customer_id)).toLowerCase();
-      const matchSearch = String(o.id).includes(search) || name.includes(search.toLowerCase());
-      const matchStatus = statusFilter === "all" || o.status === statusFilter;
-      return matchSearch && matchStatus && matchesDateRange(o);
-    })
-    .sort((a, b) => {
-      let aVal, bVal;
-      if (sortField === "id")    { aVal = a.id;                    bVal = b.id; }
-      if (sortField === "total") { aVal = Number(a.total || 0);    bVal = Number(b.total || 0); }
-      if (sortField === "date")  { aVal = new Date(a.order_date || a.created_at || 0); bVal = new Date(b.order_date || b.created_at || 0); }
-      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDir === "asc" ?  1 : -1;
-      return 0;
-    });
+  /* ── Current page is already filtered/sorted server-side ── */
+  const filtered = orders;
 
   /* ── Bulk selection ── */
   const allSelected  = filtered.length > 0 && filtered.every((o) => selected.has(o.id));
@@ -272,7 +270,7 @@ const Orders = () => {
     if (selectAllRef.current) selectAllRef.current.indeterminate = someSelected && !allSelected;
   }, [someSelected, allSelected]);
 
-  useEffect(() => { setSelected(new Set()); }, [search, statusFilter, dateRange]);
+  useEffect(() => { setSelected(new Set()); }, [debouncedSearch, statusFilter, dateRange, page]);
 
   const toggleSelect    = (id) => setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleSelectAll = () => setSelected(allSelected ? new Set() : new Set(filtered.map((o) => o.id)));
@@ -301,21 +299,27 @@ const Orders = () => {
     finally { setBulkLoading(false); }
   };
 
-  const handleExport = () => exportToCSV(
-    filtered.map((o) => ({
-      "Order ID":   `ORD-${String(o.id).padStart(4, "0")}`,
-      Customer:     o.customer_name || customerName(o.customer_id),
-      Items:        o.item_count ?? 0,
-      Total:        parseFloat(o.total || 0).toFixed(2),
-      Status:       o.status,
-      "Order Date": formatDate(o.order_date || o.created_at),
-      Notes:        o.notes || "",
-    })),
-    "orders"
-  );
+  /* ── Export all filtered (re-fetches the whole matching set, not just the current page) ── */
+  const handleExport = async () => {
+    try {
+      const { data } = await getOrders({
+        limit: Math.max(total, 1), search: debouncedSearch,
+        status: statusFilter, dateRange, sort: sortField, order: sortDir,
+      });
+      exportToCSV(data.data.map((o) => ({
+        "Order ID":   `ORD-${String(o.id).padStart(4, "0")}`,
+        Customer:     o.customer_name || customerName(o.customer_id),
+        Items:        o.item_count ?? 0,
+        Total:        parseFloat(o.total || 0).toFixed(2),
+        Status:       o.status,
+        "Order Date": formatDate(o.order_date || o.created_at),
+        Notes:        o.notes || "",
+      })), "orders");
+    } catch { showToast("Export failed.", "error"); }
+  };
 
-  /* ── Stats ── */
-  const totalRevenue = orders.filter((o) => o.status === "Completed").reduce((a, o) => a + Number(o.total || 0), 0);
+  /* ── Stats (server-computed over the full unfiltered dataset for this company) ── */
+  const totalRevenue = stats.totalRevenue;
 
   /* ── Sortable TH ── */
   const SortTh = ({ field, children, className = "" }) => (
@@ -349,10 +353,10 @@ const Orders = () => {
       {/* ── Stat cards (clickable filter shortcuts) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
         {[
-          { label: t("Total Orders"), value: orders.length,                                         color: "text-gray-900",    filter: "all"        },
-          { label: t("Pending"),      value: orders.filter((o) => o.status === "Pending").length,    color: "text-amber-600",   filter: "Pending"    },
-          { label: t("Processing"),   value: orders.filter((o) => o.status === "Processing").length, color: "text-blue-600",    filter: "Processing" },
-          { label: t("Completed"),    value: orders.filter((o) => o.status === "Completed").length,  color: "text-green-600",   filter: "Completed"  },
+          { label: t("Total Orders"), value: stats.total,           color: "text-gray-900",    filter: "all"        },
+          { label: t("Pending"),      value: stats.pendingCount,    color: "text-amber-600",   filter: "Pending"    },
+          { label: t("Processing"),   value: stats.processingCount, color: "text-blue-600",    filter: "Processing" },
+          { label: t("Completed"),    value: stats.completedCount,  color: "text-green-600",   filter: "Completed"  },
           { label: t("Revenue"),      value: fmt(totalRevenue),                                      color: "text-violet-600",  filter: null         },
         ].map((s) => (
           <button
@@ -508,10 +512,15 @@ const Orders = () => {
         )}
       </div>
 
-      <p className="text-xs text-gray-400 mt-3">
-        {t("Showing")} {filtered.length} {t("of")} {orders.length} {t("orders")}
-        {dateRange !== "All" && <span className="ml-1">· <span className="font-medium text-gray-500">{t(dateRange)}</span></span>}
-      </p>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+        itemLabel={t("orders")}
+      />
 
       {/* ── Bulk action bar ── */}
       <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-200

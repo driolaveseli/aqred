@@ -5,8 +5,25 @@ const { createNotification } = require("../utils/notify");
 
 const getSales = async (req, res) => {
   try {
-    const result = await Sales.getAll(req.user.company_id);
-    res.json(result.rows);
+    const page  = parseInt(req.query.page, 10)  || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const { search = "", status = "All" } = req.query;
+
+    const { rows, filteredTotal, stats } = await Sales.getPaged(req.user.company_id, { search, status, page, limit });
+
+    res.json({
+      data: rows,
+      total: filteredTotal,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(filteredTotal / limit)),
+      stats: {
+        total: stats.total,
+        totalPaid: Number(stats.total_paid),
+        totalPartial: Number(stats.total_partial),
+        totalOverdue: Number(stats.total_overdue),
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

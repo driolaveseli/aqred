@@ -10,23 +10,12 @@ import { useSystem } from "../context/SystemContext";
 import { useAuth } from "../context/AuthContext";
 import EmptyState from "../components/UI/EmptyState";
 import SkeletonLoader from "../components/UI/SkeletonLoader";
+import Pagination from "../components/UI/Pagination";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
-
-const deriveStatus = (order) => {
-  const s     = (order.status || "").toLowerCase();
-  const total = parseFloat(order.total || 0);
-  const paid  = parseFloat(order.amount_paid || 0);
-
-  if (s === "cancelled" || s === "canceled") return "Cancelled";
-  // Order marked completed in Orders page → Paid
-  if (s === "completed") return "Paid";
-  // Payment-based refinements for non-completed orders
-  if (total > 0 && paid >= total) return "Paid";
-  if (paid > 0 && paid < total)   return "Partially Paid";
-  if (order.due_date && new Date(order.due_date) < new Date()) return "Overdue";
-  return "Unpaid";
-};
+// Invoice status (Paid/Partially Paid/Unpaid/Overdue/Cancelled) is now computed
+// server-side (see salesModel.js INVOICE_BASE_CTE) so it can be filtered/sorted
+// in SQL — the row already arrives with `invoice_status` set.
 
 const statusConfig = {
   Paid:             { icon: CheckCircle,  cls: "bg-green-50 text-green-600 border-green-200" },
@@ -354,50 +343,69 @@ const Invoices = () => {
   const [orders, setOrders]         = useState([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filter, setFilter]         = useState("All");
   const [toast, setToast]           = useState(null);
   const [markingId, setMarkingId]   = useState(null);
   const [previewInv, setPreviewInv] = useState(null);
+
+  const [page, setPage]             = useState(1);
+  const [pageSize, setPageSize]     = useState(25);
+  const [total, setTotal]           = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats]           = useState({ total: 0, totalPaid: 0, totalPartial: 0, totalOverdue: 0 });
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
   };
 
+  /* ── Debounce search ── */
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  /* ── Reset to page 1 whenever filter/search changes ── */
+  useEffect(() => { setPage(1); }, [debouncedSearch, filter]);
+
   const load = useCallback(async () => {
     try {
-      const res = await getSales();
-      setOrders(res.data);
+      const res = await getSales({ page, limit: pageSize, search: debouncedSearch, status: filter });
+      if (res.data.data.length === 0 && res.data.total > 0 && page > 1) {
+        setPage(res.data.totalPages);
+        return;
+      }
+      setOrders(res.data.data);
+      setTotal(res.data.total);
+      setTotalPages(res.data.totalPages);
+      setStats(res.data.stats);
     } catch {
       showToast("Failed to load invoices", "error");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, pageSize, debouncedSearch, filter]);
 
   useEffect(() => { load(); }, [load]);
 
   const invoices = orders.map((o) => ({
     ...o,
     invoiceId:     `INV-${String(o.id).padStart(4, "0")}`,
-    invoiceStatus: deriveStatus(o),
+    invoiceStatus: o.invoice_status,
     issued:        formatDate(o.order_date || o.created_at),
     dueDisplay:    formatDate(o.due_date),   // always set by backend (COALESCE +30d)
     amount:        parseFloat(o.total || 0),
     amount_paid:   parseFloat(o.amount_paid || 0),
   }));
 
-  const filtered = invoices.filter((inv) => {
-    const matchSearch =
-      inv.invoiceId.toLowerCase().includes(search.toLowerCase()) ||
-      (inv.customer_name || "").toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "All" || inv.invoiceStatus === filter;
-    return matchSearch && matchFilter;
-  });
+  /* ── Current page is already filtered/sorted server-side ── */
+  const filtered = invoices;
 
-  const totalPaid    = invoices.filter((i) => i.invoiceStatus === "Paid").reduce((a, i) => a + i.amount, 0);
-  const totalPartial = invoices.filter((i) => i.invoiceStatus === "Partially Paid").reduce((a, i) => a + (i.amount - i.amount_paid), 0);
-  const totalOverdue = invoices.filter((i) => i.invoiceStatus === "Overdue").reduce((a, i) => a + i.amount, 0);
+  /* ── Stats (server-computed over the full unfiltered dataset for this company) ── */
+  const totalPaid    = stats.totalPaid;
+  const totalPartial = stats.totalPartial;
+  const totalOverdue = stats.totalOverdue;
 
   const handleMarkPaid = async (inv) => {
     setMarkingId(inv.id);
@@ -451,20 +459,36 @@ const Invoices = () => {
     window.location.href = `mailto:${inv.customer_email || ""}?subject=${subject}&body=${body}`;
   };
 
-  const handleExportCSV = () => exportToCSV(
-    filtered.map((i) => ({
-      Invoice:        i.invoiceId,
-      Customer:       i.customer_name || "",
-      Amount:         i.amount.toFixed(2),
-      "Amount Paid":  i.amount_paid.toFixed(2),
-      "Balance Due":  Math.max(i.amount - i.amount_paid, 0).toFixed(2),
-      Items:          i.item_count || 0,
-      Issued:         i.issued,
-      "Due Date":     i.dueDisplay,
-      Status:         i.invoiceStatus,
-    })),
-    "invoices"
-  );
+  /* ── Export all filtered (re-fetches the whole matching set, not just the current page) ── */
+  const handleExportCSV = async () => {
+    try {
+      const res = await getSales({ limit: Math.max(total, 1), search: debouncedSearch, status: filter });
+      const rows = res.data.data.map((o) => ({
+        invoiceId:   `INV-${String(o.id).padStart(4, "0")}`,
+        customer_name: o.customer_name,
+        amount:      parseFloat(o.total || 0),
+        amount_paid: parseFloat(o.amount_paid || 0),
+        item_count:  o.item_count,
+        issued:      formatDate(o.order_date || o.created_at),
+        dueDisplay:  formatDate(o.due_date),
+        invoiceStatus: o.invoice_status,
+      }));
+      exportToCSV(
+        rows.map((i) => ({
+          Invoice:        i.invoiceId,
+          Customer:       i.customer_name || "",
+          Amount:         i.amount.toFixed(2),
+          "Amount Paid":  i.amount_paid.toFixed(2),
+          "Balance Due":  Math.max(i.amount - i.amount_paid, 0).toFixed(2),
+          Items:          i.item_count || 0,
+          Issued:         i.issued,
+          "Due Date":     i.dueDisplay,
+          Status:         i.invoiceStatus,
+        })),
+        "invoices"
+      );
+    } catch { showToast("Export failed.", "error"); }
+  };
 
   if (loading) return <SkeletonLoader type="page" statCount={3} rows={5} cols={5} />;
 
@@ -592,7 +616,15 @@ const Invoices = () => {
           />
         )}
       </div>
-      <p className="text-xs text-gray-400 mt-3">Showing {filtered.length} of {invoices.length} invoices</p>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+        itemLabel="invoices"
+      />
 
       {previewInv && (
         <InvoiceModal
