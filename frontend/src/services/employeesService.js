@@ -1,7 +1,5 @@
 // frontend/src/services/employeesService.js
 import api from "./api";
 
+// Read-only: employee create/update/delete lives in staffService.js (Staff.jsx).
 export const getEmployees = () => api.get("/employees");
-export const createEmployee = (data) => api.post("/employees", data);
-export const updateEmployee = (id, data) => api.put(`/employees/${id}`, data);
-export const deleteEmployee = (id) => api.delete(`/employees/${id}`);

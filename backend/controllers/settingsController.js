@@ -133,7 +133,7 @@ exports.changePassword = async (req, res) => {
        FROM users u LEFT JOIN companies c ON c.id = u.company_id WHERE u.id = $1`,
       [req.user.id]
     );
-    const permissions = await fetchPermissions(req.user.role);
+    const permissions = await fetchPermissions(req.user.role, req.user.company_id);
     const token = signToken({ ...req.user, must_change_password: false }, permissions);
     res.cookie("token", token, COOKIE_OPTS);
     res.json({

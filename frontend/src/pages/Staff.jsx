@@ -10,6 +10,7 @@ import {
   PieChart, Pie,
 } from "recharts";
 import { getStaff, createStaff, updateStaff, deleteStaff } from "../services/staffService";
+import { getAllRolePermissions } from "../services/rolesService";
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
@@ -21,7 +22,10 @@ const DEPT_COLORS = {
 };
 const DEFAULT_COLOR = "#94a3b8";
 
-const ROLES = ["admin", "manager", "employee"];
+// Built-in roles, shown even before the roles list has loaded. Custom roles
+// created via Roles & Permissions are merged in at runtime (see availableRoles
+// below) — otherwise a custom role could be created but never assigned to anyone.
+const BUILT_IN_ROLES = ["admin", "manager", "employee"];
 const DEPTS = ["Engineering", "Sales", "Marketing", "Support", "HR", "Finance", "Operations"];
 
 const ROLE_CFG = {
@@ -109,6 +113,7 @@ const Staff = () => {
   const [sortCol, setSortCol]         = useState("name");
   const [sortDir, setSortDir]         = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [availableRoles, setAvailableRoles] = useState(BUILT_IN_ROLES);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -118,7 +123,15 @@ const Staff = () => {
   const load = async () => {
     try { const { data } = await getStaff(); setStaff(data); } catch { showToast("Failed to load staff.", "error"); }
   };
-  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadRoles = async () => {
+    try {
+      const { data } = await getAllRolePermissions();
+      const roles = Object.keys(data);
+      setAvailableRoles(roles.length ? roles : BUILT_IN_ROLES);
+    } catch { /* keep built-in roles as the fallback */ }
+  };
+  useEffect(() => { load(); loadRoles(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (f) => (e) => setForm({ ...form, [f]: e.target.value });
 
@@ -345,11 +358,11 @@ const Staff = () => {
 
         <div className="flex flex-wrap items-center gap-0.5 bg-gray-100/80 border border-gray-200/60 rounded-xl p-1">
           <Filter size={12} className="text-gray-400 ml-1 flex-shrink-0" />
-          {["All", ...ROLES].map((r) => (
+          {["All", ...availableRoles].map((r) => (
             <button key={r} onClick={() => handleRoleFilter(r)}
               className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all
                 ${roleFilter === r ? "bg-white text-violet-700 shadow-md border border-gray-200/80" : "text-gray-500 hover:text-gray-700 hover:bg-white/50"}`}>
-              {r === "All" ? t("All") : t(ROLE_CFG[r]?.label || r)}
+              {r === "All" ? t("All") : t(ROLE_CFG[r]?.label || r.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()))}
             </button>
           ))}
         </div>
@@ -650,7 +663,9 @@ const Staff = () => {
                         ...(editing ? {} : { salary: ROLE_SALARIES[newRole] ?? "" }),
                       }));
                     }}>
-                    {ROLES.map((r) => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+                    {availableRoles.map((r) => (
+                      <option key={r} value={r}>{r.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>
+                    ))}
                   </select>
                 </div>
               </div>

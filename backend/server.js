@@ -8,7 +8,7 @@ const db         = require("./config/db");
 const maintenanceMode = require("./middleware/maintenanceMode");
 
 const app = express();
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000", credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(require("./middleware/parseUser")); // attaches req.user from JWT (non-blocking)
@@ -47,13 +47,12 @@ app.use("/api/notifications", require("./routes/notifications"));
 // ── Company-scoped routes (super_admin blocked — they have no company data) ───
 app.use("/api", blockSuperAdmin);
 app.use("/api/staff",     require("./routes/staff"));
-app.use("/api/employees", require("./routes/employees")); // kept for internal model use
+app.use("/api/employees", require("./routes/employees")); // read-only, see routes/employees.js
 app.use("/api/products",  require("./routes/products"));
 app.use("/api/customers", require("./routes/customers"));
 app.use("/api/orders",    require("./routes/orders"));
 app.use("/api/activity",  require("./routes/activity"));
 app.use("/api/dashboard", require("./routes/dashboard"));
-app.use("/api/users",     require("./routes/users"));
 app.use("/api/suppliers", require("./routes/suppliers"));
 app.use("/api/sales",     require("./routes/sales"));
 app.use("/api/payments",  require("./routes/payments"));

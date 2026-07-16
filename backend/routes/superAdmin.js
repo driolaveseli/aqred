@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const { requireRole } = require("../middleware/authMiddleware");
+const { ALL_PERMS, MANAGER_PERMS, EMPLOYEE_PERMS } = require("../config/defaultRolePermissions");
 
 // All routes in this file require super_admin
 router.use(requireRole("super_admin"));
@@ -41,6 +42,17 @@ router.post("/companies", async (req, res) => {
 
     const coRes = await db.query("INSERT INTO companies (name) VALUES ($1) RETURNING *", [company_name]);
     const company = coRes.rows[0];
+
+    // Every company gets its own admin/manager/employee permission rows —
+    // role_permissions is scoped per company (see migrate.js), so a fresh
+    // company starts with no rows at all until this seeds them.
+    await db.query(
+      `INSERT INTO role_permissions (role, permissions, company_id) VALUES
+         ('admin',    $1, $4),
+         ('manager',  $2, $4),
+         ('employee', $3, $4)`,
+      [JSON.stringify(ALL_PERMS), JSON.stringify(MANAGER_PERMS), JSON.stringify(EMPLOYEE_PERMS), company.id]
+    );
 
     const hashed = await bcrypt.hash(admin_password, 10);
     const userRes = await db.query(

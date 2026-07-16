@@ -72,7 +72,7 @@ exports.login = async (req, res) => {
       return res.json({ requires2FA: true, tempToken });
     }
 
-    const permissions = await fetchPermissions(user.role);
+    const permissions = await fetchPermissions(user.role, user.company_id);
     const token = signToken(user, permissions);
 
     req.user = { id: user.id, name: user.name, role: user.role };
@@ -130,7 +130,7 @@ exports.verify2FALogin = async (req, res) => {
     });
     if (!valid) return res.status(401).json({ message: "Invalid verification code. Please try again." });
 
-    const permissions = await fetchPermissions(user.role);
+    const permissions = await fetchPermissions(user.role, user.company_id);
     const token = signToken(user, permissions);
 
     req.user = { id: user.id, name: user.name, role: user.role };
@@ -192,7 +192,7 @@ exports.register = async (req, res) => {
       [name, email, hashed, role, finalCompanyName, companyId]
     );
     const user = result.rows[0];
-    const permissions = await fetchPermissions(user.role);
+    const permissions = await fetchPermissions(user.role, user.company_id);
     const token = signToken(user, permissions);
     req.user = { id: user.id, name: user.name, role: user.role };
     logEvent({ level: "INFO", module: "auth", action: "register", req,
@@ -289,7 +289,7 @@ exports.forgotPassword = async (req, res) => {
 exports.me = async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT u.id, u.name, u.email, u.role,
+      `SELECT u.id, u.name, u.email, u.role, u.company_id,
               COALESCE(c.name, u.company_name) AS company_name
        FROM users u
        LEFT JOIN companies c ON c.id = u.company_id
@@ -299,7 +299,7 @@ exports.me = async (req, res) => {
     if (result.rows.length === 0)
       return res.status(404).json({ message: "User not found" });
     const user = result.rows[0];
-    const permissions = await fetchPermissions(user.role);
+    const permissions = await fetchPermissions(user.role, user.company_id);
     res.json({ ...user, permissions });
   } catch (err) {
     res.status(500).json({ error: err.message });

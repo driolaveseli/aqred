@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { SystemProvider } from "./context/SystemContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 import PrivateRoute from "./components/PrivateRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import LandingPage from "./pages/LandingPage";
@@ -54,6 +55,7 @@ const Protected = ({ children, permission, requireAdmin, superAdminOnly }) => (
 );
 
 const App = () => (
+  <ErrorBoundary>
   <AuthProvider>
     <SystemProvider>
     <Router>
@@ -115,6 +117,7 @@ const App = () => (
     </Router>
     </SystemProvider>
   </AuthProvider>
+  </ErrorBoundary>
 );
 
 export default App;
