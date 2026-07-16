@@ -131,16 +131,16 @@ const Sales = () => {
     try {
       const [rRes, oRes, cRes, pRes, pyRes] = await Promise.all([
         getSalesReport(range),
-        getSales(),
-        getCustomers(),
-        getProducts(),
-        getPayments(),
+        getSales({ limit: 5000 }),
+        getCustomers({ limit: 5000 }),
+        getProducts({ limit: 5000 }),
+        getPayments({ limit: 5000 }),
       ]);
       setReportData(rRes.data);
-      setOrders(oRes.data);
-      setCustomers(cRes.data);
-      setProducts(pRes.data);
-      setPayments(pyRes.data);
+      setOrders(oRes.data.data);
+      setCustomers(cRes.data.data);
+      setProducts(pRes.data.data);
+      setPayments(pyRes.data.data);
     } catch (err) {
       console.error("Failed to load sales data", err);
     } finally {

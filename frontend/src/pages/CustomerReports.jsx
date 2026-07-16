@@ -140,9 +140,9 @@ const CustomerReports = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [cRes, oRes] = await Promise.all([getCustomers(), getSales()]);
-      setCustomers(cRes.data);
-      setOrders(oRes.data);
+      const [cRes, oRes] = await Promise.all([getCustomers({ limit: 5000 }), getSales({ limit: 5000 })]);
+      setCustomers(cRes.data.data);
+      setOrders(oRes.data.data);
     } catch (err) {
       console.error("Failed to load customer report data", err);
     } finally {

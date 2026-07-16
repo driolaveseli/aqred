@@ -53,12 +53,12 @@ const SalesReports = () => {
       // so we can apply the same range client-side for the table and payment KPI.
       const [rRes, oRes, pRes] = await Promise.all([
         getSalesReport(range),
-        getSales(),
-        getPayments(),
+        getSales({ limit: 5000 }),
+        getPayments({ limit: 5000 }),
       ]);
       setReportData(rRes.data);
-      setOrders(oRes.data);
-      setPayments(pRes.data);
+      setOrders(oRes.data.data);
+      setPayments(pRes.data.data);
     } catch (err) {
       console.error("Failed to load report data", err);
     } finally {
