@@ -5,20 +5,13 @@ const speakeasy = require("speakeasy");
 const { logEvent } = require("../utils/logger");
 
 const SECRET = require("../config/jwtSecret");
-const { signToken, fetchPermissions } = require("../utils/authToken");
+const { signToken, fetchPermissions, COOKIE_OPTS } = require("../utils/authToken");
 
 // A bcrypt hash with no matching password, used to keep login's response time
 // constant whether or not the email exists — otherwise a nonexistent email
 // returns immediately while a wrong password takes a real bcrypt.compare,
 // letting an attacker enumerate valid emails purely by timing the response.
 const DUMMY_HASH = "$2b$10$FC9EM8HbhN6l6gEZdTn8kOgotn2BRf.iwTmDvptWWuv/Oxr5XLfmi";
-
-const COOKIE_OPTS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  maxAge: 8 * 60 * 60 * 1000,
-};
 
 // Short-lived token issued when 2FA is required — only authorises the 2FA step
 const signTempToken = (userId) =>
@@ -86,9 +79,11 @@ exports.login = async (req, res) => {
     logEvent({ level: "INFO", module: "auth", action: "login", req,
       description: `${user.name} logged in (${user.role})` });
 
+    // Token only ever goes in the httpOnly cookie, never the JSON body — a
+    // token in response.data is readable by any JS, which defeats the point
+    // of httpOnly (keeping it out of reach of XSS).
     res.cookie("token", token, COOKIE_OPTS);
     res.json({
-      token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions, mustChangePassword: !!user.must_change_password },
     });
   } catch (err) {
@@ -142,9 +137,11 @@ exports.verify2FALogin = async (req, res) => {
     logEvent({ level: "SECURITY", module: "auth", action: "login_2fa", req,
       description: `${user.name} completed 2FA login` });
 
+    // Token only ever goes in the httpOnly cookie, never the JSON body — a
+    // token in response.data is readable by any JS, which defeats the point
+    // of httpOnly (keeping it out of reach of XSS).
     res.cookie("token", token, COOKIE_OPTS);
     res.json({
-      token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions, mustChangePassword: !!user.must_change_password },
     });
   } catch (err) {
@@ -203,7 +200,7 @@ exports.register = async (req, res) => {
         ? `New company "${finalCompanyName}" created by ${name} (${email})`
         : `New account registered: ${name} (${email}), joined ${finalCompanyName}` });
     res.cookie("token", token, COOKIE_OPTS);
-    res.status(201).json({ token, user: { ...user, permissions, mustChangePassword: false }, companyCreated: role === "admin" });
+    res.status(201).json({ user: { ...user, permissions, mustChangePassword: false }, companyCreated: role === "admin" });
   } catch (err) {
     res.status(500).json({ message: "Registration failed. Please try again." });
   }

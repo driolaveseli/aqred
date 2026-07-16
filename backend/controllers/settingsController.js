@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const speakeasy = require("speakeasy");
 const QRCode = require("qrcode");
 const { logEvent } = require("../utils/logger");
-const { signToken, fetchPermissions } = require("../utils/authToken");
+const { signToken, fetchPermissions, COOKIE_OPTS } = require("../utils/authToken");
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -135,9 +135,9 @@ exports.changePassword = async (req, res) => {
     );
     const permissions = await fetchPermissions(req.user.role);
     const token = signToken({ ...req.user, must_change_password: false }, permissions);
+    res.cookie("token", token, COOKIE_OPTS);
     res.json({
       message: "Password updated successfully",
-      token,
       user: { id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role,
         company_name: companyRow.rows[0]?.company_name, permissions, mustChangePassword: false },
     });

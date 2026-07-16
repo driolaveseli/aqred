@@ -1,18 +1,10 @@
 import axios from "axios";
 
+// The JWT lives only in an httpOnly cookie the server sets on login — never
+// in JS-readable storage, so withCredentials is all that's needed to send it.
 const api = axios.create({
   baseURL: "http://localhost:5000/api",
   withCredentials: true,
-});
-
-// Attach JWT token as Authorization header — localStorage if "remember me" was
-// checked at login, sessionStorage otherwise (see Login.jsx/Register.jsx).
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("mis_token") || sessionStorage.getItem("mis_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
 });
 
 // Auto-logout on 401; redirect to maintenance page on 503
@@ -21,9 +13,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 && window.location.pathname !== "/login") {
       localStorage.removeItem("mis_user");
-      localStorage.removeItem("mis_token");
       sessionStorage.removeItem("mis_user");
-      sessionStorage.removeItem("mis_token");
       window.location.href = "/login";
     } else if (
       error.response?.status === 503 &&
