@@ -33,16 +33,21 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   const { name, email, password, role, position, department, salary, employment_status } = req.body;
   if (!name || !email) return res.status(400).json({ error: "Name and email are required" });
+  if (!password || password.length < 8)
+    return res.status(400).json({ error: "A temporary password of at least 8 characters is required" });
 
   try {
     const coRes = await db.query("SELECT name FROM companies WHERE id = $1", [req.user.company_id]);
     const company_name = coRes.rows[0]?.name || null;
 
-    const hashed = await bcrypt.hash(password || "Welcome123!", 10);
+    const hashed = await bcrypt.hash(password, 10);
 
+    // must_change_password = true: this is a temporary password set by the
+    // admin, not one the employee chose — they're forced to replace it with
+    // one only they know on first login (see requirePasswordChange.js).
     const userResult = await db.query(
-      `INSERT INTO users (name, email, password, role, company_name, company_id)
-       VALUES ($1,$2,$3,$4,$5,$6)
+      `INSERT INTO users (name, email, password, role, company_name, company_id, must_change_password)
+       VALUES ($1,$2,$3,$4,$5,$6,true)
        RETURNING id, name, email, role, created_at`,
       [name, email, hashed, role || "employee", company_name, req.user.company_id]
     );
@@ -96,8 +101,9 @@ router.put("/:id", async (req, res) => {
     let userResult;
     if (password && password.trim().length > 0) {
       const hashed = await bcrypt.hash(password, 10);
+      // An admin-set password is temporary, same as at creation — force a change.
       userResult = await db.query(
-        `UPDATE users SET name=$1, email=$2, role=$3, password=$4, updated_at=NOW()
+        `UPDATE users SET name=$1, email=$2, role=$3, password=$4, must_change_password=true, updated_at=NOW()
          WHERE id=$5 AND company_id=$6
          RETURNING id, name, email, role, created_at`,
         [name, email, role, hashed, id, req.user.company_id]

@@ -35,6 +35,7 @@ app.use(maintenanceMode);
 // ── Require valid JWT for all remaining routes ────────────────────────────────
 const { verifyToken, blockSuperAdmin } = require("./middleware/authMiddleware");
 app.use("/api", verifyToken);
+app.use("/api", require("./middleware/requirePasswordChange"));
 
 // ── Super-admin platform routes (no company scoping) ─────────────────────────
 app.use("/api/super-admin", require("./routes/superAdmin"));

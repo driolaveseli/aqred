@@ -15,6 +15,12 @@ const PrivateRoute = ({ children, allowedRoles, permission, superAdminOnly }) =>
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Admin-provisioned temporary password not yet replaced — block everything
+  // else until it is (mirrors the backend's requirePasswordChange gate).
+  if (user?.mustChangePassword && location.pathname !== "/change-password") {
+    return <Navigate to="/change-password" replace />;
+  }
+
   const isSuperAdmin = user?.role === "super_admin";
 
   // super_admin can only access super-admin routes

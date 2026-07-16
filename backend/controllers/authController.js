@@ -5,6 +5,7 @@ const speakeasy = require("speakeasy");
 const { logEvent } = require("../utils/logger");
 
 const SECRET = require("../config/jwtSecret");
+const { signToken, fetchPermissions } = require("../utils/authToken");
 
 // A bcrypt hash with no matching password, used to keep login's response time
 // constant whether or not the email exists — otherwise a nonexistent email
@@ -19,25 +20,9 @@ const COOKIE_OPTS = {
   maxAge: 8 * 60 * 60 * 1000,
 };
 
-const signToken = (user, permissions) =>
-  jwt.sign(
-    { id: user.id, name: user.name, email: user.email, role: user.role, company_id: user.company_id, permissions },
-    SECRET,
-    { expiresIn: "8h" }
-  );
-
 // Short-lived token issued when 2FA is required — only authorises the 2FA step
 const signTempToken = (userId) =>
   jwt.sign({ id: userId, twoFAPending: true }, SECRET, { expiresIn: "5m" });
-
-const fetchPermissions = async (role) => {
-  try {
-    const r = await db.query("SELECT permissions FROM role_permissions WHERE role = $1", [role]);
-    return r.rows[0]?.permissions || [];
-  } catch {
-    return [];
-  }
-};
 
 // Sends a real email if SMTP is configured, otherwise logs it — same fallback
 // used everywhere in this app so the flow is demonstrable without SMTP creds.
@@ -104,7 +89,7 @@ exports.login = async (req, res) => {
     res.cookie("token", token, COOKIE_OPTS);
     res.json({
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions },
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions, mustChangePassword: !!user.must_change_password },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -160,7 +145,7 @@ exports.verify2FALogin = async (req, res) => {
     res.cookie("token", token, COOKIE_OPTS);
     res.json({
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions },
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions, mustChangePassword: !!user.must_change_password },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -218,7 +203,7 @@ exports.register = async (req, res) => {
         ? `New company "${finalCompanyName}" created by ${name} (${email})`
         : `New account registered: ${name} (${email}), joined ${finalCompanyName}` });
     res.cookie("token", token, COOKIE_OPTS);
-    res.status(201).json({ token, user: { ...user, permissions }, companyCreated: role === "admin" });
+    res.status(201).json({ token, user: { ...user, permissions, mustChangePassword: false }, companyCreated: role === "admin" });
   } catch (err) {
     res.status(500).json({ message: "Registration failed. Please try again." });
   }
