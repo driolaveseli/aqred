@@ -143,6 +143,12 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const storeToken = (token) => {
+    if (!token) return;
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem("mis_token", token);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -153,12 +159,16 @@ const Login = () => {
         setTempToken(data.tempToken);
         setStep("totp");
       } else {
-        if (data.token) localStorage.setItem("mis_token", data.token);
+        storeToken(data.token);
         login(data.user, rememberMe);
         navigate(data.user.role === "super_admin" ? "/super-admin/companies" : "/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid email or password.");
+      if (err.response?.status === 429) {
+        setError("Too many attempts. Please wait a few minutes and try again.");
+      } else {
+        setError(err.response?.data?.message || "Invalid email or password.");
+      }
     } finally {
       setLoading(false);
     }
@@ -171,11 +181,15 @@ const Login = () => {
     setLoading(true);
     try {
       const { data } = await api.post("/auth/2fa/verify", { tempToken, totpCode });
-      if (data.token) localStorage.setItem("mis_token", data.token);
+      storeToken(data.token);
       login(data.user, rememberMe);
       navigate(data.user.role === "super_admin" ? "/super-admin/companies" : "/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid code. Please try again.");
+      if (err.response?.status === 429) {
+        setError("Too many attempts. Please wait a few minutes and try again.");
+      } else {
+        setError(err.response?.data?.message || "Invalid code. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -280,6 +294,7 @@ const Login = () => {
                     inputMode="numeric"
                     maxLength={6}
                     autoFocus
+                    autoComplete="one-time-code"
                     className={`${inputBase} tracking-[0.5em] text-xl text-center font-bold`}
                     placeholder="000000"
                     value={totpCode}
@@ -393,6 +408,7 @@ const Login = () => {
                   <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
                   <input
                     type="email"
+                    autoComplete="username"
                     className={`${inputBase} pl-10`}
                     placeholder="you@company.com"
                     value={formData.email}
@@ -418,6 +434,7 @@ const Login = () => {
                   <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-500 pointer-events-none" />
                   <input
                     type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
                     className={`${inputBase} pl-10 pr-10`}
                     placeholder="••••••••"
                     value={formData.password}
@@ -553,6 +570,7 @@ const Login = () => {
                         type="email"
                         required
                         autoFocus
+                        autoComplete="email"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
                         placeholder="you@company.com"
