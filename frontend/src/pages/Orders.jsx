@@ -15,17 +15,17 @@ import Pagination from "../components/UI/Pagination";
 
 const STATUSES   = ["Pending", "Processing", "Shipped", "Completed", "Cancelled"];
 const DATE_RANGES = ["All", "Today", "This Week", "This Month"];
-const inputCls   = "w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent";
+const inputCls   = "w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent";
 const today      = () => new Date().toISOString().slice(0, 10);
 const BLANK_ITEM = { product_id: "", quantity: 1, unit_price: 0, product_name: "" };
 const BLANK      = { customer_id: "", status: "Pending", notes: "", order_date: today(), items: [{ ...BLANK_ITEM }] };
 
 const statusConfig = {
-  Completed:  { label: "Completed",  icon: CheckCircle, cls: "bg-green-50 text-green-600",   dot: "bg-green-500"  },
-  Pending:    { label: "Pending",    icon: Clock,       cls: "bg-amber-50 text-amber-600",   dot: "bg-amber-500"  },
-  Processing: { label: "Processing", icon: Clock,       cls: "bg-blue-50 text-blue-600",     dot: "bg-blue-500"   },
-  Shipped:    { label: "Shipped",    icon: Truck,       cls: "bg-violet-50 text-violet-600", dot: "bg-violet-500" },
-  Cancelled:  { label: "Cancelled",  icon: XCircle,     cls: "bg-red-50 text-red-600",       dot: "bg-red-500"    },
+  Completed:  { label: "Completed",  icon: CheckCircle, cls: "bg-green-50 dark:bg-emerald-900/20 text-green-600 dark:text-emerald-400",   dot: "bg-green-500"  },
+  Pending:    { label: "Pending",    icon: Clock,       cls: "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400",   dot: "bg-amber-500"  },
+  Processing: { label: "Processing", icon: Clock,       cls: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",     dot: "bg-blue-500"   },
+  Shipped:    { label: "Shipped",    icon: Truck,       cls: "bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400", dot: "bg-violet-500" },
+  Cancelled:  { label: "Cancelled",  icon: XCircle,     cls: "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400",       dot: "bg-red-500"    },
 };
 
 const fmt = (v) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(v || 0);
@@ -33,7 +33,7 @@ const fmt = (v) => new Intl.NumberFormat("en-US", { style: "currency", currency:
 /* ─── Toast ──────────────────────────────────────────────────────────────── */
 const Toast = ({ msg, type, onClose }) => (
   <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium
-    ${type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
+    ${type === "success" ? "bg-green-50 dark:bg-emerald-900/30 text-green-700 dark:text-emerald-300 border border-green-100 dark:border-emerald-800" : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-800"}`}>
     <CheckCircle size={16} /> {msg}
     <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100"><X size={14} /></button>
   </div>
@@ -41,10 +41,10 @@ const Toast = ({ msg, type, onClose }) => (
 
 /* ─── Sort icon ──────────────────────────────────────────────────────────── */
 const SortIcon = ({ field, sortField, sortDir }) => {
-  if (sortField !== field) return <ChevronsUpDown size={12} className="text-gray-300 ml-1 inline-block" />;
+  if (sortField !== field) return <ChevronsUpDown size={12} className="text-gray-300 dark:text-gray-600 ml-1 inline-block" />;
   return sortDir === "asc"
-    ? <ChevronUp   size={12} className="text-violet-500 ml-1 inline-block" />
-    : <ChevronDown size={12} className="text-violet-500 ml-1 inline-block" />;
+    ? <ChevronUp   size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />
+    : <ChevronDown size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />;
 };
 
 /* ─── Orders ─────────────────────────────────────────────────────────────── */
@@ -325,7 +325,7 @@ const Orders = () => {
   const SortTh = ({ field, children, className = "" }) => (
     <th
       onClick={() => handleSort(field)}
-      className={`px-5 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:text-gray-600 transition-colors ${className}`}
+      className={`px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300 transition-colors ${className}`}
     >
       {children}<SortIcon field={field} sortField={sortField} sortDir={sortDir} />
     </th>
@@ -337,11 +337,11 @@ const Orders = () => {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t("Orders")}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t("Track and manage all customer orders")}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t("Orders")}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Track and manage all customer orders")}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 active:scale-95 transition-all">
+          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
             <Download size={15} /> {t("Export CSV")}
           </button>
           <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all">
@@ -353,20 +353,20 @@ const Orders = () => {
       {/* ── Stat cards (clickable filter shortcuts) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
         {[
-          { label: t("Total Orders"), value: stats.total,           color: "text-gray-900",    filter: "all"        },
-          { label: t("Pending"),      value: stats.pendingCount,    color: "text-amber-600",   filter: "Pending"    },
-          { label: t("Processing"),   value: stats.processingCount, color: "text-blue-600",    filter: "Processing" },
-          { label: t("Completed"),    value: stats.completedCount,  color: "text-green-600",   filter: "Completed"  },
-          { label: t("Revenue"),      value: fmt(totalRevenue),                                      color: "text-violet-600",  filter: null         },
+          { label: t("Total Orders"), value: stats.total,           color: "text-gray-900 dark:text-white",    filter: "all"        },
+          { label: t("Pending"),      value: stats.pendingCount,    color: "text-amber-600 dark:text-amber-400",   filter: "Pending"    },
+          { label: t("Processing"),   value: stats.processingCount, color: "text-blue-600 dark:text-blue-400",    filter: "Processing" },
+          { label: t("Completed"),    value: stats.completedCount,  color: "text-green-600 dark:text-emerald-400",   filter: "Completed"  },
+          { label: t("Revenue"),      value: fmt(totalRevenue),                                      color: "text-violet-600 dark:text-violet-400",  filter: null         },
         ].map((s) => (
           <button
             key={s.label}
             onClick={() => s.filter !== null && setStatusFilter(statusFilter === s.filter ? "all" : s.filter)}
-            className={`text-left bg-white border rounded-2xl p-5 shadow-sm transition-all duration-200
+            className={`text-left bg-white dark:bg-gray-900 border rounded-2xl p-5 shadow-sm transition-all duration-200
               ${s.filter !== null ? "hover:shadow-md cursor-pointer" : "cursor-default"}
-              ${s.filter !== null && statusFilter === s.filter ? "border-violet-300 ring-2 ring-violet-100" : "border-gray-100"}`}
+              ${s.filter !== null && statusFilter === s.filter ? "border-violet-300 dark:border-violet-700 ring-2 ring-violet-100 dark:ring-violet-900/30" : "border-gray-100 dark:border-gray-800"}`}
           >
-            <p className="text-sm text-gray-500 mb-1">{s.label}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{s.label}</p>
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
           </button>
         ))}
@@ -376,28 +376,28 @@ const Orders = () => {
       <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 mb-4">
         {/* Search */}
         <div className="relative w-full sm:flex-1 sm:max-w-xs">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder={t("Search order ID or customer...")}
-            className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+            className="w-full pl-9 pr-9 py-2.5 bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400">
               <X size={13} />
             </button>
           )}
         </div>
 
         {/* Status filter */}
-        <div className="flex flex-wrap items-center gap-1 bg-white border border-gray-100 rounded-xl p-1">
+        <div className="flex flex-wrap items-center gap-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-1">
           {["all", ...STATUSES].map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg capitalize transition-all ${statusFilter === s ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg capitalize transition-all ${statusFilter === s ? "bg-violet-600 text-white" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"}`}
             >
               {s === "all" ? t("All") : t(statusConfig[s]?.label || s)}
             </button>
@@ -405,12 +405,12 @@ const Orders = () => {
         </div>
 
         {/* Date range filter */}
-        <div className="flex items-center gap-1 bg-white border border-gray-100 rounded-xl p-1 flex-shrink-0">
+        <div className="flex items-center gap-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-1 flex-shrink-0">
           {DATE_RANGES.map((r) => (
             <button
               key={r}
               onClick={() => setDateRange(r)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${dateRange === r ? "bg-violet-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${dateRange === r ? "bg-violet-600 text-white" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"}`}
             >
               {t(r)}
             </button>
@@ -419,11 +419,11 @@ const Orders = () => {
       </div>
 
       {/* ── Table ── */}
-      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px]">
             <thead>
-              <tr className="border-b border-gray-100">
+              <tr className="border-b border-gray-100 dark:border-gray-800">
                 {/* Select-all */}
                 <th className="pl-5 pr-2 py-3.5 w-10">
                   <input
@@ -431,16 +431,16 @@ const Orders = () => {
                     type="checkbox"
                     checked={allSelected}
                     onChange={toggleSelectAll}
-                    className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 cursor-pointer"
+                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-violet-500 cursor-pointer"
                   />
                 </th>
                 <SortTh field="id">{t("Order ID")}</SortTh>
-                <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Customer")}</th>
-                <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Items")}</th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Customer")}</th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Items")}</th>
                 <SortTh field="total">{t("Total")}</SortTh>
-                <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Status")}</th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Status")}</th>
                 <SortTh field="date">{t("Date")}</SortTh>
-                <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("Actions")}</th>
+                <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -449,8 +449,8 @@ const Orders = () => {
                 return (
                   <tr
                     key={o.id}
-                    className={`${idx !== filtered.length - 1 ? "border-b border-gray-50" : ""}
-                      transition-colors ${selected.has(o.id) ? "bg-violet-50/60" : "hover:bg-violet-50/30"}`}
+                    className={`${idx !== filtered.length - 1 ? "border-b border-gray-50 dark:border-gray-800/60" : ""}
+                      transition-colors ${selected.has(o.id) ? "bg-violet-50/60 dark:bg-violet-900/20" : "hover:bg-violet-50/30 dark:hover:bg-violet-900/10"}`}
                   >
                     {/* Row checkbox */}
                     <td className="pl-5 pr-2 py-4 w-10">
@@ -458,25 +458,25 @@ const Orders = () => {
                         type="checkbox"
                         checked={selected.has(o.id)}
                         onChange={() => toggleSelect(o.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500 cursor-pointer"
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-violet-500 cursor-pointer"
                       />
                     </td>
-                    <td className="px-5 py-4 text-xs font-mono text-violet-600 font-semibold">
+                    <td className="px-5 py-4 text-xs font-mono text-violet-600 dark:text-violet-400 font-semibold">
                       #{String(o.id).padStart(4, "0")}
                     </td>
-                    <td className="px-5 py-4 text-sm font-medium text-gray-800">
+                    <td className="px-5 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">
                       {o.customer_name || customerName(o.customer_id)}
                     </td>
                     <td className="px-5 py-4">
                       <button
                         onClick={() => openItems(o)}
-                        className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 hover:underline font-medium transition-colors"
+                        className="flex items-center gap-1.5 text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline font-medium transition-colors"
                       >
                         <Package size={13} />
                         {o.item_count ?? 0} {(o.item_count ?? 0) !== 1 ? t("items") : t("item")}
                       </button>
                     </td>
-                    <td className="px-5 py-4 text-sm font-bold text-gray-900">{fmt(o.total)}</td>
+                    <td className="px-5 py-4 text-sm font-bold text-gray-900 dark:text-white">{fmt(o.total)}</td>
                     <td className="px-5 py-4">
                       <select
                         value={o.status}
@@ -486,13 +486,13 @@ const Orders = () => {
                         {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </td>
-                    <td className="px-5 py-4 text-xs text-gray-500">
+                    <td className="px-5 py-4 text-xs text-gray-500 dark:text-gray-400">
                       {o.order_date ? formatDate(o.order_date) : o.created_at ? formatDate(o.created_at) : "—"}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => openEdit(o)} className="p-1.5 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"><Edit2 size={14} /></button>
-                        <button onClick={() => setDeleteId(o.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={14} /></button>
+                        <button onClick={() => openEdit(o)} className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors"><Edit2 size={14} /></button>
+                        <button onClick={() => setDeleteId(o.id)} className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -540,14 +540,14 @@ const Orders = () => {
               <ChevronDownSm size={12} className={`transition-transform ${bulkStatusMenu ? "rotate-180" : ""}`} />
             </button>
             {bulkStatusMenu && (
-              <div className="absolute bottom-full mb-2 left-0 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden min-w-[150px] z-50">
+              <div className="absolute bottom-full mb-2 left-0 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden min-w-[150px] z-50">
                 {STATUSES.map((s) => {
                   const cfg = statusConfig[s];
                   return (
                     <button
                       key={s}
                       onClick={() => handleBulkStatus(s)}
-                      className="w-full text-left px-3 py-2.5 text-xs font-medium text-gray-700 hover:bg-violet-50 hover:text-violet-700 transition-colors flex items-center gap-2"
+                      className="w-full text-left px-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-700 dark:hover:text-violet-400 transition-colors flex items-center gap-2"
                     >
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
                       {t(cfg.label)}
@@ -579,17 +579,17 @@ const Orders = () => {
       {/* ── Create / Edit Modal ── */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-start justify-center z-50 overflow-y-auto py-4 sm:py-8 px-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-auto my-auto">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <h2 className="font-bold text-gray-900">{editing ? t("Edit Order") : t("New Order")}</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-2xl mx-auto my-auto">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+              <h2 className="font-bold text-gray-900 dark:text-white">{editing ? t("Edit Order") : t("New Order")}</h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"><X size={18} /></button>
             </div>
 
             <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-5 space-y-5">
               {/* Customer + Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Customer")} <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Customer")} <span className="text-red-500">*</span></label>
                   <select
                     required
                     className={inputCls}
@@ -603,7 +603,7 @@ const Orders = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Order Date")}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Order Date")}</label>
                   <input
                     type="date"
                     className={inputCls}
@@ -615,7 +615,7 @@ const Orders = () => {
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Status")}</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Status")}</label>
                 <select
                   className={inputCls}
                   value={form.status}
@@ -628,23 +628,23 @@ const Orders = () => {
               {/* Line Items */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-700">{t("Products / Items")} <span className="text-red-500">*</span></label>
-                  <button type="button" onClick={addItem} className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("Products / Items")} <span className="text-red-500">*</span></label>
+                  <button type="button" onClick={addItem} className="flex items-center gap-1 text-xs font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300">
                     <PlusCircle size={14} /> {t("Add Item")}
                   </button>
                 </div>
-                <div className="border border-gray-100 rounded-xl overflow-hidden">
-                  <div className="grid grid-cols-[1fr_60px_90px_70px] sm:grid-cols-[1fr_80px_110px_80px] gap-2 px-3 py-2 bg-gray-50 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <div className="border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+                  <div className="grid grid-cols-[1fr_60px_90px_70px] sm:grid-cols-[1fr_80px_110px_80px] gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800/60 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                     <span>{t("Product")}</span>
                     <span className="text-center">{t("Qty")}</span>
                     <span className="text-right">{t("Unit Price")}</span>
                     <span className="text-right">{t("Total")}</span>
                   </div>
                   {form.items.map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_60px_90px_70px] sm:grid-cols-[1fr_80px_110px_80px] gap-2 items-center px-3 py-2 border-t border-gray-50">
+                    <div key={idx} className="grid grid-cols-[1fr_60px_90px_70px] sm:grid-cols-[1fr_80px_110px_80px] gap-2 items-center px-3 py-2 border-t border-gray-50 dark:border-gray-800/60">
                       <select
                         required
-                        className="border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-full"
+                        className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-full"
                         value={item.product_id}
                         onChange={(e) => setItem(idx, "product_id", e.target.value)}
                       >
@@ -655,38 +655,38 @@ const Orders = () => {
                       </select>
                       <input
                         type="number" min="1" max={stockFor(item.product_id)} required
-                        className="border border-gray-200 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-violet-500 w-full"
+                        className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-violet-500 w-full"
                         value={item.quantity}
                         onChange={(e) => setItem(idx, "quantity", e.target.value)}
                       />
                       <input
                         type="number" min="0" step="0.01" required
-                        className="border border-gray-200 rounded-lg px-2 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-violet-500 w-full"
+                        className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-2 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-violet-500 w-full"
                         value={item.unit_price}
                         onChange={(e) => setItem(idx, "unit_price", e.target.value)}
                       />
                       <div className="flex items-center justify-end gap-1">
-                        <span className="text-sm font-medium text-gray-700 text-right flex-1">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 text-right flex-1">
                           {fmt((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0))}
                         </span>
                         {form.items.length > 1 && (
-                          <button type="button" onClick={() => removeItem(idx)} className="text-gray-300 hover:text-red-400 ml-1">
+                          <button type="button" onClick={() => removeItem(idx)} className="text-gray-300 dark:text-gray-600 hover:text-red-400 ml-1">
                             <X size={14} />
                           </button>
                         )}
                       </div>
                     </div>
                   ))}
-                  <div className="flex items-center justify-between px-3 py-3 bg-violet-50 border-t border-violet-100">
-                    <span className="text-sm font-semibold text-violet-700">{t("Order Total")}</span>
-                    <span className="text-base font-bold text-violet-700">{fmt(orderTotal)}</span>
+                  <div className="flex items-center justify-between px-3 py-3 bg-violet-50 dark:bg-violet-900/20 border-t border-violet-100 dark:border-violet-800/40">
+                    <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">{t("Order Total")}</span>
+                    <span className="text-base font-bold text-violet-700 dark:text-violet-300">{fmt(orderTotal)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Notes")}</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Notes")}</label>
                 <textarea
                   rows={2}
                   className={inputCls + " resize-none"}
@@ -697,7 +697,7 @@ const Orders = () => {
               </div>
 
               <div className="flex justify-end gap-3 pt-1">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg active:scale-95">{t("Cancel")}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg active:scale-95">{t("Cancel")}</button>
                 <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-semibold bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-60 active:scale-95">
                   {loading ? t("Saving...") : editing ? t("Save Changes") : t("Create Order")}
                 </button>
@@ -710,12 +710,12 @@ const Orders = () => {
       {/* ── Single delete confirm ── */}
       {deleteId && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
-            <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500" /></div>
-            <h3 className="font-bold text-gray-900 mb-1">{t("Delete Order?")}</h3>
-            <p className="text-sm text-gray-500 mb-5">{t("This action cannot be undone.")}</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
+            <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500 dark:text-red-400" /></div>
+            <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t("Delete Order?")}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{t("This action cannot be undone.")}</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} className="flex-1 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 active:scale-95">{t("Cancel")}</button>
+              <button onClick={() => setDeleteId(null)} className="flex-1 px-4 py-2 text-sm border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95">{t("Cancel")}</button>
               <button onClick={handleDelete} className="flex-1 px-4 py-2 text-sm font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 active:scale-95">{t("Delete")}</button>
             </div>
           </div>
@@ -725,12 +725,12 @@ const Orders = () => {
       {/* ── Bulk delete confirm ── */}
       {bulkDeleteConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
-            <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500" /></div>
-            <h3 className="font-bold text-gray-900 mb-1">{t("Delete")} {selected.size} {t("orders?")}</h3>
-            <p className="text-sm text-gray-500 mb-5">{t("This will permanently remove all selected orders. This action cannot be undone.")}</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
+            <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500 dark:text-red-400" /></div>
+            <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t("Delete")} {selected.size} {t("orders?")}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{t("This will permanently remove all selected orders. This action cannot be undone.")}</p>
             <div className="flex gap-3">
-              <button onClick={() => setBulkDeleteConfirm(false)} className="flex-1 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 active:scale-95">{t("Cancel")}</button>
+              <button onClick={() => setBulkDeleteConfirm(false)} className="flex-1 px-4 py-2 text-sm border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95">{t("Cancel")}</button>
               <button onClick={handleBulkDelete} disabled={bulkLoading} className="flex-1 px-4 py-2 text-sm font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-60 active:scale-95">
                 {bulkLoading ? t("Deleting...") : t("Delete All")}
               </button>
@@ -742,75 +742,75 @@ const Orders = () => {
       {/* ── Items viewer modal ── */}
       {itemsModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl mx-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-xl mx-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
               <div>
-                <h2 className="font-bold text-gray-900">Order #{String(itemsModal.order.id).padStart(4, "0")} — Items</h2>
-                <p className="text-xs text-gray-400 mt-0.5">{itemsModal.order.customer_name || customerName(itemsModal.order.customer_id)}</p>
+                <h2 className="font-bold text-gray-900 dark:text-white">Order #{String(itemsModal.order.id).padStart(4, "0")} — Items</h2>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{itemsModal.order.customer_name || customerName(itemsModal.order.customer_id)}</p>
               </div>
-              <button onClick={() => setItemsModal(null)} className="text-gray-400 hover:text-gray-600 p-1"><X size={18} /></button>
+              <button onClick={() => setItemsModal(null)} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1"><X size={18} /></button>
             </div>
             <div className="px-6 py-4">
               {itemsModal.loading ? (
                 <div className="space-y-3 py-2">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="flex items-center gap-3 animate-pulse">
-                      <div className="w-8 h-8 bg-gray-100 rounded-lg flex-shrink-0" />
+                      <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-lg flex-shrink-0" />
                       <div className="flex-1 space-y-1.5">
-                        <div className="h-3 w-32 bg-gray-100 rounded" />
-                        <div className="h-2.5 w-20 bg-gray-100 rounded" />
+                        <div className="h-3 w-32 bg-gray-100 dark:bg-gray-800 rounded" />
+                        <div className="h-2.5 w-20 bg-gray-100 dark:bg-gray-800 rounded" />
                       </div>
-                      <div className="h-3 w-16 bg-gray-100 rounded" />
+                      <div className="h-3 w-16 bg-gray-100 dark:bg-gray-800 rounded" />
                     </div>
                   ))}
                 </div>
               ) : itemsModal.items.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-400">No items found for this order.</div>
+                <div className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">No items found for this order.</div>
               ) : (
                 <>
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      <tr className="border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                         <th className="pb-2 text-left">{t("Product")}</th>
                         <th className="pb-2 text-center">{t("Qty")}</th>
                         <th className="pb-2 text-right">{t("Unit Price")}</th>
                         <th className="pb-2 text-right">{t("Subtotal")}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-gray-50 dark:divide-gray-800/60">
                       {itemsModal.items.map((item, i) => (
-                        <tr key={i} className="hover:bg-gray-50/50">
+                        <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30">
                           <td className="py-3 pr-4">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <Package size={13} className="text-violet-500" />
+                              <div className="w-8 h-8 bg-violet-50 dark:bg-violet-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Package size={13} className="text-violet-500 dark:text-violet-400" />
                               </div>
                               <div>
-                                <p className="font-medium text-gray-800">{item.product_name || `Product #${item.product_id}`}</p>
-                                {item.sku && <p className="text-xs text-gray-400">{item.sku}</p>}
+                                <p className="font-medium text-gray-800 dark:text-gray-100">{item.product_name || `Product #${item.product_id}`}</p>
+                                {item.sku && <p className="text-xs text-gray-400 dark:text-gray-500">{item.sku}</p>}
                               </div>
                             </div>
                           </td>
-                          <td className="py-3 text-center text-gray-700 font-medium">{item.quantity}</td>
-                          <td className="py-3 text-right text-gray-600">{fmt(item.unit_price)}</td>
-                          <td className="py-3 text-right font-bold text-gray-900">
+                          <td className="py-3 text-center text-gray-700 dark:text-gray-300 font-medium">{item.quantity}</td>
+                          <td className="py-3 text-right text-gray-600 dark:text-gray-400">{fmt(item.unit_price)}</td>
+                          <td className="py-3 text-right font-bold text-gray-900 dark:text-white">
                             {fmt((parseFloat(item.unit_price) || 0) * (parseInt(item.quantity) || 0))}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                  <div className="flex items-center justify-between pt-3 mt-1 border-t border-gray-100">
-                    <span className="text-sm font-semibold text-gray-700">{t("Order Total")}</span>
-                    <span className="text-base font-bold text-violet-700">{fmt(itemsModal.order.total)}</span>
+                  <div className="flex items-center justify-between pt-3 mt-1 border-t border-gray-100 dark:border-gray-800">
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t("Order Total")}</span>
+                    <span className="text-base font-bold text-violet-700 dark:text-violet-400">{fmt(itemsModal.order.total)}</span>
                   </div>
                 </>
               )}
             </div>
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800">
               <button
                 onClick={() => { setItemsModal(null); openEdit(itemsModal.order); }}
-                className="px-4 py-2 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
               >
                 {t("Edit Order")}
               </button>

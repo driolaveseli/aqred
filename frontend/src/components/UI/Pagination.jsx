@@ -25,20 +25,20 @@ const Pagination = ({ page, totalPages, total, pageSize, onPageChange, onPageSiz
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
       <div className="flex items-center gap-3">
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
           Showing{" "}
-          <span className="font-semibold text-gray-600">{rangeStart}</span>
+          <span className="font-semibold text-gray-600 dark:text-gray-300">{rangeStart}</span>
           {" – "}
-          <span className="font-semibold text-gray-600">{rangeEnd}</span>
+          <span className="font-semibold text-gray-600 dark:text-gray-300">{rangeEnd}</span>
           {" "}of{" "}
-          <span className="font-semibold text-gray-600">{total}</span>
+          <span className="font-semibold text-gray-600 dark:text-gray-300">{total}</span>
           {" "}{itemLabel}
         </p>
         {onPageSizeChange && (
           <select
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
+            className="text-xs border border-gray-200 dark:border-gray-700 dark:bg-gray-900/60 rounded-lg px-2 py-1 text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
           >
             {PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n} / page</option>)}
           </select>
@@ -50,13 +50,13 @@ const Pagination = ({ page, totalPages, total, pageSize, onPageChange, onPageSiz
           <button
             onClick={() => onPageChange(Math.max(1, safePage - 1))}
             disabled={safePage === 1}
-            className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:text-violet-600 hover:bg-violet-50 hover:border-violet-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:border-violet-200 dark:hover:border-violet-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronLeft size={14} />
           </button>
           {pageNumbers.map((p, i) =>
             p === "..." ? (
-              <span key={`ellipsis-${i}`} className="px-1.5 text-xs text-gray-400">…</span>
+              <span key={`ellipsis-${i}`} className="px-1.5 text-xs text-gray-400 dark:text-gray-500">…</span>
             ) : (
               <button
                 key={p}
@@ -64,7 +64,7 @@ const Pagination = ({ page, totalPages, total, pageSize, onPageChange, onPageSiz
                 className={`min-w-[32px] h-[32px] text-xs font-bold rounded-xl border transition-all
                   ${safePage === p
                     ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white border-violet-600 shadow-lg shadow-violet-300/40"
-                    : "border-gray-200 text-gray-600 hover:text-violet-600 hover:bg-violet-50 hover:border-violet-200"}`}
+                    : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:border-violet-200 dark:hover:border-violet-700"}`}
               >
                 {p}
               </button>
@@ -73,7 +73,7 @@ const Pagination = ({ page, totalPages, total, pageSize, onPageChange, onPageSiz
           <button
             onClick={() => onPageChange(Math.min(totalPages, safePage + 1))}
             disabled={safePage === totalPages}
-            className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:text-violet-600 hover:bg-violet-50 hover:border-violet-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:border-violet-200 dark:hover:border-violet-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronRight size={14} />
           </button>
