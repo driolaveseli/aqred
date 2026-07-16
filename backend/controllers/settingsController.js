@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const speakeasy = require("speakeasy");
 const QRCode = require("qrcode");
 const { logEvent } = require("../utils/logger");
+const { signToken, fetchPermissions } = require("../utils/authToken");
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -116,10 +117,30 @@ exports.changePassword = async (req, res) => {
     const match = await bcrypt.compare(currentPassword, r.rows[0].password);
     if (!match) return res.status(401).json({ error: "Current password is incorrect" });
     const hashed = await bcrypt.hash(newPassword, 10);
-    await db.query("UPDATE users SET password=$1, updated_at=NOW() WHERE id=$2", [hashed, req.user.id]);
+    await db.query(
+      "UPDATE users SET password=$1, must_change_password=false, updated_at=NOW() WHERE id=$2",
+      [hashed, req.user.id]
+    );
     logEvent({ level: "SECURITY", module: "settings", action: "password_changed", req,
       description: `Password changed for user ${req.user.id}` });
-    res.json({ message: "Password updated successfully" });
+
+    // Re-issue a token without mustChangePassword — the one already in the
+    // client's hands still carries the old flag for the rest of its 8h life.
+    // company_name isn't in the JWT payload itself, so look it up fresh
+    // (same COALESCE-join pattern login/me use) rather than lose it.
+    const companyRow = await db.query(
+      `SELECT COALESCE(c.name, u.company_name) AS company_name
+       FROM users u LEFT JOIN companies c ON c.id = u.company_id WHERE u.id = $1`,
+      [req.user.id]
+    );
+    const permissions = await fetchPermissions(req.user.role);
+    const token = signToken({ ...req.user, must_change_password: false }, permissions);
+    res.json({
+      message: "Password updated successfully",
+      token,
+      user: { id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role,
+        company_name: companyRow.rows[0]?.company_name, permissions, mustChangePassword: false },
+    });
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 

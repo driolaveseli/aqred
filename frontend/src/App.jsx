@@ -12,6 +12,7 @@ import DocumentationPage from "./pages/DocumentationPage";
 import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
 import TermsPage from "./pages/TermsPage";
+import ChangePasswordRequired from "./pages/ChangePasswordRequired";
 import Dashboard from "./pages/Dashboard";
 import ActivityFeed from "./pages/ActivityFeed";
 import Staff from "./pages/Staff";
@@ -67,6 +68,9 @@ const App = () => (
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/terms" element={<TermsPage />} />
+
+        {/* ── Forced password change (standalone, no DashboardLayout) ────── */}
+        <Route path="/change-password" element={<PrivateRoute><ChangePasswordRequired /></PrivateRoute>} />
 
         {/* ── Dashboard ────────────────────────────────────────────────── */}
         <Route path="/dashboard"     element={<Protected permission="View Dashboard"><Dashboard /></Protected>} />

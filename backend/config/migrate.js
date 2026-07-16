@@ -26,6 +26,11 @@ const migrate = async () => {
       )
     `);
 
+    // Set on any admin-provisioned account (new staff, a password reset, a
+    // company/admin created via the super-admin panel) — cleared once the
+    // user changes their own password. Enforced in requirePasswordChange.js.
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT false`);
+
     // Core business tables — these were historically created by hand outside
     // of any migration script, so a genuinely fresh database was missing them
     // entirely (every ALTER TABLE below would fail silently). Shapes here

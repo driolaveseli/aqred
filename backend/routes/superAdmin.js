@@ -44,8 +44,8 @@ router.post("/companies", async (req, res) => {
 
     const hashed = await bcrypt.hash(admin_password, 10);
     const userRes = await db.query(
-      `INSERT INTO users (name, email, password, role, company_name, company_id)
-       VALUES ($1, $2, $3, 'admin', $4, $5) RETURNING id, name, email, role, company_name`,
+      `INSERT INTO users (name, email, password, role, company_name, company_id, must_change_password)
+       VALUES ($1, $2, $3, 'admin', $4, $5, true) RETURNING id, name, email, role, company_name`,
       [admin_name, admin_email, hashed, company_name, company.id]
     );
     res.status(201).json({ company, admin: userRes.rows[0] });
@@ -69,8 +69,8 @@ router.put("/companies/:id/admin", async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const userRes = await db.query(
-      `INSERT INTO users (name, email, password, role, company_name, company_id)
-       VALUES ($1, $2, $3, 'admin', $4, $5) RETURNING id, name, email, role`,
+      `INSERT INTO users (name, email, password, role, company_name, company_id, must_change_password)
+       VALUES ($1, $2, $3, 'admin', $4, $5, true) RETURNING id, name, email, role`,
       [name, email, hashed, coRes.rows[0].name, id]
     );
     res.status(201).json(userRes.rows[0]);
