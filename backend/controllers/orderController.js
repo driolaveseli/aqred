@@ -4,8 +4,28 @@ const { createNotification } = require("../utils/notify");
 
 const getOrders = async (req, res) => {
   try {
-    const result = await Order.getAll(req.user.company_id);
-    res.json(result.rows);
+    const page  = parseInt(req.query.page, 10)  || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const { search = "", status = "all", dateRange = "All", sort = "date", order = "desc" } = req.query;
+
+    const { rows, filteredTotal, stats } = await Order.getPaged(req.user.company_id, {
+      search, status, dateRange, sort, order, page, limit,
+    });
+
+    res.json({
+      data: rows,
+      total: filteredTotal,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(filteredTotal / limit)),
+      stats: {
+        total: stats.total,
+        pendingCount: stats.pending_count,
+        processingCount: stats.processing_count,
+        completedCount: stats.completed_count,
+        totalRevenue: Number(stats.total_revenue),
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

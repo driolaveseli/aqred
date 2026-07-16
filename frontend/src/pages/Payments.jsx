@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { CreditCard, Search, CheckCircle, Clock, XCircle, DollarSign, TrendingUp, AlertCircle, Plus, X, Download, Trash2, RefreshCw, Printer, RotateCcw } from "lucide-react";
 import EmptyState from "../components/UI/EmptyState";
 import SkeletonLoader from "../components/UI/SkeletonLoader";
+import Pagination from "../components/UI/Pagination";
 import { getPayments, createPayment, updatePayment, deletePayment } from "../services/paymentsService";
 import { getSales } from "../services/salesService";
 import { exportToCSV } from "../utils/exportCSV";
@@ -114,6 +115,7 @@ const Payments = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -121,34 +123,56 @@ const Payments = () => {
   const [toast, setToast]     = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
+  const [page, setPage]             = useState(1);
+  const [pageSize, setPageSize]     = useState(25);
+  const [total, setTotal]           = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats]           = useState({ total: 0, totalCompleted: 0, totalPending: 0, totalFailed: 0 });
+
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
+
+  /* ── Debounce search ── */
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  /* ── Reset to page 1 whenever filter/search changes ── */
+  useEffect(() => { setPage(1); }, [debouncedSearch, filter]);
 
   const load = useCallback(async () => {
     try {
-      const [pRes, oRes] = await Promise.all([getPayments(), getSales()]);
-      setPayments(pRes.data);
-      setOrders(oRes.data.filter((o) => o.status !== "Cancelled"));
+      const pRes = await getPayments({ page, limit: pageSize, search: debouncedSearch, status: filter });
+      if (pRes.data.data.length === 0 && pRes.data.total > 0 && page > 1) {
+        setPage(pRes.data.totalPages);
+        return;
+      }
+      setPayments(pRes.data.data);
+      setTotal(pRes.data.total);
+      setTotalPages(pRes.data.totalPages);
+      setStats(pRes.data.stats);
     } catch {
       showToast("Failed to load payments", "error");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, pageSize, debouncedSearch, filter]);
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = payments.filter((p) => {
-    const matchSearch =
-      String(p.id).includes(search) ||
-      (p.customer_name || "").toLowerCase().includes(search.toLowerCase()) ||
-      `ORD-${String(p.order_id).padStart(4, "0")}`.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "All" || p.status === filter;
-    return matchSearch && matchFilter;
-  });
+  useEffect(() => {
+    // "Record Payment" form needs the full order list for its dropdown, not just
+    // one paginated page — fetch with a limit comfortably above current volumes.
+    getSales({ limit: 5000 }).then(({ data }) => setOrders(data.data.filter((o) => o.status !== "Cancelled"))).catch(() => {});
+  }, []);
 
-  const totalCompleted = payments.filter((p) => p.status === "Completed").reduce((a, p) => a + parseFloat(p.amount || 0), 0);
-  const totalPending   = payments.filter((p) => p.status === "Pending").reduce((a, p) => a + parseFloat(p.amount || 0), 0);
-  const totalFailed    = payments.filter((p) => p.status === "Failed").reduce((a, p) => a + parseFloat(p.amount || 0), 0);
+  /* ── Current page is already filtered/sorted server-side ── */
+  const filtered = payments;
+
+  /* ── Stats (server-computed over the full unfiltered dataset for this company) ── */
+  const totalCompleted = stats.totalCompleted;
+  const totalPending   = stats.totalPending;
+  const totalFailed    = stats.totalFailed;
 
   // Auto-fill amount when order selected
   const handleOrderChange = (order_id) => {
@@ -201,20 +225,24 @@ const Payments = () => {
     }
   };
 
-  const handleExport = () => {
-    exportToCSV(
-      filtered.map((p) => ({
-        "Payment ID": `PAY-${String(p.id).padStart(4, "0")}`,
-        "Order/Invoice": `ORD-${String(p.order_id).padStart(4, "0")}`,
-        Customer: p.customer_name || "",
-        Amount: parseFloat(p.amount || 0).toFixed(2),
-        Method: p.method,
-        Status: p.status,
-        Date: formatDate(p.payment_date || p.created_at),
-        Notes: p.notes || "",
-      })),
-      "payments"
-    );
+  /* ── Export all filtered (re-fetches the whole matching set, not just the current page) ── */
+  const handleExport = async () => {
+    try {
+      const { data } = await getPayments({ limit: Math.max(total, 1), search: debouncedSearch, status: filter });
+      exportToCSV(
+        data.data.map((p) => ({
+          "Payment ID": `PAY-${String(p.id).padStart(4, "0")}`,
+          "Order/Invoice": `ORD-${String(p.order_id).padStart(4, "0")}`,
+          Customer: p.customer_name || "",
+          Amount: parseFloat(p.amount || 0).toFixed(2),
+          Method: p.method,
+          Status: p.status,
+          Date: formatDate(p.payment_date || p.created_at),
+          Notes: p.notes || "",
+        })),
+        "payments"
+      );
+    } catch { showToast("Export failed.", "error"); }
   };
 
   if (loading) return <SkeletonLoader type="page" statCount={4} rows={5} cols={6} />;
@@ -345,11 +373,21 @@ const Payments = () => {
         {filtered.length === 0 && (
           <EmptyState
             icon={CreditCard}
-            title={filtered.length === 0 && payments.length > 0 ? t("No payments match your filter.") : t("No payments yet.")}
-            description={payments.length === 0 ? t("Record a payment or mark an invoice as paid to get started.") : undefined}
+            title={filtered.length === 0 && stats.total > 0 ? t("No payments match your filter.") : t("No payments yet.")}
+            description={stats.total === 0 ? t("Record a payment or mark an invoice as paid to get started.") : undefined}
           />
         )}
       </div>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+        itemLabel="payments"
+      />
 
       {/* Record Payment Modal */}
       {showModal && (

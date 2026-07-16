@@ -1,31 +1,82 @@
 const pool = require("../config/db");
 
+// Same derivation as deriveStatus() in frontend/src/pages/Invoices.jsx, ported
+// to SQL so it can be filtered/paginated server-side instead of client-side.
+const INVOICE_BASE_CTE = `
+  WITH base AS (
+    SELECT o.id, o.customer_id, o.status, o.total, o.notes, o.company_id,
+           o.order_date, o.created_at, o.updated_at,
+           COALESCE(o.due_date, (COALESCE(o.order_date, o.created_at) + INTERVAL '30 days')::date) AS due_date,
+           c.name AS customer_name, c.email AS customer_email,
+           COALESCE(item_agg.item_count, 0) AS item_count,
+           COALESCE(pay_agg.amount_paid, 0)::float AS amount_paid,
+           CASE
+             WHEN LOWER(o.status) IN ('cancelled', 'canceled') THEN 'Cancelled'
+             WHEN LOWER(o.status) = 'completed' THEN 'Paid'
+             WHEN o.total > 0 AND COALESCE(pay_agg.amount_paid, 0) >= o.total THEN 'Paid'
+             WHEN COALESCE(pay_agg.amount_paid, 0) > 0 AND COALESCE(pay_agg.amount_paid, 0) < o.total THEN 'Partially Paid'
+             WHEN COALESCE(o.due_date, (COALESCE(o.order_date, o.created_at) + INTERVAL '30 days')::date) < CURRENT_DATE THEN 'Overdue'
+             ELSE 'Unpaid'
+           END AS invoice_status
+    FROM orders o
+    LEFT JOIN customers c ON o.customer_id = c.id
+    LEFT JOIN (
+      SELECT order_id, COUNT(*) AS item_count FROM order_items GROUP BY order_id
+    ) item_agg ON item_agg.order_id = o.id
+    LEFT JOIN (
+      SELECT order_id, SUM(amount) AS amount_paid FROM payments WHERE LOWER(status) = 'completed' GROUP BY order_id
+    ) pay_agg ON pay_agg.order_id = o.id
+    WHERE o.company_id = $1 AND COALESCE(item_agg.item_count, 0) > 0
+  )
+`;
+
+const buildFilters = ({ search, status }) => {
+  const params = [];
+  let where = "";
+  if (search) {
+    params.push(`%${search}%`);
+    where += ` AND (('INV-' || LPAD(CAST(id AS TEXT), 4, '0')) ILIKE $${params.length + 1} OR customer_name ILIKE $${params.length + 1})`;
+  }
+  if (status && status !== "All") {
+    params.push(status);
+    where += ` AND invoice_status = $${params.length + 1}`;
+  }
+  return { where, params };
+};
+
 const Sales = {
-  getAll: (companyId) =>
-    pool.query(`
-      SELECT o.id, o.customer_id, o.status, o.total, o.notes, o.company_id,
-             o.order_date, o.created_at, o.updated_at,
-             COALESCE(o.due_date, (COALESCE(o.order_date, o.created_at) + INTERVAL '30 days')::date) AS due_date,
-             c.name AS customer_name, c.email AS customer_email,
-             COALESCE(item_agg.item_count, 0) AS item_count,
-             COALESCE(pay_agg.amount_paid, 0)::float AS amount_paid
-      FROM orders o
-      LEFT JOIN customers c ON o.customer_id = c.id
-      LEFT JOIN (
-        SELECT order_id, COUNT(*) AS item_count
-        FROM order_items
-        GROUP BY order_id
-      ) item_agg ON item_agg.order_id = o.id
-      LEFT JOIN (
-        SELECT order_id, SUM(amount) AS amount_paid
-        FROM payments
-        WHERE LOWER(status) = 'completed'
-        GROUP BY order_id
-      ) pay_agg ON pay_agg.order_id = o.id
-      WHERE o.company_id = $1
-        AND COALESCE(item_agg.item_count, 0) > 0
-      ORDER BY COALESCE(o.order_date, o.created_at) DESC
-    `, [companyId]),
+  getPaged: async (companyId, { search = "", status = "All", page = 1, limit = 20 } = {}) => {
+    const { where, params } = buildFilters({ search, status });
+    const offset = (Math.max(1, page) - 1) * limit;
+    const baseParams = [companyId, ...params];
+
+    const dataParams = [...baseParams, limit, offset];
+    const dataSql = `${INVOICE_BASE_CTE}
+      SELECT * FROM base WHERE 1=1 ${where}
+      ORDER BY COALESCE(order_date, created_at) DESC
+      LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`;
+    // Filtered count — drives pagination, reflects search/status.
+    const countSql = `${INVOICE_BASE_CTE}
+      SELECT COUNT(*)::int AS count FROM base WHERE 1=1 ${where}`;
+    // Stats — company-wide KPI cards, deliberately unfiltered by search/status: the
+    // status tabs (Paid/Partially Paid/Overdue) are themselves rendered as these
+    // same cards, so filtering stats by the active status would make the other
+    // cards read 0. Only the CTE's intrinsic company/item-count scoping applies.
+    const statsSql = `${INVOICE_BASE_CTE}
+      SELECT
+        COUNT(*)::int AS total,
+        COALESCE(SUM(total) FILTER (WHERE invoice_status = 'Paid'), 0) AS total_paid,
+        COALESCE(SUM(total - amount_paid) FILTER (WHERE invoice_status = 'Partially Paid'), 0) AS total_partial,
+        COALESCE(SUM(total) FILTER (WHERE invoice_status = 'Overdue'), 0) AS total_overdue
+      FROM base`;
+
+    const [dataRes, countRes, statsRes] = await Promise.all([
+      pool.query(dataSql, dataParams),
+      pool.query(countSql, baseParams),
+      pool.query(statsSql, [companyId]),
+    ]);
+    return { rows: dataRes.rows, filteredTotal: countRes.rows[0].count, stats: statsRes.rows[0] };
+  },
 
   getById: (id, companyId) =>
     pool.query(

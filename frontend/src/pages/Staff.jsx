@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   Users, Plus, Search, Download, Edit2, Trash2, X, CheckCircle,
   Shield, UserCheck, User, Mail, Briefcase, DollarSign, Filter,
-  BarChart2, Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
+  BarChart2, Eye, ChevronUp, ChevronDown,
   Calendar, Hash,
 } from "lucide-react";
 import {
@@ -13,6 +13,7 @@ import { getStaff, createStaff, updateStaff, deleteStaff } from "../services/sta
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
+import Pagination from "../components/UI/Pagination";
 
 const DEPT_COLORS = {
   Engineering: "#7c3aed", Sales: "#6366f1", Support: "#a78bfa",
@@ -117,7 +118,7 @@ const Staff = () => {
   const load = async () => {
     try { const { data } = await getStaff(); setStaff(data); } catch { showToast("Failed to load staff.", "error"); }
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (f) => (e) => setForm({ ...form, [f]: e.target.value });
 
@@ -461,61 +462,14 @@ const Staff = () => {
         )}
       </div>
 
-      {/* Pagination */}
-      {filtered.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
-          <p className="text-xs text-gray-400">
-            {t("Showing")}{" "}
-            <span className="font-semibold text-gray-600">{Math.min((safePage - 1) * PAGE_SIZE + 1, filtered.length)}</span>
-            {" – "}
-            <span className="font-semibold text-gray-600">{Math.min(safePage * PAGE_SIZE, filtered.length)}</span>
-            {" "}{t("of")}{" "}
-            <span className="font-semibold text-gray-600">{filtered.length}</span>
-            {" "}{t("staff members")}
-          </p>
-          {totalPages > 1 && (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={safePage === 1}
-                className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:text-violet-600 hover:bg-violet-50 hover:border-violet-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                <ChevronLeft size={14} />
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-                .reduce((acc, p, idx, arr) => {
-                  if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
-                  acc.push(p);
-                  return acc;
-                }, [])
-                .map((p, i) =>
-                  p === "..." ? (
-                    <span key={`ellipsis-${i}`} className="px-1.5 text-xs text-gray-400">…</span>
-                  ) : (
-                    <button
-                      key={p}
-                      onClick={() => setCurrentPage(p)}
-                      className={`min-w-[32px] h-[32px] text-xs font-bold rounded-xl border transition-all
-                        ${safePage === p
-                          ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white border-violet-600 shadow-lg shadow-violet-300/40"
-                          : "border-gray-200 text-gray-600 hover:text-violet-600 hover:bg-violet-50 hover:border-violet-200"}`}
-                    >
-                      {p}
-                    </button>
-                  )
-                )}
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={safePage === totalPages}
-                className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:text-violet-600 hover:bg-violet-50 hover:border-violet-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+      <Pagination
+        page={safePage}
+        totalPages={totalPages}
+        total={filtered.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setCurrentPage}
+        itemLabel={t("staff members")}
+      />
 
       </>}
 
