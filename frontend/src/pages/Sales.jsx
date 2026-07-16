@@ -25,11 +25,11 @@ const DATE_RANGES  = ["This Month", "Last 3 Months", "This Year", "All Time"];
 const BLANK_ITEM   = { product_id: "", quantity: 1, unit_price: 0 };
 
 const STATUS_CFG = {
-  Completed:  { bg: "bg-green-50",  text: "text-green-600",  dot: "#22c55e", Icon: CheckCircle },
-  Pending:    { bg: "bg-amber-50",  text: "text-amber-600",  dot: "#f59e0b", Icon: Clock       },
-  Processing: { bg: "bg-blue-50",   text: "text-blue-600",   dot: "#3b82f6", Icon: RefreshCw   },
-  Cancelled:  { bg: "bg-red-50",    text: "text-red-600",    dot: "#ef4444", Icon: XCircle     },
-  Shipped:    { bg: "bg-violet-50", text: "text-violet-600", dot: "#7c3aed", Icon: Truck       },
+  Completed:  { bg: "bg-green-50 dark:bg-emerald-900/20",  text: "text-green-600 dark:text-emerald-400",  dot: "#22c55e", Icon: CheckCircle },
+  Pending:    { bg: "bg-amber-50 dark:bg-amber-900/20",  text: "text-amber-600 dark:text-amber-400",  dot: "#f59e0b", Icon: Clock       },
+  Processing: { bg: "bg-blue-50 dark:bg-blue-900/20",   text: "text-blue-600 dark:text-blue-400",   dot: "#3b82f6", Icon: RefreshCw   },
+  Cancelled:  { bg: "bg-red-50 dark:bg-red-900/20",    text: "text-red-600 dark:text-red-400",    dot: "#ef4444", Icon: XCircle     },
+  Shipped:    { bg: "bg-violet-50 dark:bg-violet-900/20", text: "text-violet-600 dark:text-violet-400", dot: "#7c3aed", Icon: Truck       },
 };
 
 const filterByRange = (list, range) => {
@@ -58,8 +58,8 @@ const isOverdue = (o) => {
 const Toast = ({ msg, type, onClose }) => (
   <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium border ${
     type === "success"
-      ? "bg-green-50 text-green-700 border-green-100"
-      : "bg-red-50 text-red-700 border-red-100"
+      ? "bg-green-50 dark:bg-emerald-900/30 text-green-700 dark:text-emerald-300 border-green-100 dark:border-emerald-800"
+      : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-100 dark:border-red-800"
   }`}>
     {type === "success" ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
     {msg}
@@ -68,7 +68,7 @@ const Toast = ({ msg, type, onClose }) => (
 );
 
 const MiniBar = ({ pct, color = "bg-violet-500" }) => (
-  <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1.5">
+  <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 mt-1.5">
     <div className={`h-1.5 rounded-full ${color} transition-all duration-500`} style={{ width: `${Math.min(pct, 100)}%` }} />
   </div>
 );
@@ -90,7 +90,7 @@ const SVGDonut = ({ pct, size = 120, strokeWidth = 11 }) => {
       </svg>
       <div className="flex flex-col items-center z-10">
         <span className="text-xl font-bold" style={{ color }}>{pct.toFixed(0)}%</span>
-        <span className="text-[10px] text-gray-400 mt-0.5 leading-none">collected</span>
+        <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 leading-none">collected</span>
       </div>
     </div>
   );
@@ -273,14 +273,14 @@ const Sales = () => {
   // ─── Date range pills ──────────────────────────────────────────────────────
   const DateRangeFilter = (
     <div className="flex flex-wrap items-center gap-3 mb-5">
-      <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest hidden sm:block">Period</span>
-      <div className="flex flex-wrap items-center gap-0.5 bg-gray-100/90 border border-gray-200/70 rounded-xl p-1 w-fit shadow-inner">
+      <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest hidden sm:block">Period</span>
+      <div className="flex flex-wrap items-center gap-0.5 bg-gray-100/90 dark:bg-gray-800/80 border border-gray-200/70 dark:border-gray-700 rounded-xl p-1 w-fit shadow-inner">
         {DATE_RANGES.map(r => (
           <button key={r} onClick={() => setRange(r)}
             className={`px-3 sm:px-4 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
               range === r
-                ? "bg-white text-violet-700 shadow-sm border border-gray-200/80 font-semibold"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-white dark:bg-gray-700 text-violet-700 dark:text-violet-300 shadow-sm border border-gray-200/80 dark:border-gray-600 font-semibold"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}>
             {t(r)}
           </button>
@@ -291,22 +291,22 @@ const Sales = () => {
 
   // ─── Recent Orders summary widget ─────────────────────────────────────────
   const RecentOrdersWidget = (
-    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h3 className="font-semibold text-gray-900">{t("Recent Orders")}</h3>
-          <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
+          <h3 className="font-semibold text-gray-900 dark:text-white">{t("Recent Orders")}</h3>
+          <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded-full">
             {filteredOrders.length} {t("in")} {t(range)}
           </span>
           {overdueCount > 0 && (
-            <span className="flex items-center gap-1 text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">
+            <span className="flex items-center gap-1 text-xs font-medium text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-800/50">
               <AlertTriangle size={10} />{overdueCount} {t("overdue")}
             </span>
           )}
         </div>
         <Link
           to="/orders"
-          className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-300 transition-colors"
         >
           {t("Manage all")} <ArrowRight size={12} />
         </Link>
@@ -322,28 +322,28 @@ const Sales = () => {
         />
       ) : (
         <>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-50 dark:divide-gray-800/60">
             {recentOrders.map(o => {
               const cfg    = STATUS_CFG[o.status] || STATUS_CFG.Pending;
               const Icon   = cfg.Icon;
               const overdue = isOverdue(o);
               return (
-                <div key={o.id} className="flex items-center gap-4 px-5 py-3 hover:bg-gray-50/60 transition-colors">
+                <div key={o.id} className="flex items-center gap-4 px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors">
                   {/* Order ID */}
-                  <span className="text-xs font-mono font-semibold text-violet-600 w-20 flex-shrink-0">
+                  <span className="text-xs font-mono font-semibold text-violet-600 dark:text-violet-400 w-20 flex-shrink-0">
                     ORD-{String(o.id).padStart(4, "0")}
                   </span>
 
                   {/* Customer */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{o.customer_name || "—"}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{o.customer_name || "—"}</p>
                     {o.customer_email && (
-                      <p className="text-xs text-gray-400 truncate">{o.customer_email}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{o.customer_email}</p>
                     )}
                   </div>
 
                   {/* Total */}
-                  <span className="text-sm font-semibold text-gray-900 flex-shrink-0">
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white flex-shrink-0">
                     {formatCurrency(o.total)}
                   </span>
 
@@ -354,9 +354,9 @@ const Sales = () => {
 
                   {/* Date + overdue */}
                   <div className="text-right flex-shrink-0 w-20">
-                    <p className="text-xs text-gray-400">{formatDate(o.order_date || o.created_at)}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(o.order_date || o.created_at)}</p>
                     {overdue && (
-                      <p className="text-[10px] text-orange-500 font-medium flex items-center justify-end gap-0.5 mt-0.5">
+                      <p className="text-[10px] text-orange-500 dark:text-orange-400 font-medium flex items-center justify-end gap-0.5 mt-0.5">
                         <AlertTriangle size={9} /> {t("Overdue")}
                       </p>
                     )}
@@ -367,13 +367,13 @@ const Sales = () => {
           </div>
 
           {/* Footer link */}
-          <div className="px-5 py-3 border-t border-gray-50 flex items-center justify-between">
-            <p className="text-xs text-gray-400">
+          <div className="px-5 py-3 border-t border-gray-50 dark:border-gray-800/60 flex items-center justify-between">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
               {t("Showing")} {recentOrders.length} {t("of")} {filteredOrders.length} {t("orders")}
             </p>
             <Link
               to="/orders"
-              className="flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-800 transition-colors"
+              className="flex items-center gap-1 text-sm font-medium text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-300 transition-colors"
             >
               {t("View all orders")} <ArrowRight size={13} />
             </Link>
@@ -387,7 +387,7 @@ const Sales = () => {
   return (
     <div>
       {/* Header */}
-      <div className="relative bg-gradient-to-r from-slate-800 to-violet-900 rounded-2xl px-6 py-5 mb-5 overflow-hidden shadow-lg shadow-slate-500/30">
+      <div className="relative bg-gradient-to-r from-slate-800 to-violet-900 rounded-2xl px-6 py-5 mb-5 overflow-hidden shadow-lg shadow-slate-500/30 dark:shadow-black/40">
         {/* Decorative orbs */}
         <div className="absolute -right-8 -top-8 w-44 h-44 rounded-full bg-white/[0.06] pointer-events-none" />
         <div className="absolute right-24 -bottom-10 w-36 h-36 rounded-full bg-white/[0.05] pointer-events-none" />
@@ -432,7 +432,7 @@ const Sales = () => {
       </div>
 
       {/* View tabs */}
-      <div className="flex gap-0.5 bg-gray-100/90 border border-gray-200/70 rounded-xl p-1 mb-5 w-fit shadow-inner">
+      <div className="flex gap-0.5 bg-gray-100/90 dark:bg-gray-800/80 border border-gray-200/70 dark:border-gray-700 rounded-xl p-1 mb-5 w-fit shadow-inner">
         {[
           { key: "sales",   label: t("Sales"),               icon: ShoppingBag },
           { key: "reports", label: t("Reports & Analytics"), icon: BarChart2   },
@@ -440,10 +440,10 @@ const Sales = () => {
           <button key={key} onClick={() => setView(key)}
             className={`flex items-center gap-2 px-5 py-2 text-sm rounded-lg transition-all duration-200 ${
               view === key
-                ? "bg-white text-violet-700 font-semibold shadow-sm border border-gray-200/80"
-                : "text-gray-500 hover:text-gray-700 font-medium"
+                ? "bg-white dark:bg-gray-700 text-violet-700 dark:text-violet-300 font-semibold shadow-sm border border-gray-200/80 dark:border-gray-600"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium"
             }`}>
-            <Icon size={14} className={view === key ? "text-violet-600" : "text-gray-400"} />{label}
+            <Icon size={14} className={view === key ? "text-violet-600 dark:text-violet-400" : "text-gray-400 dark:text-gray-500"} />{label}
           </button>
         ))}
       </div>
@@ -457,38 +457,38 @@ const Sales = () => {
           {/* KPI Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {[
-              { label: t("Revenue"),          value: formatCurrency(totalRevenue), sub: t(range),             icon: DollarSign,  color: "text-green-600",  iconBg: "bg-green-100",  accent: "from-green-500 to-emerald-400"  },
-              { label: t("Orders"),           value: totalOrders,                  sub: t(range),             icon: ShoppingBag, color: "text-blue-600",   iconBg: "bg-blue-100",   accent: "from-blue-500 to-sky-400"       },
-              { label: t("Avg. Order Value"), value: formatCurrency(avgOrder),     sub: t("Per transaction"), icon: TrendingUp,  color: "text-violet-600", iconBg: "bg-violet-100", accent: "from-violet-600 to-purple-400"  },
-              { label: t("Active Customers"), value: activeCustomers,              sub: t(range),             icon: Users,       color: "text-amber-600",  iconBg: "bg-amber-100",  accent: "from-amber-500 to-yellow-400"   },
+              { label: t("Revenue"),          value: formatCurrency(totalRevenue), sub: t(range),             icon: DollarSign,  color: "text-green-600 dark:text-emerald-400",  iconBg: "bg-green-100 dark:bg-emerald-900/20",  accent: "from-green-500 to-emerald-400"  },
+              { label: t("Orders"),           value: totalOrders,                  sub: t(range),             icon: ShoppingBag, color: "text-blue-600 dark:text-blue-400",   iconBg: "bg-blue-100 dark:bg-blue-900/20",   accent: "from-blue-500 to-sky-400"       },
+              { label: t("Avg. Order Value"), value: formatCurrency(avgOrder),     sub: t("Per transaction"), icon: TrendingUp,  color: "text-violet-600 dark:text-violet-400", iconBg: "bg-violet-100 dark:bg-violet-900/20", accent: "from-violet-600 to-purple-400"  },
+              { label: t("Active Customers"), value: activeCustomers,              sub: t(range),             icon: Users,       color: "text-amber-600 dark:text-amber-400",  iconBg: "bg-amber-100 dark:bg-amber-900/20",  accent: "from-amber-500 to-yellow-400"   },
             ].map(({ label, value, sub, icon: Icon, color, iconBg, accent }) => (
-              <div key={label} className="relative bg-white rounded-2xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden border border-gray-100/80">
+              <div key={label} className="relative bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden border border-gray-100/80 dark:border-gray-800">
                 <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${accent}`} />
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-medium text-gray-500">{label}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{label}</p>
                   <div className={`w-10 h-10 ${iconBg} rounded-xl flex items-center justify-center shadow-sm`}>
                     <Icon size={18} className={color} />
                   </div>
                 </div>
-                <p className="text-2xl font-bold text-gray-900 tracking-tight">{value}</p>
-                <p className="text-xs text-gray-400 mt-1.5">{sub}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{value}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">{sub}</p>
               </div>
             ))}
           </div>
 
           {/* Monthly Revenue Chart */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-4">
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-4">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-gray-900">{t("Monthly Revenue")}</h3>
-                <p className="text-xs text-gray-400 mt-0.5">{t(range)}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white">{t("Monthly Revenue")}</h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{t(range)}</p>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500 bg-violet-50 px-3 py-1.5 rounded-lg">
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-violet-50 dark:bg-violet-900/20 px-3 py-1.5 rounded-lg">
                 <span className="w-2.5 h-2.5 rounded-sm bg-gradient-to-b from-violet-500 to-violet-300 inline-block" /> {t("Revenue")}
               </div>
             </div>
             {reportData.monthly.length === 0 ? (
-              <div className="flex items-center justify-center h-40 text-gray-400 text-sm">{t("No data for selected period.")}</div>
+              <div className="flex items-center justify-center h-40 text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
             ) : (
               <ResponsiveContainer width="100%" height={230}>
                 <BarChart data={reportData.monthly.map(m => ({ ...m, revenue: parseFloat(m.revenue || 0) }))} barCategoryGap="30%">
@@ -511,25 +511,25 @@ const Sales = () => {
 
           {/* Top Products + Category Revenue */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h3 className="font-semibold text-gray-900 mb-1">{t("Top Products by Revenue")}</h3>
-              <p className="text-xs text-gray-400 mb-4">{t(range)}</p>
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t("Top Products by Revenue")}</h3>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{t(range)}</p>
               {reportData.topProducts.length === 0 ? (
-                <div className="flex items-center justify-center h-32 text-gray-400 text-sm">{t("No data for selected period.")}</div>
+                <div className="flex items-center justify-center h-32 text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
               ) : (
                 <div className="space-y-3">
                   {reportData.topProducts.map((p, i) => {
-                    const rankBadge = ["bg-amber-100 text-amber-600","bg-gray-100 text-gray-500","bg-orange-100 text-orange-500"];
+                    const rankBadge = ["bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400","bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400","bg-orange-100 dark:bg-orange-900/30 text-orange-500 dark:text-orange-400"];
                     return (
                       <div key={p.name} className="flex items-center gap-3">
-                        <span className={`text-xs font-bold w-5 h-5 flex items-center justify-center rounded-md flex-shrink-0 ${rankBadge[i] || "text-gray-300 bg-transparent"}`}>
+                        <span className={`text-xs font-bold w-5 h-5 flex items-center justify-center rounded-md flex-shrink-0 ${rankBadge[i] || "text-gray-300 dark:text-gray-600 bg-transparent"}`}>
                           {i + 1}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-700 truncate">{p.name}</p>
-                          <p className="text-xs text-gray-400">{p.units} unit{p.units !== 1 ? "s" : ""} · {p.category || "—"}</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{p.name}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{p.units} unit{p.units !== 1 ? "s" : ""} · {p.category || "—"}</p>
                         </div>
-                        <span className="text-sm font-semibold text-gray-900">{formatCurrency(p.revenue)}</span>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(p.revenue)}</span>
                       </div>
                     );
                   })}
@@ -537,11 +537,11 @@ const Sales = () => {
               )}
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h3 className="font-semibold text-gray-900 mb-1">{t("Revenue by Category")}</h3>
-              <p className="text-xs text-gray-400 mb-4">{t(range)}</p>
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t("Revenue by Category")}</h3>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{t(range)}</p>
               {reportData.categoryRevenue.length === 0 ? (
-                <div className="flex items-center justify-center h-32 text-gray-400 text-sm">{t("No data for selected period.")}</div>
+                <div className="flex items-center justify-center h-32 text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
               ) : (
                 <div className="space-y-3">
                   {reportData.categoryRevenue.map((cat, i) => {
@@ -556,14 +556,14 @@ const Sales = () => {
                         <div className="flex justify-between items-center mb-1.5">
                           <div className="flex items-center gap-1.5">
                             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dots[i % dots.length]}`} />
-                            <span className="text-sm text-gray-700">{cat.category}</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{cat.category}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400">{pct}%</span>
-                            <span className="text-sm font-semibold text-gray-900">{formatCurrency(cat.revenue)}</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500">{pct}%</span>
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(cat.revenue)}</span>
                           </div>
                         </div>
-                        <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
                           <div className={`h-2 rounded-full bg-gradient-to-r ${gradients[i % gradients.length]} transition-all duration-700`} style={{ width: `${pct}%` }} />
                         </div>
                       </div>
@@ -585,42 +585,42 @@ const Sales = () => {
           {/* Row 1: 6 KPI tiles */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             {[
-              { label: t("Revenue"),     value: formatCurrency(totalRevenue),      sub: t(range),                          icon: DollarSign,  valColor: "text-gray-900",   accent: "border-l-4 border-l-violet-500" },
-              { label: t("Collected"),   value: formatCurrency(totalCollected),     sub: `${collectionRate.toFixed(0)}% ${t("of revenue")}`, icon: TrendingUp,  valColor: "text-green-600",  accent: "border-l-4 border-l-green-500" },
-              { label: t("Outstanding"), value: formatCurrency(outstanding),        sub: outstanding > 0 ? t("Uncollected") : t("Fully collected"), icon: AlertCircle, valColor: outstanding > 0 ? "text-amber-600" : "text-gray-400", accent: outstanding > 0 ? "border-l-4 border-l-amber-400" : "border-l-4 border-l-gray-200" },
-              { label: t("Orders"),      value: filteredOrders.length,              sub: t(range),                          icon: ShoppingBag, valColor: "text-gray-900",   accent: "border-l-4 border-l-blue-500"  },
-              { label: t("Completion"),  value: `${completionRate.toFixed(0)}%`,    sub: `${completedCount} ${t("completed")}`, icon: CheckCircle, valColor: "text-violet-600", accent: "border-l-4 border-l-violet-400" },
-              { label: t("Avg. Order"),  value: formatCurrency(avgOrder),           sub: t("Per transaction"),              icon: BarChart2,   valColor: "text-gray-900",   accent: "border-l-4 border-l-gray-300"  },
+              { label: t("Revenue"),     value: formatCurrency(totalRevenue),      sub: t(range),                          icon: DollarSign,  valColor: "text-gray-900 dark:text-white",   accent: "border-l-4 border-l-violet-500" },
+              { label: t("Collected"),   value: formatCurrency(totalCollected),     sub: `${collectionRate.toFixed(0)}% ${t("of revenue")}`, icon: TrendingUp,  valColor: "text-green-600 dark:text-emerald-400",  accent: "border-l-4 border-l-green-500" },
+              { label: t("Outstanding"), value: formatCurrency(outstanding),        sub: outstanding > 0 ? t("Uncollected") : t("Fully collected"), icon: AlertCircle, valColor: outstanding > 0 ? "text-amber-600 dark:text-amber-400" : "text-gray-400 dark:text-gray-500", accent: outstanding > 0 ? "border-l-4 border-l-amber-400" : "border-l-4 border-l-gray-200 dark:border-l-gray-700" },
+              { label: t("Orders"),      value: filteredOrders.length,              sub: t(range),                          icon: ShoppingBag, valColor: "text-gray-900 dark:text-white",   accent: "border-l-4 border-l-blue-500"  },
+              { label: t("Completion"),  value: `${completionRate.toFixed(0)}%`,    sub: `${completedCount} ${t("completed")}`, icon: CheckCircle, valColor: "text-violet-600 dark:text-violet-400", accent: "border-l-4 border-l-violet-400" },
+              { label: t("Avg. Order"),  value: formatCurrency(avgOrder),           sub: t("Per transaction"),              icon: BarChart2,   valColor: "text-gray-900 dark:text-white",   accent: "border-l-4 border-l-gray-300 dark:border-l-gray-700"  },
             ].map(({ label, value, sub, icon: Icon, valColor, accent }) => (
-              <div key={label} className={`bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all col-span-1 ${accent}`}>
+              <div key={label} className={`bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all col-span-1 ${accent}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-medium text-gray-500">{label}</p>
-                  <Icon size={13} className="text-gray-300" />
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
+                  <Icon size={13} className="text-gray-300 dark:text-gray-600" />
                 </div>
                 <p className={`text-xl font-bold ${valColor} tracking-tight`}>{value}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{sub}</p>
               </div>
             ))}
           </div>
 
           {/* Row 2: Revenue + Orders trend */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-4">
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-4">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-semibold text-gray-900">{t("Revenue & Order Volume")}</h3>
-                <p className="text-xs text-gray-400 mt-0.5">{t("Monthly trend for")} {t(range).toLowerCase()}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white">{t("Revenue & Order Volume")}</h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{t("Monthly trend for")} {t(range).toLowerCase()}</p>
               </div>
-              <div className="flex items-center gap-3 text-xs text-gray-500">
-                <span className="flex items-center gap-1.5 bg-violet-50 px-2.5 py-1 rounded-lg">
+              <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                <span className="flex items-center gap-1.5 bg-violet-50 dark:bg-violet-900/20 px-2.5 py-1 rounded-lg">
                   <span className="w-2.5 h-2.5 rounded-sm bg-gradient-to-b from-violet-500 to-violet-300 inline-block" /> {t("Revenue")}
                 </span>
-                <span className="flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 rounded-lg">
+                <span className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1 rounded-lg">
                   <span className="w-3 h-[2px] bg-amber-400 inline-block rounded-full" /> {t("Orders")}
                 </span>
               </div>
             </div>
             {trendData.length === 0 ? (
-              <div className="flex items-center justify-center h-52 text-gray-400 text-sm">{t("No data for selected period.")}</div>
+              <div className="flex items-center justify-center h-52 text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
             ) : (
               <ResponsiveContainer width="100%" height={230}>
                 <ComposedChart data={trendData} barCategoryGap="30%">
@@ -650,11 +650,11 @@ const Sales = () => {
 
           {/* Row 3: Status breakdown + Top Customers + Collection Health */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h3 className="font-semibold text-gray-900 mb-1">{t("Order Status")}</h3>
-              <p className="text-xs text-gray-400 mb-4">{filteredOrders.length} {t("orders total")}</p>
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t("Order Status")}</h3>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{filteredOrders.length} {t("orders total")}</p>
               {filteredOrders.length === 0 ? (
-                <div className="flex items-center justify-center h-32 text-gray-400 text-sm">{t("No data for selected period.")}</div>
+                <div className="flex items-center justify-center h-32 text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
               ) : (
                 <div className="space-y-3">
                   {Object.entries(statusBreakdown)
@@ -668,14 +668,14 @@ const Sales = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Icon size={13} style={{ color: cfg.dot }} />
-                              <span className="text-sm text-gray-700">{t(status)}</span>
+                              <span className="text-sm text-gray-700 dark:text-gray-300">{t(status)}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400">{pct.toFixed(0)}%</span>
-                              <span className="text-sm font-semibold text-gray-900 w-5 text-right">{count}</span>
+                              <span className="text-xs text-gray-400 dark:text-gray-500">{pct.toFixed(0)}%</span>
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white w-5 text-right">{count}</span>
                             </div>
                           </div>
-                          <div className="w-full bg-gray-100 rounded-full h-2 mt-1.5">
+                          <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 mt-1.5">
                             <div className="h-2 rounded-full transition-all duration-700"
                               style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${cfg.dot}dd, ${cfg.dot}88)` }} />
                           </div>
@@ -686,22 +686,22 @@ const Sales = () => {
               )}
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-gray-900">{t("Top Customers")}</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white">{t("Top Customers")}</h3>
                 <Award size={14} className="text-amber-400" />
               </div>
-              <p className="text-xs text-gray-400 mb-4">{t("By revenue, excl. cancelled")}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{t("By revenue, excl. cancelled")}</p>
               {topCustomers.length === 0 ? (
-                <div className="flex items-center justify-center h-32 text-gray-400 text-sm">{t("No data for selected period.")}</div>
+                <div className="flex items-center justify-center h-32 text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
               ) : (
                 <div className="space-y-3">
                   {topCustomers.map((c, i) => {
                     const pct = (c.revenue / topCustomerMax) * 100;
                     const rankStyles = [
-                      "bg-amber-400 text-white ring-2 ring-amber-200",
-                      "bg-gray-300 text-white ring-2 ring-gray-100",
-                      "bg-orange-400 text-white ring-2 ring-orange-100",
+                      "bg-amber-400 text-white ring-2 ring-amber-200 dark:ring-amber-800/50",
+                      "bg-gray-300 text-white ring-2 ring-gray-100 dark:ring-gray-700",
+                      "bg-orange-400 text-white ring-2 ring-orange-100 dark:ring-orange-800/50",
                     ];
                     return (
                       <div key={c.name}>
@@ -713,8 +713,8 @@ const Sales = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-gray-700 font-medium truncate">{c.name}</span>
-                              <span className="text-sm font-semibold text-gray-900 ml-2 flex-shrink-0">{formatCurrency(c.revenue)}</span>
+                              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate">{c.name}</span>
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white ml-2 flex-shrink-0">{formatCurrency(c.revenue)}</span>
                             </div>
                             <MiniBar pct={pct} color={i === 0 ? "bg-gradient-to-r from-amber-400 to-yellow-300" : "bg-violet-400"} />
                           </div>
@@ -726,29 +726,29 @@ const Sales = () => {
               )}
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h3 className="font-semibold text-gray-900 mb-1">{t("Collection Health")}</h3>
-              <p className="text-xs text-gray-400 mb-3">{t("Payment collection overview")}</p>
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t("Collection Health")}</h3>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">{t("Payment collection overview")}</p>
               <div className="flex flex-col items-center py-2 mb-3">
                 <SVGDonut pct={collectionRate} size={120} strokeWidth={11} />
-                <p className="text-xs text-gray-500 mt-2">{t("Collection rate")}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{t("Collection rate")}</p>
               </div>
               <div className="space-y-2.5">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-green-400 inline-block" /> {t("Collected")}
                   </span>
-                  <span className="text-sm font-semibold text-green-600">{formatCurrency(totalCollected)}</span>
+                  <span className="text-sm font-semibold text-green-600 dark:text-emerald-400">{formatCurrency(totalCollected)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> {t("Outstanding")}
                   </span>
-                  <span className="text-sm font-semibold text-amber-600">{formatCurrency(outstanding)}</span>
+                  <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">{formatCurrency(outstanding)}</span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-gray-50">
-                  <span className="text-xs text-gray-500">{t("Total billed")}</span>
-                  <span className="text-sm font-semibold text-gray-900">{formatCurrency(totalRevenue)}</span>
+                <div className="flex justify-between items-center pt-2 border-t border-gray-50 dark:border-gray-800">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{t("Total billed")}</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(totalRevenue)}</span>
                 </div>
               </div>
             </div>
@@ -756,11 +756,11 @@ const Sales = () => {
 
           {/* Row 4: Top Products + Category Revenue */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h3 className="font-semibold text-gray-900 mb-1">{t("Top Products by Revenue")}</h3>
-              <p className="text-xs text-gray-400 mb-4">{t(range)}</p>
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t("Top Products by Revenue")}</h3>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{t(range)}</p>
               {reportData.topProducts.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-gray-400 text-sm">{t("No data for selected period.")}</div>
+                <div className="flex items-center justify-center h-40 text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
               ) : (() => {
                 const topRev = parseFloat(reportData.topProducts[0]?.revenue || 1);
                 return (
@@ -771,16 +771,16 @@ const Sales = () => {
                       return (
                         <div key={p.name}>
                           <div className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-gray-300 w-4 flex-shrink-0">{i + 1}</span>
+                            <span className="text-xs font-bold text-gray-300 dark:text-gray-600 w-4 flex-shrink-0">{i + 1}</span>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-0.5">
-                                <p className="text-sm font-medium text-gray-700 truncate">{p.name}</p>
-                                <span className="text-sm font-semibold text-gray-900 ml-2 flex-shrink-0">{formatCurrency(p.revenue)}</span>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{p.name}</p>
+                                <span className="text-sm font-semibold text-gray-900 dark:text-white ml-2 flex-shrink-0">{formatCurrency(p.revenue)}</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <p className="text-xs text-gray-400">{p.units} unit{p.units !== 1 ? "s" : ""}</p>
-                                {p.category && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{p.category}</span>}
-                                <span className="text-[10px] text-gray-400 ml-auto">{revPctOfTotal}% of total</span>
+                                <p className="text-xs text-gray-400 dark:text-gray-500">{p.units} unit{p.units !== 1 ? "s" : ""}</p>
+                                {p.category && <span className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded-full">{p.category}</span>}
+                                <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-auto">{revPctOfTotal}% of total</span>
                               </div>
                               <MiniBar pct={pct} color="bg-violet-500" />
                             </div>
@@ -793,11 +793,11 @@ const Sales = () => {
               })()}
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-2xl p-5">
-              <h3 className="font-semibold text-gray-900 mb-1">{t("Revenue by Category")}</h3>
-              <p className="text-xs text-gray-400 mb-4">{t(range)}</p>
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{t("Revenue by Category")}</h3>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">{t(range)}</p>
               {reportData.categoryRevenue.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-gray-400 text-sm">{t("No data for selected period.")}</div>
+                <div className="flex items-center justify-center h-40 text-gray-400 dark:text-gray-500 text-sm">{t("No data for selected period.")}</div>
               ) : (
                 <>
                   <div className="space-y-4">
@@ -813,14 +813,14 @@ const Sales = () => {
                           <div className="flex justify-between items-center mb-1.5">
                             <div className="flex items-center gap-2">
                               <span className={`w-2.5 h-2.5 rounded-sm flex-shrink-0 ${dots[i % dots.length]}`} />
-                              <span className="text-sm text-gray-700">{cat.category}</span>
+                              <span className="text-sm text-gray-700 dark:text-gray-300">{cat.category}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400">{pct.toFixed(1)}%</span>
-                              <span className="text-sm font-semibold text-gray-900">{formatCurrency(cat.revenue)}</span>
+                              <span className="text-xs text-gray-400 dark:text-gray-500">{pct.toFixed(1)}%</span>
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(cat.revenue)}</span>
                             </div>
                           </div>
-                          <div className="w-full bg-gray-100 rounded-full h-2">
+                          <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
                             <div className={`h-2 rounded-full bg-gradient-to-r ${gradients[i % gradients.length]} transition-all duration-700`}
                               style={{ width: `${pct}%` }} />
                           </div>
@@ -828,11 +828,11 @@ const Sales = () => {
                       );
                     })}
                   </div>
-                  <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center">
-                    <span className="text-xs text-gray-500">
+                  <div className="mt-4 pt-3 border-t border-gray-50 dark:border-gray-800 flex justify-between items-center">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       {t("Total")} ({reportData.categoryRevenue.length} {t("categories")})
                     </span>
-                    <span className="text-sm font-bold text-gray-900">{formatCurrency(catTotal)}</span>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(catTotal)}</span>
                   </div>
                 </>
               )}
@@ -844,23 +844,23 @@ const Sales = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
               {/* Cancellation Rate */}
               <div className={`relative rounded-2xl p-5 overflow-hidden shadow-sm border ${
-                cancellationRate > 20 ? "bg-gradient-to-br from-red-50 to-rose-50/60 border-red-100" : "bg-gradient-to-br from-green-50 to-emerald-50/60 border-green-100"
+                cancellationRate > 20 ? "bg-gradient-to-br from-red-50 to-rose-50/60 dark:from-red-900/15 dark:to-rose-900/5 border-red-100 dark:border-red-800/40" : "bg-gradient-to-br from-green-50 to-emerald-50/60 dark:from-green-900/15 dark:to-emerald-900/5 border-green-100 dark:border-green-800/40"
               }`}>
                 <div className={`absolute -right-3 -top-3 w-16 h-16 rounded-full opacity-10 ${
                   cancellationRate > 20 ? "bg-red-500" : "bg-green-500"
                 }`} />
                 <div className="flex items-start gap-3">
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
-                    cancellationRate > 20 ? "bg-red-100" : "bg-green-100"
+                    cancellationRate > 20 ? "bg-red-100 dark:bg-red-900/30" : "bg-green-100 dark:bg-green-900/30"
                   }`}>
-                    <AlertCircle size={17} className={cancellationRate > 20 ? "text-red-500" : "text-green-500"} />
+                    <AlertCircle size={17} className={cancellationRate > 20 ? "text-red-500 dark:text-red-400" : "text-green-500 dark:text-green-400"} />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t("Cancellation Rate")}</p>
-                    <p className={`text-2xl font-bold mt-0.5 ${cancellationRate > 20 ? "text-red-600" : "text-green-600"}`}>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t("Cancellation Rate")}</p>
+                    <p className={`text-2xl font-bold mt-0.5 ${cancellationRate > 20 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-emerald-400"}`}>
                       {cancellationRate.toFixed(1)}%
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {cancelledCount} {t("of")} {filteredOrders.length} {t("orders cancelled")}
                     </p>
                   </div>
@@ -868,16 +868,16 @@ const Sales = () => {
               </div>
 
               {/* Fulfillment Rate */}
-              <div className="relative rounded-2xl p-5 overflow-hidden shadow-sm bg-gradient-to-br from-violet-50 to-purple-50/60 border border-violet-100">
+              <div className="relative rounded-2xl p-5 overflow-hidden shadow-sm bg-gradient-to-br from-violet-50 to-purple-50/60 dark:from-violet-900/15 dark:to-purple-900/5 border border-violet-100 dark:border-violet-800/40">
                 <div className="absolute -right-3 -top-3 w-16 h-16 rounded-full opacity-10 bg-violet-500" />
                 <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-violet-100 shadow-sm">
-                    <CheckCircle size={17} className="text-violet-600" />
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-violet-100 dark:bg-violet-900/30 shadow-sm">
+                    <CheckCircle size={17} className="text-violet-600 dark:text-violet-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t("Fulfillment Rate")}</p>
-                    <p className="text-2xl font-bold text-violet-600 mt-0.5">{completionRate.toFixed(1)}%</p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t("Fulfillment Rate")}</p>
+                    <p className="text-2xl font-bold text-violet-600 dark:text-violet-400 mt-0.5">{completionRate.toFixed(1)}%</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {completedCount} {t("of")} {nonCancelledCount} {t("orders fulfilled")}
                     </p>
                   </div>
@@ -886,23 +886,23 @@ const Sales = () => {
 
               {/* Revenue per Order */}
               <div className={`relative rounded-2xl p-5 overflow-hidden shadow-sm border ${
-                collectionRate < 60 ? "bg-gradient-to-br from-amber-50 to-yellow-50/60 border-amber-100" : "bg-gradient-to-br from-blue-50 to-sky-50/60 border-blue-100"
+                collectionRate < 60 ? "bg-gradient-to-br from-amber-50 to-yellow-50/60 dark:from-amber-900/15 dark:to-yellow-900/5 border-amber-100 dark:border-amber-800/40" : "bg-gradient-to-br from-blue-50 to-sky-50/60 dark:from-blue-900/15 dark:to-sky-900/5 border-blue-100 dark:border-blue-800/40"
               }`}>
                 <div className={`absolute -right-3 -top-3 w-16 h-16 rounded-full opacity-10 ${
                   collectionRate < 60 ? "bg-amber-500" : "bg-blue-500"
                 }`} />
                 <div className="flex items-start gap-3">
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
-                    collectionRate < 60 ? "bg-amber-100" : "bg-blue-100"
+                    collectionRate < 60 ? "bg-amber-100 dark:bg-amber-900/30" : "bg-blue-100 dark:bg-blue-900/30"
                   }`}>
-                    <DollarSign size={17} className={collectionRate < 60 ? "text-amber-600" : "text-blue-600"} />
+                    <DollarSign size={17} className={collectionRate < 60 ? "text-amber-600 dark:text-amber-400" : "text-blue-600 dark:text-blue-400"} />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{t("Revenue per Order")}</p>
-                    <p className={`text-2xl font-bold mt-0.5 ${collectionRate < 60 ? "text-amber-600" : "text-blue-600"}`}>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t("Revenue per Order")}</p>
+                    <p className={`text-2xl font-bold mt-0.5 ${collectionRate < 60 ? "text-amber-600 dark:text-amber-400" : "text-blue-600 dark:text-blue-400"}`}>
                       {formatCurrency(avgOrder)}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {t("Average across")} {filteredOrders.length} {t("orders")}
                     </p>
                   </div>
@@ -916,16 +916,16 @@ const Sales = () => {
       {/* ══════════════════ NEW SALE MODAL ══════════════════ */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 z-10">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center">
-                  <ShoppingBag size={15} className="text-violet-600" />
+                <div className="w-8 h-8 bg-violet-50 dark:bg-violet-900/20 rounded-lg flex items-center justify-center">
+                  <ShoppingBag size={15} className="text-violet-600 dark:text-violet-400" />
                 </div>
-                <h2 className="font-bold text-gray-900">{t("New Sale")}</h2>
+                <h2 className="font-bold text-gray-900 dark:text-white">{t("New Sale")}</h2>
               </div>
               <button onClick={() => setShowModal(false)}
-                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                className="w-8 h-8 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
                 <X size={16} />
               </button>
             </div>
@@ -933,9 +933,9 @@ const Sales = () => {
             <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Customer")} *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Customer")} *</label>
                   <select required
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                    className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     value={form.customer_id}
                     onChange={e => setForm(f => ({ ...f, customer_id: e.target.value }))}>
                     <option value="">{t("Select customer...")}</option>
@@ -947,9 +947,9 @@ const Sales = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Status")}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Status")}</label>
                   <select
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                    className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     value={form.status}
                     onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
                     <option>Pending</option>
@@ -962,16 +962,16 @@ const Sales = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Due Date")}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Due Date")}</label>
                   <input type="date"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     value={form.due_date}
                     onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("Notes")}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Notes")}</label>
                   <input type="text" placeholder={t("Optional notes...")}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     value={form.notes}
                     onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
                 </div>
@@ -979,18 +979,18 @@ const Sales = () => {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">{t("Products / Items")} *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t("Products / Items")} *</label>
                   <button type="button" onClick={addItem}
-                    className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-800 font-medium transition-colors">
+                    className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-300 font-medium transition-colors">
                     <Plus size={12} /> {t("Add Item")}
                   </button>
                 </div>
 
                 <div className="grid grid-cols-12 gap-2 px-1 mb-1">
-                  <span className="col-span-5 text-xs text-gray-400 font-medium">{t("Product")}</span>
-                  <span className="col-span-2 text-xs text-gray-400 font-medium">{t("Qty")}</span>
-                  <span className="col-span-3 text-xs text-gray-400 font-medium">{t("Unit Price")}</span>
-                  <span className="col-span-2 text-xs text-gray-400 font-medium text-right">{t("Subtotal")}</span>
+                  <span className="col-span-5 text-xs text-gray-400 dark:text-gray-500 font-medium">{t("Product")}</span>
+                  <span className="col-span-2 text-xs text-gray-400 dark:text-gray-500 font-medium">{t("Qty")}</span>
+                  <span className="col-span-3 text-xs text-gray-400 dark:text-gray-500 font-medium">{t("Unit Price")}</span>
+                  <span className="col-span-2 text-xs text-gray-400 dark:text-gray-500 font-medium text-right">{t("Subtotal")}</span>
                 </div>
 
                 <div className="space-y-2">
@@ -1004,8 +1004,8 @@ const Sales = () => {
                         <div className="grid grid-cols-12 gap-2 items-center">
                           <div className="col-span-5">
                             <select
-                              className={`w-full border rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                                outOfStock && item.product_id ? "border-red-200 bg-red-50" : "border-gray-200"
+                              className={`w-full border rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 ${
+                                outOfStock && item.product_id ? "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20" : "border-gray-200 dark:border-gray-700"
                               }`}
                               value={item.product_id}
                               onChange={e => updateItem(idx, "product_id", e.target.value)}>
@@ -1018,32 +1018,32 @@ const Sales = () => {
                             </select>
                           </div>
                           <input type="number" min="1"
-                            className={`col-span-2 border rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                              stockWarn ? "border-amber-300 bg-amber-50" : "border-gray-200"
+                            className={`col-span-2 border rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 ${
+                              stockWarn ? "border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20" : "border-gray-200 dark:border-gray-700"
                             }`}
                             value={item.quantity}
                             onChange={e => updateItem(idx, "quantity", e.target.value)} />
                           <input type="number" min="0" step="0.01"
-                            className="col-span-3 border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                            className="col-span-3 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                             value={item.unit_price}
                             onChange={e => updateItem(idx, "unit_price", e.target.value)} />
                           <div className="col-span-2 flex items-center justify-end gap-1">
-                            <span className="text-sm font-medium text-gray-700">${subtotal.toFixed(2)}</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">${subtotal.toFixed(2)}</span>
                             {form.items.length > 1 && (
                               <button type="button" onClick={() => removeItem(idx)}
-                                className="text-gray-300 hover:text-red-400 ml-0.5 transition-colors">
+                                className="text-gray-300 dark:text-gray-600 hover:text-red-400 ml-0.5 transition-colors">
                                 <Trash2 size={13} />
                               </button>
                             )}
                           </div>
                         </div>
                         {stockWarn && !outOfStock && (
-                          <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-600 px-1">
+                          <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 px-1">
                             <AlertTriangle size={10} /> Only {prod.stock} in stock — may be rejected
                           </p>
                         )}
                         {outOfStock && item.product_id && (
-                          <p className="mt-1 flex items-center gap-1 text-[11px] text-red-500 px-1">
+                          <p className="mt-1 flex items-center gap-1 text-[11px] text-red-500 dark:text-red-400 px-1">
                             <AlertCircle size={10} /> Out of stock
                           </p>
                         )}
@@ -1052,15 +1052,15 @@ const Sales = () => {
                   })}
                 </div>
 
-                <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
-                  <span className="text-sm text-gray-500">{t("Order Total")}</span>
-                  <span className="text-xl font-bold text-gray-900">${saleTotal.toFixed(2)}</span>
+                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">{t("Order Total")}</span>
+                  <span className="text-xl font-bold text-gray-900 dark:text-white">${saleTotal.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-1">
                 <button type="button" onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg active:scale-95 transition-all">
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg active:scale-95 transition-all">
                   {t("Cancel")}
                 </button>
                 <button type="submit" disabled={submitting}
