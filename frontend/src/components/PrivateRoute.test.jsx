@@ -18,6 +18,7 @@ const renderWithUser = (user, ui, { route = "/" } = {}) => {
           <Route path="/super-admin/companies" element={<div>Super admin home</div>} />
           <Route path="/protected" element={ui} />
           <Route path="/change-password" element={ui} />
+          <Route path="/settings" element={ui} />
         </Routes>
       </AuthProvider>
     </MemoryRouter>
@@ -76,6 +77,15 @@ describe("PrivateRoute", () => {
       { id: 1, role: "super_admin", permissions: [], mustChangePassword: true },
       <PrivateRoute>secret</PrivateRoute>,
       { route: "/change-password" }
+    );
+    expect(screen.getByText("secret")).toBeInTheDocument();
+  });
+
+  it("lets a super_admin reach /settings to manage their own password/2FA instead of bouncing them to Companies", () => {
+    renderWithUser(
+      { id: 1, role: "super_admin", permissions: [] },
+      <PrivateRoute>secret</PrivateRoute>,
+      { route: "/settings" }
     );
     expect(screen.getByText("secret")).toBeInTheDocument();
   });
