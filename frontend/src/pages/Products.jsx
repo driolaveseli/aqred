@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Package, Plus, Minus, Search, Download, Edit2, Trash2, X,
   CheckCircle, DollarSign, AlertTriangle,
@@ -48,6 +49,7 @@ const SortIcon = ({ field, sortField, sortDir }) => {
 /* ─── Products ───────────────────────────────────────────────────────────── */
 const Products = () => {
   const { t } = useSystem();
+  const location = useLocation();
 
   const [products, setProducts]     = useState([]);
   const [search, setSearch]         = useState("");
@@ -83,6 +85,11 @@ const Products = () => {
     const id = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(id);
   }, [search]);
+
+  /* ── Open the create modal when deep-linked (e.g. from the command palette) ── */
+  useEffect(() => {
+    if (location.state?.openCreate) openAdd();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Reset to page 1 whenever filters/search/sort change ── */
   useEffect(() => { setPage(1); }, [debouncedSearch, catFilter, stockFilter, sortField, sortDir]);
