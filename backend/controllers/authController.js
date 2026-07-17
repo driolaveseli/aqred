@@ -38,7 +38,7 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
     const result = await db.query(
-      `SELECT u.*, COALESCE(c.name, u.company_name) AS company_name
+      `SELECT u.*, COALESCE(c.name, u.company_name) AS company_name, c.is_active AS company_is_active
        FROM users u
        LEFT JOIN companies c ON c.id = u.company_id
        WHERE u.email = $1`,
@@ -57,6 +57,14 @@ exports.login = async (req, res) => {
       logEvent({ level: "SECURITY", module: "auth", action: "login_failed", req,
         description: `Failed login attempt for ${user.name} (${email})` });
       return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // company_is_active is NULL for super_admin (no company_id), so this
+    // only ever blocks company-scoped users of a suspended tenant.
+    if (user.company_is_active === false) {
+      logEvent({ level: "WARNING", module: "auth", action: "login_blocked_suspended", req,
+        description: `Login blocked for ${user.name} (${email}) - company is suspended` });
+      return res.status(403).json({ message: "Your company's account has been suspended. Contact support.", code: "COMPANY_SUSPENDED" });
     }
 
     // Check if 2FA is enabled for this user
@@ -108,7 +116,7 @@ exports.verify2FALogin = async (req, res) => {
 
     // Fetch user + their TOTP secret
     const userResult = await db.query(
-      `SELECT u.*, COALESCE(c.name, u.company_name) AS company_name
+      `SELECT u.*, COALESCE(c.name, u.company_name) AS company_name, c.is_active AS company_is_active
        FROM users u
        LEFT JOIN companies c ON c.id = u.company_id
        WHERE u.id = $1`,
@@ -116,6 +124,12 @@ exports.verify2FALogin = async (req, res) => {
     );
     if (!userResult.rows[0]) return res.status(404).json({ message: "User not found" });
     const user = userResult.rows[0];
+
+    if (user.company_is_active === false) {
+      logEvent({ level: "WARNING", module: "auth", action: "login_blocked_suspended", req,
+        description: `2FA login blocked for ${user.name} - company is suspended` });
+      return res.status(403).json({ message: "Your company's account has been suspended. Contact support.", code: "COMPANY_SUSPENDED" });
+    }
 
     const prefsResult = await db.query(
       "SELECT two_factor_secret FROM user_preferences WHERE user_id = $1",

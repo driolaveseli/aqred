@@ -506,11 +506,19 @@ const addContactMessages = async () => {
   await db.query(`CREATE INDEX IF NOT EXISTS idx_contact_messages_status ON contact_messages(status)`);
 };
 
+// Lets a super_admin suspend a company (e.g. non-payment, ToS violation)
+// without permanently deleting its data - the only other lever available
+// before this was destroy-everything.
+const addCompanyStatus = async () => {
+  await db.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true`);
+};
+
 // Ordered, one-time migrations. Add new entries here going forward — each
 // runs exactly once, ever, tracked by name in schema_migrations.
 const MIGRATIONS = [
   { name: "001_legacy_bootstrap", run: legacyBootstrap },
   { name: "002_contact_messages", run: addContactMessages },
+  { name: "003_company_status", run: addCompanyStatus },
 ];
 
 const migrate = async () => {
