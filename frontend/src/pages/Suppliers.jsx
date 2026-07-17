@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Truck, Plus, Search, Mail, Phone, MapPin, X, Building2, Edit2, Trash2,
-  CheckCircle, Download, Package, AlertTriangle,
-  ChevronUp, ChevronDown, ChevronsUpDown,
+  CheckCircle, Download, Package, AlertTriangle, ChevronDown,
 } from "lucide-react";
 import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from "../services/suppliersService";
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import PageHeader from "../components/UI/PageHeader";
+import SortableTh from "../components/Tables/SortableTh";
 import useEscapeKey from "../hooks/useEscapeKey";
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
@@ -53,12 +53,61 @@ const Toast = ({ msg, type, onClose }) => (
   </div>
 );
 
-/* ─── Sort icon ──────────────────────────────────────────────────────────── */
-const SortIcon = ({ field, sortField, sortDir }) => {
-  if (sortField !== field) return <ChevronsUpDown size={12} className="text-gray-300 dark:text-gray-600 ml-1 inline-block" />;
-  return sortDir === "asc"
-    ? <ChevronUp   size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />
-    : <ChevronDown size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />;
+/* ─── Inline status badge ── */
+// Module scope, not inside Suppliers — see SortableTh.jsx for why a
+// component redefined on every render is unsafe.
+const StatusBadge = ({ supplier, statusPopover, onTogglePopover, onStatusChange, t }) => (
+  <div className="relative inline-block" data-status-popover>
+    <button
+      onClick={() => onTogglePopover(statusPopover === supplier.id ? null : supplier.id)}
+      className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-opacity hover:opacity-75 ${statusBadgeCls(supplier.status)}`}
+    >
+      {t(supplier.status || "Active")}
+      <ChevronDown size={9} className="opacity-60" />
+    </button>
+    {statusPopover === supplier.id && (
+      <div className="absolute left-0 top-full mt-1.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg z-30 overflow-hidden min-w-[130px]" data-status-popover>
+        {["Active", "Inactive"].map((s) => (
+          <button
+            key={s}
+            onClick={() => onStatusChange(supplier.id, s)}
+            className={`w-full text-left px-3 py-2 text-xs flex items-center gap-2 transition-colors
+              ${(supplier.status || "Active") === s ? "bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 font-semibold" : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDotCls(s)}`} />
+            {t(s)}
+            {(supplier.status || "Active") === s && <CheckCircle size={11} className="ml-auto text-violet-500 dark:text-violet-400" />}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+/* ─── Products pill list ── */
+const ProductPills = ({ supplier, max = 2, onOpenPanel }) => {
+  const all       = (supplier.products_supplied || "").split(",").map((p) => p.trim()).filter(Boolean);
+  const visible   = all.slice(0, max);
+  const remaining = all.length - visible.length;
+  if (!all.length) return <span className="text-sm text-gray-400 dark:text-gray-500">—</span>;
+  return (
+    <button
+      onClick={() => onOpenPanel(supplier)}
+      className="flex flex-wrap items-center gap-1 text-left group"
+      title="Click to view all products"
+    >
+      {visible.map((p) => (
+        <span key={p} className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full whitespace-nowrap group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+          {p}
+        </span>
+      ))}
+      {remaining > 0 && (
+        <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 rounded-full whitespace-nowrap group-hover:bg-violet-100 dark:group-hover:bg-violet-900/30 transition-colors">
+          +{remaining} more
+        </span>
+      )}
+    </button>
+  );
 };
 
 /* ─── Suppliers ──────────────────────────────────────────────────────────── */
@@ -167,6 +216,9 @@ const Suppliers = () => {
     setStatusPopover(null);
   };
 
+  /* ── Open the "all products" panel ── */
+  const openProductsPanel = (supplier) => { setProductsPanel(supplier); setProductSearch(""); };
+
   /* ── Sort ── */
   const handleSort = (field) => {
     if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -251,71 +303,6 @@ const Suppliers = () => {
   const activeCount   = suppliers.filter((s) => (s.status || "Active") === "Active").length;
   const inactiveCount = suppliers.filter((s) => s.status === "Inactive").length;
   const catCount      = new Set(suppliers.map((s) => s.category).filter(Boolean)).size;
-
-  /* ── Sortable TH ── */
-  const SortTh = ({ field, children, className = "" }) => (
-    <th
-      onClick={() => handleSort(field)}
-      className={`px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300 transition-colors ${className}`}
-    >
-      {children}<SortIcon field={field} sortField={sortField} sortDir={sortDir} />
-    </th>
-  );
-
-  /* ── Inline status badge ── */
-  const StatusBadge = ({ supplier }) => (
-    <div className="relative inline-block" data-status-popover>
-      <button
-        onClick={() => setStatusPopover(statusPopover === supplier.id ? null : supplier.id)}
-        className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-opacity hover:opacity-75 ${statusBadgeCls(supplier.status)}`}
-      >
-        {t(supplier.status || "Active")}
-        <ChevronDown size={9} className="opacity-60" />
-      </button>
-      {statusPopover === supplier.id && (
-        <div className="absolute left-0 top-full mt-1.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg z-30 overflow-hidden min-w-[130px]" data-status-popover>
-          {["Active", "Inactive"].map((s) => (
-            <button
-              key={s}
-              onClick={() => handleStatusChange(supplier.id, s)}
-              className={`w-full text-left px-3 py-2 text-xs flex items-center gap-2 transition-colors
-                ${(supplier.status || "Active") === s ? "bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 font-semibold" : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDotCls(s)}`} />
-              {t(s)}
-              {(supplier.status || "Active") === s && <CheckCircle size={11} className="ml-auto text-violet-500 dark:text-violet-400" />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  /* ── Products pill list ── */
-  const ProductPills = ({ supplier, max = 2 }) => {
-    const all     = (supplier.products_supplied || "").split(",").map((p) => p.trim()).filter(Boolean);
-    const visible  = all.slice(0, max);
-    const remaining = all.length - visible.length;
-    if (!all.length) return <span className="text-sm text-gray-400 dark:text-gray-500">—</span>;
-    return (
-      <button
-        onClick={() => { setProductsPanel(supplier); setProductSearch(""); }}
-        className="flex flex-wrap items-center gap-1 text-left group"
-        title="Click to view all products"
-      >
-        {visible.map((p) => (
-          <span key={p} className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full whitespace-nowrap group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
-            {p}
-          </span>
-        ))}
-        {remaining > 0 && (
-          <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 rounded-full whitespace-nowrap group-hover:bg-violet-100 dark:group-hover:bg-violet-900/30 transition-colors">
-            +{remaining} more
-          </span>
-        )}
-      </button>
-    );
-  };
 
   /* ════════════════════════════════════════════════════════════════════════ */
   return (
@@ -434,12 +421,12 @@ const Suppliers = () => {
                       className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-violet-500 cursor-pointer"
                     />
                   </th>
-                  <SortTh field="company_name">{t("Supplier")}</SortTh>
+                  <SortableTh field="company_name" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Supplier")}</SortableTh>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Contact")}</th>
-                  <SortTh field="category">{t("Category")}</SortTh>
+                  <SortableTh field="category" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Category")}</SortableTh>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Products Supplied")}</th>
-                  <SortTh field="status">{t("Status")}</SortTh>
-                  <SortTh field="date">{t("Since")}</SortTh>
+                  <SortableTh field="status" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Status")}</SortableTh>
+                  <SortableTh field="date" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Since")}</SortableTh>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Actions")}</th>
                 </tr>
               </thead>
@@ -486,10 +473,10 @@ const Suppliers = () => {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <ProductPills supplier={s} max={2} />
+                      <ProductPills supplier={s} max={2} onOpenPanel={openProductsPanel} />
                     </td>
                     <td className="px-5 py-4">
-                      <StatusBadge supplier={s} />
+                      <StatusBadge supplier={s} statusPopover={statusPopover} onTogglePopover={setStatusPopover} onStatusChange={handleStatusChange} t={t} />
                     </td>
                     <td className="px-5 py-4 text-xs text-gray-400 dark:text-gray-500">
                       {s.created_at ? formatDate(s.created_at) : "—"}
@@ -544,7 +531,7 @@ const Suppliers = () => {
                       </span>
                     </div>
                   </div>
-                  <StatusBadge supplier={s} />
+                  <StatusBadge supplier={s} statusPopover={statusPopover} onTogglePopover={setStatusPopover} onStatusChange={handleStatusChange} t={t} />
                 </div>
 
                 {/* Contact info */}
@@ -581,7 +568,7 @@ const Suppliers = () => {
                       ))}
                       {products.length > 3 && (
                         <button
-                          onClick={() => { setProductsPanel(s); setProductSearch(""); }}
+                          onClick={() => openProductsPanel(s)}
                           className="px-2 py-0.5 text-xs bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 rounded-full font-semibold hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors"
                         >
                           +{products.length - 3} more
@@ -598,7 +585,7 @@ const Suppliers = () => {
                   </button>
                   {products.length > 0 && (
                     <button
-                      onClick={() => { setProductsPanel(s); setProductSearch(""); }}
+                      onClick={() => openProductsPanel(s)}
                       className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                     >
                       <Package size={12} />{t("Products")}

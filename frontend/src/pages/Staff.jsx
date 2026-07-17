@@ -98,6 +98,20 @@ const SortIcon = ({ col, sortCol, sortDir }) => {
     : <ChevronDown size={12} className="ml-1 inline text-violet-500 dark:text-violet-400" />;
 };
 
+// Module scope, not inside Staff — see components/Tables/SortableTh.jsx for
+// why a component redefined on every render is unsafe.
+const SortTh = ({ col, children, sortCol, sortDir, onSort }) => (
+  <th
+    onClick={() => onSort(col)}
+    className="px-5 py-4 text-left text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest cursor-pointer select-none hover:text-violet-600 dark:hover:text-violet-400 transition-colors group/th hover:bg-violet-50/30 dark:hover:bg-violet-900/10"
+  >
+    <span className="inline-flex items-center gap-0.5">
+      {children}
+      <SortIcon col={col} sortCol={sortCol} sortDir={sortDir} />
+    </span>
+  </th>
+);
+
 const Staff = () => {
   const { t, formatCurrency } = useSystem();
   const location = useLocation();
@@ -273,18 +287,6 @@ const Staff = () => {
     { name: "Employees", value: staff.filter(s => s.role === "employee").length, color: "#3b82f6" },
   ].filter(r => r.value > 0);
 
-  const SortTh = ({ col, children }) => (
-    <th
-      onClick={() => handleSort(col)}
-      className="px-5 py-4 text-left text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest cursor-pointer select-none hover:text-violet-600 dark:hover:text-violet-400 transition-colors group/th hover:bg-violet-50/30 dark:hover:bg-violet-900/10"
-    >
-      <span className="inline-flex items-center gap-0.5">
-        {children}
-        <SortIcon col={col} sortCol={sortCol} sortDir={sortDir} />
-      </span>
-    </th>
-  );
-
   return (
     <div>
       {/* Header */}
@@ -391,12 +393,12 @@ const Staff = () => {
         <table className="w-full min-w-[700px]">
           <thead>
             <tr className="bg-gradient-to-r from-slate-50 to-gray-50/60 dark:from-gray-800/60 dark:to-gray-800/30 border-b border-gray-100 dark:border-gray-800">
-              <SortTh col="name">{t("Staff Member")}</SortTh>
-              <SortTh col="role">{t("System Role")}</SortTh>
-              <SortTh col="position">{t("Position")}</SortTh>
-              <SortTh col="department">{t("Department")}</SortTh>
-              <SortTh col="salary">{t("Salary")}</SortTh>
-              <SortTh col="employment_status">{t("Status")}</SortTh>
+              <SortTh col="name" sortCol={sortCol} sortDir={sortDir} onSort={handleSort}>{t("Staff Member")}</SortTh>
+              <SortTh col="role" sortCol={sortCol} sortDir={sortDir} onSort={handleSort}>{t("System Role")}</SortTh>
+              <SortTh col="position" sortCol={sortCol} sortDir={sortDir} onSort={handleSort}>{t("Position")}</SortTh>
+              <SortTh col="department" sortCol={sortCol} sortDir={sortDir} onSort={handleSort}>{t("Department")}</SortTh>
+              <SortTh col="salary" sortCol={sortCol} sortDir={sortDir} onSort={handleSort}>{t("Salary")}</SortTh>
+              <SortTh col="employment_status" sortCol={sortCol} sortDir={sortDir} onSort={handleSort}>{t("Status")}</SortTh>
               <th className="px-5 py-4 text-left text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{t("Actions")}</th>
             </tr>
           </thead>

@@ -3,13 +3,14 @@ import { useLocation } from "react-router-dom";
 import {
   UserCheck, Users, Clock, Plus, Search, Download, Edit2, Trash2, X,
   Mail, Phone, MapPin, CheckCircle, Building2, Calendar,
-  ChevronUp, ChevronDown, ChevronsUpDown,
+  ChevronDown,
 } from "lucide-react";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "../services/customersService";
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import Pagination from "../components/UI/Pagination";
+import SortableTh from "../components/Tables/SortableTh";
 import useEscapeKey from "../hooks/useEscapeKey";
 
 const BLANK       = { name: "", email: "", phone: "", address: "", company: "", status: "Active" };
@@ -45,13 +46,36 @@ const colors = [
 ];
 const avatarColor = (name) => colors[name.charCodeAt(0) % colors.length];
 
-/* ─── Sort icon ──────────────────────────────────────────────────────────── */
-const SortIcon = ({ field, sortField, sortDir }) => {
-  if (sortField !== field) return <ChevronsUpDown size={12} className="text-gray-300 dark:text-gray-600 ml-1 inline-block" />;
-  return sortDir === "asc"
-    ? <ChevronUp   size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />
-    : <ChevronDown size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />;
-};
+/* ─── Inline status badge ── */
+const StatusBadge = ({ customer, statusPopover, onTogglePopover, onStatusChange, t }) => (
+  <div className="relative inline-block" data-status-popover>
+    <button
+      onClick={() => onTogglePopover(statusPopover === customer.id ? null : customer.id)}
+      className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-opacity hover:opacity-75 ${statusBadgeCls(customer.status)}`}
+    >
+      {t(customer.status || "Active")}
+      <ChevronDown size={9} className="opacity-60" />
+    </button>
+    {statusPopover === customer.id && (
+      <div className="absolute left-0 top-full mt-1.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg z-30 overflow-hidden min-w-[130px]" data-status-popover>
+        {STATUSES.map((s) => (
+          <button
+            key={s}
+            onClick={() => onStatusChange(customer.id, s)}
+            className={`w-full text-left px-3 py-2 text-xs flex items-center gap-2 transition-colors
+              ${(customer.status || "Active") === s
+                ? "bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 font-semibold"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDotCls(s)}`} />
+            {t(s)}
+            {(customer.status || "Active") === s && <CheckCircle size={11} className="ml-auto text-violet-500 dark:text-violet-400" />}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+);
 
 /* ─── Customers ──────────────────────────────────────────────────────────── */
 const Customers = () => {
@@ -242,47 +266,6 @@ const Customers = () => {
     } catch { showToast(t("Export failed."), "error"); }
   };
 
-  /* ── Sortable TH ── */
-  const SortTh = ({ field, children, className = "" }) => (
-    <th
-      onClick={() => handleSort(field)}
-      className={`px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300 transition-colors ${className}`}
-    >
-      {children}<SortIcon field={field} sortField={sortField} sortDir={sortDir} />
-    </th>
-  );
-
-  /* ── Inline status badge ── */
-  const StatusBadge = ({ customer }) => (
-    <div className="relative inline-block" data-status-popover>
-      <button
-        onClick={() => setStatusPopover(statusPopover === customer.id ? null : customer.id)}
-        className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-opacity hover:opacity-75 ${statusBadgeCls(customer.status)}`}
-      >
-        {t(customer.status || "Active")}
-        <ChevronDown size={9} className="opacity-60" />
-      </button>
-      {statusPopover === customer.id && (
-        <div className="absolute left-0 top-full mt-1.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg z-30 overflow-hidden min-w-[130px]" data-status-popover>
-          {STATUSES.map((s) => (
-            <button
-              key={s}
-              onClick={() => handleStatusChange(customer.id, s)}
-              className={`w-full text-left px-3 py-2 text-xs flex items-center gap-2 transition-colors
-                ${(customer.status || "Active") === s
-                  ? "bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 font-semibold"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDotCls(s)}`} />
-              {t(s)}
-              {(customer.status || "Active") === s && <CheckCircle size={11} className="ml-auto text-violet-500 dark:text-violet-400" />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
   /* ════════════════════════════════════════════════════════════════════════ */
   return (
     <div>
@@ -453,11 +436,11 @@ const Customers = () => {
                       className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-violet-500 cursor-pointer"
                     />
                   </th>
-                  <SortTh field="name">{t("Customer")}</SortTh>
+                  <SortableTh field="name" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Customer")}</SortableTh>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Contact")}</th>
-                  <SortTh field="company">{t("Company")}</SortTh>
-                  <SortTh field="status">{t("Status")}</SortTh>
-                  <SortTh field="date">{t("Member Since")}</SortTh>
+                  <SortableTh field="company" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Company")}</SortableTh>
+                  <SortableTh field="status" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Status")}</SortableTh>
+                  <SortableTh field="date" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Member Since")}</SortableTh>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Actions")}</th>
                 </tr>
               </thead>
@@ -494,7 +477,7 @@ const Customers = () => {
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400">{c.company || "—"}</td>
                     <td className="px-5 py-4">
-                      <StatusBadge customer={c} />
+                      <StatusBadge customer={c} statusPopover={statusPopover} onTogglePopover={setStatusPopover} onStatusChange={handleStatusChange} t={t} />
                     </td>
                     <td className="px-5 py-4 text-xs text-gray-400 dark:text-gray-500">
                       {c.created_at ? (
@@ -556,7 +539,7 @@ const Customers = () => {
                       {c.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="pb-0.5">
-                      <StatusBadge customer={c} />
+                      <StatusBadge customer={c} statusPopover={statusPopover} onTogglePopover={setStatusPopover} onStatusChange={handleStatusChange} t={t} />
                     </div>
                   </div>
 
