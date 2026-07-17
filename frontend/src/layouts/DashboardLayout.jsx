@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Sidebar from "../components/Navigation/Sidebar";
 import Navbar  from "../components/Navigation/Navbar";
+import CommandPalette from "../components/CommandPalette/CommandPalette";
 import MaintenancePage from "../pages/MaintenancePage";
 import { getPreferences } from "../services/settingsService";
 import { useSystem } from "../context/SystemContext";
@@ -14,6 +15,7 @@ const applyTheme = (t) => {
 const DashboardLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const { maintenanceMode } = useSystem();
   const { user } = useAuth();
 
@@ -30,6 +32,19 @@ const DashboardLayout = ({ children }) => {
       .catch(() => {});
   }, []);
 
+  // Global Cmd+K / Ctrl+K shortcut for the command palette
+  const handleGlobalKeyDown = useCallback((e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      setPaletteOpen((v) => !v);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [handleGlobalKeyDown]);
+
   // Show maintenance page for non-admin users when maintenance mode is on
   if (maintenanceMode && user?.role !== "admin" && user?.role !== "super_admin") {
     return <MaintenancePage />;
@@ -44,9 +59,11 @@ const DashboardLayout = ({ children }) => {
         onMobileClose={() => setMobileOpen(false)}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar onMenuToggle={() => setMobileOpen((v) => !v)} />
+        <Navbar onMenuToggle={() => setMobileOpen((v) => !v)} onOpenPalette={() => setPaletteOpen(true)} />
         <main className="flex-1 overflow-y-auto p-4 md:p-6 dark:bg-gray-950">{children}</main>
       </div>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 };

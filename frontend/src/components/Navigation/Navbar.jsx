@@ -27,33 +27,13 @@ const getNotifStyle = (notif) => {
   return { Icon: Info, bg: 'bg-violet-500/10 dark:bg-violet-500/15', color: 'text-violet-500', ring: 'ring-violet-500/20', accent: 'bg-violet-500' };
 };
 
-const NAV_ITEMS = [
-  { label: "Dashboard",        path: "/dashboard",         keywords: ["dashboard", "home", "overview"] },
-  { label: "Staff",            path: "/staff",             keywords: ["staff", "employee", "team", "hr", "people", "user", "access"] },
-  { label: "Customers",        path: "/customers",         keywords: ["customer", "client", "contact"] },
-  { label: "Products",         path: "/products",          keywords: ["product", "item", "catalog", "sku"] },
-  { label: "Inventory",        path: "/inventory",         keywords: ["inventory", "stock", "warehouse", "level"] },
-  { label: "Suppliers",        path: "/suppliers",         keywords: ["supplier", "vendor", "partner"] },
-  { label: "Orders",           path: "/orders",            keywords: ["order", "purchase", "buy"] },
-  { label: "Invoices",         path: "/invoices",          keywords: ["invoice", "bill", "payment"] },
-  { label: "Sales",            path: "/sales",             keywords: ["sale", "revenue", "transaction"] },
-  { label: "Sales Reports",    path: "/reports/sales",     keywords: ["report", "sales", "analytics", "chart"] },
-  { label: "Customer Reports", path: "/reports/customers", keywords: ["customer", "report"] },
-  { label: "Employee Reports", path: "/reports/employees", keywords: ["employee", "report"] },
-  { label: "Revenue Analytics",path: "/reports/revenue",   keywords: ["revenue", "analytics"] },
-  { label: "Settings",         path: "/settings",          keywords: ["setting", "profile", "preference", "security"] },
-];
-
 const POLL_INTERVAL = 30_000; // 30 seconds
 
-const Navbar = ({ onMenuToggle }) => {
+const Navbar = ({ onMenuToggle, onOpenPalette }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
   const [notifs, setNotifs]         = useState([]);
-  const [search, setSearch]         = useState("");
-  const [showSearch, setShowSearch] = useState(false);
-  const searchRef  = useRef(null);
   const notifsRef  = useRef(null);
   const pollRef    = useRef(null);
 
@@ -98,25 +78,9 @@ const Navbar = ({ onMenuToggle }) => {
     if (notif.link) navigate(notif.link);
   };
 
-  // ── search ──────────────────────────────────────────────────────────────────
-  const searchResults = search.trim().length > 0
-    ? NAV_ITEMS.filter((item) =>
-        item.label.toLowerCase().includes(search.toLowerCase()) ||
-        item.keywords.some((k) => k.includes(search.toLowerCase()))
-      )
-    : [];
-
-  const handleSearchSelect = (path) => {
-    navigate(path);
-    setSearch("");
-    setShowSearch(false);
-  };
-
   // close dropdowns on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target))
-        setShowSearch(false);
       if (notifsRef.current && !notifsRef.current.contains(e.target))
         setShowNotifs(false);
     };
@@ -156,37 +120,17 @@ const Navbar = ({ onMenuToggle }) => {
           </span>
         </Link>
 
-        {/* Search */}
-        <div ref={searchRef} className="relative hidden sm:block w-60 lg:w-72">
+        {/* Search — opens the command palette (Cmd+K / Ctrl+K also works anywhere) */}
+        <button
+          onClick={onOpenPalette}
+          className="relative hidden sm:flex items-center gap-2 w-60 lg:w-72 pl-9 pr-2.5 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-400 dark:text-gray-500 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-white dark:hover:bg-gray-800 transition-all"
+        >
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={15} />
-          <input
-            type="text"
-            placeholder="Search pages..."
-            className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-400/25 focus:border-violet-300 focus:bg-white dark:focus:bg-gray-800 transition-all"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setShowSearch(true); }}
-            onFocus={() => setShowSearch(true)}
-          />
-          {showSearch && searchResults.length > 0 && (
-            <div className="absolute top-full mt-1.5 left-0 w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl shadow-gray-200/60 dark:shadow-gray-900/60 z-50 overflow-hidden">
-              {searchResults.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => handleSearchSelect(item.path)}
-                  className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-violet-50 dark:hover:bg-violet-900/30 hover:text-violet-600 dark:hover:text-violet-400 transition-colors flex items-center gap-2"
-                >
-                  <Search size={12} className="text-gray-400 flex-shrink-0" />
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          )}
-          {showSearch && search.trim().length > 0 && searchResults.length === 0 && (
-            <div className="absolute top-full mt-1.5 left-0 w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl shadow-gray-200/60 dark:shadow-gray-900/60 z-50 px-4 py-3 text-sm text-gray-400 dark:text-gray-500">
-              No results for "{search}"
-            </div>
-          )}
-        </div>
+          <span className="flex-1 text-left truncate">Search pages...</span>
+          <kbd className="hidden lg:inline-flex px-1.5 py-0.5 rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-[10px] font-semibold text-gray-400 dark:text-gray-400">
+            ⌘K
+          </kbd>
+        </button>
       </div>
 
       {/* Right */}

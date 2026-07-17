@@ -1,68 +1,11 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, UserCheck, Package, ShoppingCart,
-  Truck, Boxes, TrendingUp, CreditCard, FileText, PieChart,
-  UserCog, Shield, ScrollText, Settings, LogOut,
-  ChevronLeft, ChevronRight, Building2, X, Activity, Users,
+  Settings, LogOut, ChevronLeft, ChevronRight, Building2, X,
 } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
 import { useSystem } from "../../context/SystemContext";
-
-/* ─── Data ──────────────────────────────────────────────────────────────── */
-const NAV_GROUPS = [
-  {
-    label: "Dashboard",
-    items: [
-      { name: "Overview",      path: "/dashboard",    icon: LayoutDashboard, permission: "View Dashboard" },
-      { name: "Activity Feed", path: "/activity-feed", icon: Activity,        permission: "View Dashboard" },
-    ],
-  },
-  {
-    label: "Management",
-    items: [
-      { name: "Customers", path: "/customers", icon: UserCheck,    permission: "Manage Customers" },
-      { name: "Products",  path: "/products",  icon: Package,      permission: "Manage Products" },
-      { name: "Orders",    path: "/orders",    icon: ShoppingCart,  permission: "Manage Orders" },
-      { name: "Suppliers", path: "/suppliers", icon: Truck,        permission: "Manage Suppliers" },
-    ],
-  },
-  {
-    label: "Finance & Operations",
-    items: [
-      { name: "Inventory", path: "/inventory", icon: Boxes,      permission: "View Inventory" },
-      { name: "Sales",     path: "/sales",     icon: TrendingUp,  permission: "View Sales" },
-      { name: "Invoices",  path: "/invoices",  icon: FileText,    permission: "Manage Invoices" },
-      { name: "Payments",  path: "/payments",  icon: CreditCard,  permission: "Manage Payments" },
-    ],
-  },
-  {
-    label: "Reports & Analytics",
-    items: [
-      { name: "Customer Reports",  path: "/reports/customers", icon: PieChart,   permission: "View Reports" },
-      { name: "Employee Reports", path: "/reports/employees", icon: Users,      permission: "View Reports" },
-      { name: "Revenue Analytics", path: "/reports/revenue",   icon: TrendingUp, permission: "View Reports" },
-    ],
-  },
-  {
-    label: "Administration",
-    items: [
-      { name: "Staff",               path: "/staff",       icon: UserCog,    adminOnly: true },
-      { name: "Roles & Permissions", path: "/admin/roles", icon: Shield,     adminOnly: true },
-      { name: "System Logs",         path: "/admin/logs",  icon: ScrollText, adminOnly: true },
-    ],
-  },
-];
-
-const SUPER_ADMIN_GROUPS = [
-  {
-    label: "Platform Management",
-    items: [
-      { name: "Companies",   path: "/super-admin/companies", icon: Building2  },
-      { name: "System Logs", path: "/super-admin/logs",      icon: ScrollText },
-    ],
-  },
-];
+import { NAV_GROUPS, SUPER_ADMIN_GROUPS } from "../../config/navigation";
 
 const ROLE_CONFIG = {
   super_admin: { label: "Super Admin", badge: "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400",           dot: "bg-red-500"     },

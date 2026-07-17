@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Users, Plus, Search, Download, Edit2, Trash2, X, CheckCircle,
   Shield, UserCheck, User, Mail, Briefcase, DollarSign, Filter,
@@ -98,6 +99,7 @@ const SortIcon = ({ col, sortCol, sortDir }) => {
 
 const Staff = () => {
   const { t, formatCurrency } = useSystem();
+  const location = useLocation();
   const [view, setView]               = useState("staff");
   const [staff, setStaff]             = useState([]);
   const [search, setSearch]           = useState("");
@@ -131,7 +133,11 @@ const Staff = () => {
       setAvailableRoles(roles.length ? roles : BUILT_IN_ROLES);
     } catch { /* keep built-in roles as the fallback */ }
   };
-  useEffect(() => { load(); loadRoles(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    load();
+    loadRoles();
+    if (location.state?.openCreate) openAdd();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (f) => (e) => setForm({ ...form, [f]: e.target.value });
 

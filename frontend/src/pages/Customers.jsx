@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import {
   UserCheck, Users, Clock, Plus, Search, Download, Edit2, Trash2, X,
   Mail, Phone, MapPin, CheckCircle, Building2, Calendar,
@@ -54,6 +55,7 @@ const SortIcon = ({ field, sortField, sortDir }) => {
 /* ─── Customers ──────────────────────────────────────────────────────────── */
 const Customers = () => {
   const { t, formatDate } = useSystem();
+  const location = useLocation();
 
   const [customers, setCustomers]           = useState([]);
   const [search, setSearch]                 = useState("");
@@ -91,6 +93,11 @@ const Customers = () => {
     const id = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(id);
   }, [search]);
+
+  /* ── Open the create modal when deep-linked (e.g. from the command palette) ── */
+  useEffect(() => {
+    if (location.state?.openCreate) openAdd();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Reset to page 1 whenever filters/search/sort change ── */
   useEffect(() => { setPage(1); }, [debouncedSearch, statusTab, sortField, sortDir]);
