@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Text selection ───────────────────────────────────────────────────────── */
+::selection {
+  background-color: #ddd6fe;
+  color: #4c1d95;
+}
+.dark ::selection {
+  background-color: rgba(124, 58, 237, 0.4);
+  color: #f5f3ff;
+}
+
 /* ── Dark Mode — uses Tailwind's "class" strategy (.dark on <html>) ─────────── */
 
 .dark body {
