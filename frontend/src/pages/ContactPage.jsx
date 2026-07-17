@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, BookOpen, CheckCircle, MessageSquare, ArrowRight, AlertCircle } from "lucide-react";
+import { BookOpen, CheckCircle, MessageSquare, ArrowRight, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import PublicNavbar from "../components/PublicNavbar";
 import PublicFooter from "../components/PublicFooter";
@@ -70,18 +70,6 @@ const ContactPage = () => {
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-violet-200 mb-6">Contact Info</p>
 
                   <div className="space-y-6">
-                    {/* Email */}
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <Mail size={18} className="text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white mb-1">Email</p>
-                        <p className="text-sm text-violet-200">support@aqred.com</p>
-                        <p className="text-sm text-violet-200">sales@aqred.com</p>
-                      </div>
-                    </div>
-
                     {/* Documentation */}
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
