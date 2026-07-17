@@ -488,10 +488,29 @@ const legacyBootstrap = async () => {
   await db.query(`CREATE INDEX IF NOT EXISTS idx_payments_order_id        ON payments(order_id)`);
 };
 
+// Public contact form submissions (marketing site) — not company-scoped,
+// since the submitter isn't necessarily logged in or tied to any company.
+const addContactMessages = async () => {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS contact_messages (
+      id SERIAL PRIMARY KEY,
+      first_name TEXT NOT NULL,
+      last_name  TEXT NOT NULL,
+      email      TEXT NOT NULL,
+      company    TEXT,
+      message    TEXT NOT NULL,
+      status     TEXT NOT NULL DEFAULT 'new',
+      created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    )
+  `);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_contact_messages_status ON contact_messages(status)`);
+};
+
 // Ordered, one-time migrations. Add new entries here going forward — each
 // runs exactly once, ever, tracked by name in schema_migrations.
 const MIGRATIONS = [
   { name: "001_legacy_bootstrap", run: legacyBootstrap },
+  { name: "002_contact_messages", run: addContactMessages },
 ];
 
 const migrate = async () => {

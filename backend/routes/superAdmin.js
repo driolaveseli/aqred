@@ -4,6 +4,7 @@ const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const { requireRole } = require("../middleware/authMiddleware");
 const { ALL_PERMS, MANAGER_PERMS, EMPLOYEE_PERMS } = require("../config/defaultRolePermissions");
+const ContactMessage = require("../models/contactModel");
 
 // All routes in this file require super_admin
 router.use(requireRole("super_admin"));
@@ -119,6 +120,38 @@ router.delete("/companies/:id", async (req, res) => {
     await db.query(`DELETE FROM users      WHERE company_id=$1`, [id]);
     await db.query(`DELETE FROM companies  WHERE id=$1`, [id]);
     res.json({ message: "Company and all its data deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/super-admin/contact-messages — inbound submissions from the public contact form
+router.get("/contact-messages", async (req, res) => {
+  try {
+    const result = await ContactMessage.getAll();
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/super-admin/contact-messages/:id/read
+router.patch("/contact-messages/:id/read", async (req, res) => {
+  try {
+    const result = await ContactMessage.markRead(req.params.id);
+    if (!result.rows[0]) return res.status(404).json({ error: "Message not found" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/super-admin/contact-messages/:id
+router.delete("/contact-messages/:id", async (req, res) => {
+  try {
+    const result = await ContactMessage.delete(req.params.id);
+    if (!result.rows[0]) return res.status(404).json({ error: "Message not found" });
+    res.json({ message: "Message deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
