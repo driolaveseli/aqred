@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Shield, RefreshCw, Trash2, Search, Filter, Download, AlertTriangle, Info, Lock, XCircle, ScrollText } from "lucide-react";
+import { RefreshCw, Trash2, Search, Filter, Download, AlertTriangle, Info, Lock, XCircle, ScrollText } from "lucide-react";
 import { getLogs, getModules, clearOldLogs } from "../services/logsService";
 import { getCompanies } from "../services/superAdminService";
 import { useSystem } from "../context/SystemContext";
 import { useAuth } from "../context/AuthContext";
+import PageHeader from "../components/UI/PageHeader";
 
 const LEVEL_STYLES = {
   INFO:     "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
@@ -115,33 +116,27 @@ export default function SystemLogs() {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-            <Shield size={20} className="text-purple-600 dark:text-purple-400" />
-          </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{t("System Logs")}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              {isSuperAdmin ? "Audit trail across all companies" : "Audit trail for your company"}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={fetchLogs}
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-            <RefreshCw size={14} /> Refresh
-          </button>
-          <button onClick={exportCSV}
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-            <Download size={14} /> Export CSV
-          </button>
-          <button onClick={handleClearOld}
-            className="flex items-center gap-2 px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30">
-            <Trash2 size={14} /> Clear &gt;30 days
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t("System Logs")}
+        subtitle={isSuperAdmin ? "Audit trail across all companies" : "Audit trail for your company"}
+        badges={counts.SECURITY > 0 ? [{ icon: Lock, label: `${counts.SECURITY} security`, tone: "violet" }] : []}
+        actions={
+          <>
+            <button onClick={fetchLogs}
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+              <RefreshCw size={14} /> Refresh
+            </button>
+            <button onClick={exportCSV}
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+              <Download size={14} /> Export CSV
+            </button>
+            <button onClick={handleClearOld}
+              className="flex items-center gap-2 px-3 py-2 text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30">
+              <Trash2 size={14} /> Clear &gt;30 days
+            </button>
+          </>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 md:gap-4 mb-6">

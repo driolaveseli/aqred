@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  DollarSign, TrendingUp, ShoppingCart, ArrowUpRight,
+  DollarSign, TrendingUp, TrendingDown, ShoppingCart, ArrowUpRight,
   ArrowDownRight, Download, RefreshCw, Users, CreditCard, Package,
 } from "lucide-react";
 import {
@@ -10,6 +10,7 @@ import {
 import { useSystem } from "../context/SystemContext";
 import { getRevenueAnalytics } from "../services/salesService";
 import { exportToCSV } from "../utils/exportCSV";
+import PageHeader from "../components/UI/PageHeader";
 
 const RANGES = ["All Time", "This Year", "Last 3 Months", "This Month"];
 
@@ -111,24 +112,33 @@ const RevenueAnalytics = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{t("Revenue Analytics")}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{t("Deep dive into revenue streams, profitability, and growth")}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={load} className="p-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
-            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-          </button>
-          <button
-            onClick={handleExport}
-            disabled={!data || loading}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40"
-          >
-            <Download size={15} /> Export CSV
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t("Revenue Analytics")}
+        subtitle={t("Deep dive into revenue streams, profitability, and growth")}
+        badges={
+          growthNum !== null
+            ? [{
+                icon: growthNum >= 0 ? TrendingUp : TrendingDown,
+                label: `${growthNum >= 0 ? "+" : ""}${growth}% vs prior period`,
+                tone: growthNum >= 0 ? "emerald" : "red",
+              }]
+            : []
+        }
+        actions={
+          <>
+            <button onClick={load} className="p-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">
+              <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+            </button>
+            <button
+              onClick={handleExport}
+              disabled={!data || loading}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40"
+            >
+              <Download size={15} /> Export CSV
+            </button>
+          </>
+        }
+      />
 
       {/* Range tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6 w-fit flex-wrap">
