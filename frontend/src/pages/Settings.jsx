@@ -357,8 +357,12 @@ export default function Settings() {
               <p className="text-sm font-semibold text-white">{profile.firstName} {profile.lastName}</p>
               <div className="flex items-center justify-end gap-1.5 mt-0.5">
                 <span className="text-[11px] text-violet-200 capitalize">{user?.role?.replace("_", " ")}</span>
-                <span className="text-violet-300">·</span>
-                <span className="text-[11px] text-violet-200">{profile.company_name}</span>
+                {profile.company_name && (
+                  <>
+                    <span className="text-violet-300">·</span>
+                    <span className="text-[11px] text-violet-200">{profile.company_name}</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 flex-shrink-0">
