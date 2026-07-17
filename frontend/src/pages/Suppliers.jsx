@@ -8,6 +8,7 @@ import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from "..
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
+import useEscapeKey from "../hooks/useEscapeKey";
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 const CATEGORIES  = ["Electronics", "Hardware", "Accessories", "Office Equipment", "Computer Accessories", "Furniture", "Industrial Equipment", "Software", "Other"];
@@ -98,6 +99,11 @@ const Suppliers = () => {
     catch { showToast("Failed to load suppliers.", "error"); }
   };
   useEffect(() => { load(); }, []);
+
+  useEscapeKey(showModal, () => setShowModal(false));
+  useEscapeKey(!!deleteId, () => setDeleteId(null));
+  useEscapeKey(bulkDeleteConfirm, () => setBulkDeleteConfirm(false));
+  useEscapeKey(!!productsPanel, () => setProductsPanel(null));
 
   /* ── Close status popover on outside click ── */
   useEffect(() => {
@@ -650,7 +656,10 @@ const Suppliers = () => {
 
       {/* ── Add / Edit Modal ── */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-start justify-center z-50 overflow-y-auto py-4 sm:py-8 px-4">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-start justify-center z-50 overflow-y-auto py-4 sm:py-8 px-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg mx-auto my-auto">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 rounded-t-2xl">
               <div>
@@ -662,7 +671,7 @@ const Suppliers = () => {
             <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Company Name")} <span className="text-red-500">*</span></label>
-                <input type="text" required className={inputCls} placeholder="e.g. Acme Corp" value={form.company_name} onChange={set("company_name")} />
+                <input type="text" required autoFocus className={inputCls} placeholder="e.g. Acme Corp" value={form.company_name} onChange={set("company_name")} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Contact Person")}</label>
@@ -721,7 +730,10 @@ const Suppliers = () => {
 
       {/* ── Single delete confirm ── */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setDeleteId(null); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500 dark:text-red-400" /></div>
             <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t("Delete Supplier?")}</h3>
@@ -736,7 +748,10 @@ const Suppliers = () => {
 
       {/* ── Bulk delete confirm ── */}
       {bulkDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setBulkDeleteConfirm(false); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500 dark:text-red-400" /></div>
             <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t("Delete")} {selected.size} {t("suppliers?")}</h3>

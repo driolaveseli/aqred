@@ -6,6 +6,7 @@ import {
 import {
   getCompanies, createCompany, assignAdmin, getCompanyUsers, deleteCompany,
 } from "../services/superAdminService";
+import useEscapeKey from "../hooks/useEscapeKey";
 
 const inputCls =
   "w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent";
@@ -72,6 +73,9 @@ const CompanyManagement = () => {
   };
 
   const closeModal = () => { setModal(null); setTargetCompany(null); };
+
+  useEscapeKey(!!modal, closeModal);
+  useEscapeKey(!!deleteId, () => setDeleteId(null));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -255,7 +259,10 @@ const CompanyManagement = () => {
 
       {/* Create / Assign Modal */}
       {modal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md mx-4">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
               <h2 className="font-bold text-gray-900 dark:text-white">
@@ -268,7 +275,7 @@ const CompanyManagement = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Company Name</label>
                   <input
-                    required className={inputCls} placeholder="Acme Corporation"
+                    required autoFocus className={inputCls} placeholder="Acme Corporation"
                     value={form.company_name} onChange={set("company_name")}
                   />
                 </div>
@@ -281,7 +288,7 @@ const CompanyManagement = () => {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
-                    <input required className={inputCls} placeholder="Jane Doe"
+                    <input required autoFocus={modal !== "create"} className={inputCls} placeholder="Jane Doe"
                       value={form.admin_name} onChange={set("admin_name")} />
                   </div>
                   <div>
@@ -312,7 +319,10 @@ const CompanyManagement = () => {
 
       {/* Delete Confirm */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setDeleteId(null); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Trash2 size={22} className="text-red-500 dark:text-red-400" />

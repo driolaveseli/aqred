@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { getAllRolePermissions, createRolePermissions, updateRolePermissions, deleteRolePermissions } from "../services/rolesService";
 import { useSystem } from "../context/SystemContext";
+import useEscapeKey from "../hooks/useEscapeKey";
 
 const PERMISSIONS = [
   "View Dashboard",
@@ -109,6 +110,9 @@ export default function RolesPermissions() {
       .catch(() => showToast("Failed to load permissions", "error"));
 
   useEffect(() => { loadRoles(); }, []);
+
+  useEscapeKey(showModal, () => setShowModal(false));
+  useEscapeKey(!!deleteTarget, () => setDeleteTarget(null));
 
   const currentPerms = permsByRole[selectedRole] || [];
   const isBuiltIn    = selectedRole in BUILT_IN_META;
@@ -392,7 +396,10 @@ export default function RolesPermissions() {
 
       {/* ── New Role Modal ── */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
               <h2 className="font-bold text-gray-900 dark:text-white">{t("Create New Role")}</h2>
@@ -438,7 +445,10 @@ export default function RolesPermissions() {
 
       {/* ── Delete Confirm ── */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setDeleteTarget(null); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Trash2 size={22} className="text-red-500 dark:text-red-400" />
