@@ -70,7 +70,7 @@ const DEPT_BADGE = {
 const deptBadgeCls = (dept) => DEPT_BADGE[dept] || "bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 ring-1 ring-gray-200/60 dark:ring-gray-700";
 
 const Toast = ({ msg, type, onClose }) => (
-  <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium border-l-4
+  <div className={`fixed bottom-5 right-5 z-50 animate-toast-in flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium border-l-4
     ${type === "success"
       ? "bg-white dark:bg-gray-800 text-green-700 dark:text-emerald-400 border border-green-100 dark:border-emerald-800 border-l-green-500 shadow-green-100/60 dark:shadow-black/40"
       : "bg-white dark:bg-gray-800 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-800 border-l-red-500 shadow-red-100/60 dark:shadow-black/40"}`}>

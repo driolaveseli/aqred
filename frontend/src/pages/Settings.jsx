@@ -43,7 +43,7 @@ const inputCls = "w-full border border-gray-200 dark:border-gray-700 rounded-xl 
 const labelCls = "block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2";
 
 const Toast = ({ msg, type, onClose }) => (
-  <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3.5 rounded-2xl shadow-2xl text-sm font-medium border backdrop-blur-sm ${
+  <div className={`fixed bottom-5 right-5 z-50 animate-toast-in flex items-center gap-3 px-4 py-3.5 rounded-2xl shadow-2xl text-sm font-medium border backdrop-blur-sm ${
     type === "error"
       ? "bg-red-50/90 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-100 dark:border-red-800/50"
       : "bg-green-50/90 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-100 dark:border-green-800/50"

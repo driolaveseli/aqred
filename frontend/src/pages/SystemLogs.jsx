@@ -270,7 +270,7 @@ export default function SystemLogs() {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-xl shadow-lg text-white text-sm z-50 ${
+        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-xl shadow-lg text-white text-sm z-50 animate-toast-in ${
           toast.type === "error" ? "bg-red-500" : "bg-green-500"}`}>
           {toast.msg}
         </div>

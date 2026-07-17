@@ -33,6 +33,7 @@ import RolesPermissions from "./pages/RolesPermissions";
 import SystemLogs from "./pages/SystemLogs";
 import Settings from "./pages/Settings";
 import Maintenance from "./pages/Maintenance";
+import NotFound from "./pages/NotFound";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -112,7 +113,7 @@ const App = () => (
         <Route path="/maintenance" element={<Maintenance />} />
 
         {/* ── Catch-all ─────────────────────────────────────────────────── */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
     </SystemProvider>
