@@ -126,6 +126,43 @@ const SecurityBadges = () => (
   </div>
 );
 
+// ── Right panel shell (shared) ──────────────────────────────────────────────
+// Defined at module scope, not inside Login — a component recreated on every
+// render (e.g. one defined inline in a render body) gets a new identity each
+// time, so React tears down and rebuilds its whole subtree instead of
+// reconciling it. Since the email/password inputs render as children of this
+// shell, that meant every keystroke destroyed and recreated the actual <input>
+// DOM node, dropping focus after a single character.
+const RightShell = ({ children }) => (
+  <div className="flex-1 flex items-center justify-center py-10 px-6 lg:px-12 xl:px-16 relative overflow-hidden bg-slate-50 dark:bg-gray-900">
+    {/* Subtle dot grid */}
+    <div className="absolute inset-0 pointer-events-none" style={{
+      backgroundImage: "radial-gradient(circle, rgba(139,92,246,0.05) 1px, transparent 1px)",
+      backgroundSize: "28px 28px",
+    }} />
+    {/* Top glow */}
+    <div className="absolute top-0 left-0 right-0 h-64 pointer-events-none" style={{
+      background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.07) 0%, transparent 70%)",
+    }} />
+    {/* Bottom-right accent */}
+    <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-100/60 dark:bg-indigo-900/10 rounded-full blur-3xl pointer-events-none" />
+
+    <div className="relative w-full max-w-sm">
+      {/* Mobile logo */}
+      <div className="flex items-center gap-2.5 mb-6 lg:hidden">
+        <div className="w-8 h-8 bg-violet-600 rounded-xl flex items-center justify-center shadow-md shadow-violet-200 dark:shadow-none">
+          <span className="text-white text-sm font-black select-none">A</span>
+        </div>
+        <span className="text-[17px] leading-none select-none">
+          <span className="font-extrabold tracking-tight text-slate-800 dark:text-white">Aq</span>
+          <span className="font-extrabold tracking-tight text-violet-600">red</span>
+        </span>
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
 // ── Main component ────────────────────────────────────────────────────────────
 const Login = () => {
   const [formData, setFormData]           = useState({ email: "", password: "" });
@@ -208,37 +245,6 @@ const Login = () => {
     "focus:bg-white dark:focus:bg-gray-900 transition-all duration-200";
 
   const labelClass = "block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.08em] mb-1.5";
-
-  // ── Right panel shell (shared) ──────────────────────────────────────────────
-  const RightShell = ({ children }) => (
-    <div className="flex-1 flex items-center justify-center py-10 px-6 lg:px-12 xl:px-16 relative overflow-hidden bg-slate-50 dark:bg-gray-900">
-      {/* Subtle dot grid */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: "radial-gradient(circle, rgba(139,92,246,0.05) 1px, transparent 1px)",
-        backgroundSize: "28px 28px",
-      }} />
-      {/* Top glow */}
-      <div className="absolute top-0 left-0 right-0 h-64 pointer-events-none" style={{
-        background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.07) 0%, transparent 70%)",
-      }} />
-      {/* Bottom-right accent */}
-      <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-100/60 dark:bg-indigo-900/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative w-full max-w-sm">
-        {/* Mobile logo */}
-        <div className="flex items-center gap-2.5 mb-6 lg:hidden">
-          <div className="w-8 h-8 bg-violet-600 rounded-xl flex items-center justify-center shadow-md shadow-violet-200 dark:shadow-none">
-            <span className="text-white text-sm font-black select-none">A</span>
-          </div>
-          <span className="text-[17px] leading-none select-none">
-            <span className="font-extrabold tracking-tight text-slate-800 dark:text-white">Aq</span>
-            <span className="font-extrabold tracking-tight text-violet-600">red</span>
-          </span>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
 
   // ── TOTP step ───────────────────────────────────────────────────────────────
   if (step === "totp") {
