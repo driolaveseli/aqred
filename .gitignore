@@ -30,17 +30,17 @@ __pycache__/
 # Backups
 backups/
 
-# Thesis documents and figures
-*.docx
-*.pdf
-*.xlsx
-*.png
-*.html
-*.drawio
-*.txt
-*.py
-listimet.txt
-questionnaire.html
+# Thesis documents and figures (root-level only - leftover from the old
+# thesis repo; unscoped versions of these rules used to also swallow real
+# app files like frontend/public/index.html without anyone noticing)
+/*.docx
+/*.pdf
+/*.xlsx
+/*.png
+/*.html
+/*.drawio
+/*.txt
+/*.py
 
 # ...except README screenshots
 !docs/screenshots/*.png
