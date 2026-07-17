@@ -1,6 +1,6 @@
 # Aqred MIS
 
-A full-stack Management Information System for tracking staff, inventory, customers, orders, sales, and revenue — built as a Bachelor's thesis project.
+A full-stack Management Information System for tracking staff, inventory, customers, orders, sales, and revenue.
 
 ## Screenshots
 
