@@ -148,7 +148,7 @@ const Suppliers = () => {
     try { const { data } = await getSuppliers(); setSuppliers(data); }
     catch { showToast("Failed to load suppliers.", "error"); }
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEscapeKey(showModal, () => setShowModal(false));
   useEscapeKey(!!deleteId, () => setDeleteId(null));

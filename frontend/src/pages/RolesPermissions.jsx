@@ -109,7 +109,7 @@ export default function RolesPermissions() {
       .then(r => setPermsByRole(r.data))
       .catch(() => showToast("Failed to load permissions", "error"));
 
-  useEffect(() => { loadRoles(); }, []);
+  useEffect(() => { loadRoles(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEscapeKey(showModal, () => setShowModal(false));
   useEscapeKey(!!deleteTarget, () => setDeleteTarget(null));
