@@ -10,6 +10,7 @@ import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../components/UI/Pagination";
+import useEscapeKey from "../hooks/useEscapeKey";
 
 const STANDARD_CATEGORIES = ["Electronics", "Furniture", "Accessories", "Office Supplies", "Software", "Hardware", "Other"];
 
@@ -104,6 +105,8 @@ const Inventory = () => {
     catch { showToast("Failed to load inventory.", "error"); }
   }, [page, pageSize, debouncedSearch, catFilter, stockFilter, sortField, sortDir]);
   useEffect(() => { load(); }, [load]);
+
+  useEscapeKey(!!adjusting, () => setAdjusting(null));
 
   /* ── Adjust modal ── */
   const openAdjust = (p) => { setAdjusting(p); setNewStock(String(p.stock ?? 0)); };
@@ -442,7 +445,10 @@ const Inventory = () => {
 
       {/* ── Adjust Stock Modal ── */}
       {adjusting && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setAdjusting(null); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-auto">
 
             {/* Header */}

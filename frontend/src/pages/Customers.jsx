@@ -10,6 +10,7 @@ import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import Pagination from "../components/UI/Pagination";
+import useEscapeKey from "../hooks/useEscapeKey";
 
 const BLANK       = { name: "", email: "", phone: "", address: "", company: "", status: "Active" };
 const inputCls    = "w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent";
@@ -120,6 +121,10 @@ const Customers = () => {
     } catch {}
   }, [page, pageSize, debouncedSearch, statusTab, sortField, sortDir]);
   useEffect(() => { load(); }, [load]);
+
+  useEscapeKey(showModal, () => setShowModal(false));
+  useEscapeKey(!!deleteId, () => setDeleteId(null));
+  useEscapeKey(bulkDeleteConfirm, () => setBulkDeleteConfirm(false));
 
   /* ── Toast ── */
   const showToast = (msg, type = "success") => {
@@ -668,7 +673,10 @@ const Customers = () => {
 
       {/* ── Add / Edit Modal ── */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-start justify-center z-50 overflow-y-auto py-4 sm:py-8 px-4">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-start justify-center z-50 overflow-y-auto py-4 sm:py-8 px-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md mx-auto my-auto">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
               <h2 className="font-bold text-gray-900 dark:text-white">{editing ? t("Edit Customer") : t("Add Customer")}</h2>
@@ -677,7 +685,7 @@ const Customers = () => {
             <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Full Name")}</label>
-                <input required className={inputCls} placeholder="John Doe" value={form.name} onChange={set("name")} />
+                <input required autoFocus className={inputCls} placeholder="John Doe" value={form.name} onChange={set("name")} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Email Address")}</label>
@@ -718,7 +726,10 @@ const Customers = () => {
 
       {/* ── Single delete confirm ── */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setDeleteId(null); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500 dark:text-red-400" /></div>
             <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t("Delete Customer?")}</h3>
@@ -733,7 +744,10 @@ const Customers = () => {
 
       {/* ── Bulk delete confirm ── */}
       {bulkDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setBulkDeleteConfirm(false); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500 dark:text-red-400" /></div>
             <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t("Delete")} {selected.size} {t("customers?")}</h3>

@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext";
 import EmptyState from "../components/UI/EmptyState";
 import SkeletonLoader from "../components/UI/SkeletonLoader";
 import Pagination from "../components/UI/Pagination";
+import useEscapeKey from "../hooks/useEscapeKey";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 // Invoice status (Paid/Partially Paid/Unpaid/Overdue/Cancelled) is now computed
@@ -170,7 +171,10 @@ const InvoiceModal = ({ inv, onClose, onMarkPaid, markingId, formatCurrency, com
   const Icon = cfg.icon;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
 
         {/* Toolbar */}
@@ -371,6 +375,8 @@ const Invoices = () => {
 
   /* ── Reset to page 1 whenever filter/search changes ── */
   useEffect(() => { setPage(1); }, [debouncedSearch, filter]);
+
+  useEscapeKey(!!previewInv, () => setPreviewInv(null));
 
   const load = useCallback(async () => {
     try {

@@ -12,6 +12,7 @@ import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import Pagination from "../components/UI/Pagination";
+import useEscapeKey from "../hooks/useEscapeKey";
 
 const STATUSES   = ["Pending", "Processing", "Shipped", "Completed", "Cancelled"];
 const DATE_RANGES = ["All", "Today", "This Week", "This Month"];
@@ -120,6 +121,11 @@ const Orders = () => {
     getProducts({ limit: 5000 }).then(({ data }) => setProducts(data.data)).catch(() => {});
     if (location.state?.openCreate) openAdd();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEscapeKey(showModal, () => setShowModal(false));
+  useEscapeKey(!!deleteId, () => setDeleteId(null));
+  useEscapeKey(bulkDeleteConfirm, () => setBulkDeleteConfirm(false));
+  useEscapeKey(!!itemsModal, () => setItemsModal(null));
 
   /* Close bulk status menu on outside click */
   useEffect(() => {
@@ -578,7 +584,10 @@ const Orders = () => {
 
       {/* ── Create / Edit Modal ── */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-start justify-center z-50 overflow-y-auto py-4 sm:py-8 px-4">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-start justify-center z-50 overflow-y-auto py-4 sm:py-8 px-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-2xl mx-auto my-auto">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
               <h2 className="font-bold text-gray-900 dark:text-white">{editing ? t("Edit Order") : t("New Order")}</h2>
@@ -592,6 +601,7 @@ const Orders = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Customer")} <span className="text-red-500">*</span></label>
                   <select
                     required
+                    autoFocus
                     className={inputCls}
                     value={form.customer_id}
                     onChange={(e) => setForm((f) => ({ ...f, customer_id: e.target.value }))}
@@ -709,7 +719,10 @@ const Orders = () => {
 
       {/* ── Single delete confirm ── */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setDeleteId(null); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500 dark:text-red-400" /></div>
             <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t("Delete Order?")}</h3>
@@ -724,7 +737,10 @@ const Orders = () => {
 
       {/* ── Bulk delete confirm ── */}
       {bulkDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setBulkDeleteConfirm(false); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4"><Trash2 size={22} className="text-red-500 dark:text-red-400" /></div>
             <h3 className="font-bold text-gray-900 dark:text-white mb-1">{t("Delete")} {selected.size} {t("orders?")}</h3>
@@ -741,7 +757,10 @@ const Orders = () => {
 
       {/* ── Items viewer modal ── */}
       {itemsModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setItemsModal(null); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-xl mx-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
               <div>

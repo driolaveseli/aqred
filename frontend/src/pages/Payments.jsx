@@ -8,6 +8,7 @@ import { getSales } from "../services/salesService";
 import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import { useAuth } from "../context/AuthContext";
+import useEscapeKey from "../hooks/useEscapeKey";
 
 const statusConfig = {
   Completed: { icon: CheckCircle, cls: "bg-green-50 dark:bg-emerald-900/20 text-green-600 dark:text-emerald-400" },
@@ -162,6 +163,9 @@ const Payments = () => {
   }, [page, pageSize, debouncedSearch, filter]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEscapeKey(showModal, () => setShowModal(false));
+  useEscapeKey(!!deleteId, () => setDeleteId(null));
 
   useEffect(() => {
     // "Record Payment" form needs the full order list for its dropdown, not just
@@ -394,7 +398,10 @@ const Payments = () => {
 
       {/* Record Payment Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-md">
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
               <h2 className="font-bold text-gray-900 dark:text-white">{t("Record Payment")}</h2>
@@ -403,7 +410,7 @@ const Payments = () => {
             <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{t("Order / Invoice")} *</label>
-                <select required className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                <select required autoFocus className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                   value={form.order_id} onChange={(e) => handleOrderChange(e.target.value)}>
                   <option value="">Select order...</option>
                   {orders.map((o) => (
@@ -455,7 +462,10 @@ const Payments = () => {
       )}
 
       {deleteId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setDeleteId(null); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Trash2 size={22} className="text-red-500 dark:text-red-400" />

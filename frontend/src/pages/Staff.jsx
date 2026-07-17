@@ -16,6 +16,7 @@ import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import Pagination from "../components/UI/Pagination";
+import useEscapeKey from "../hooks/useEscapeKey";
 
 const DEPT_COLORS = {
   Engineering: "#7c3aed", Sales: "#6366f1", Support: "#a78bfa",
@@ -138,6 +139,10 @@ const Staff = () => {
     loadRoles();
     if (location.state?.openCreate) openAdd();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEscapeKey(showModal, () => setShowModal(false));
+  useEscapeKey(!!deleteTarget, () => setDeleteTarget(null));
+  useEscapeKey(!!viewTarget, () => setViewTarget(null));
 
   const set = (f) => (e) => setForm({ ...form, [f]: e.target.value });
 
@@ -628,7 +633,10 @@ const Staff = () => {
 
       {/* Add / Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg ring-1 ring-gray-900/5 dark:ring-white/10 overflow-hidden">
             <div className="relative flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-gray-50/80 to-white dark:from-gray-800/60 dark:to-gray-900">
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-violet-500 to-indigo-500" />
@@ -643,7 +651,7 @@ const Staff = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5 uppercase tracking-wide">{t("Full Name")}</label>
-                  <input required className={inputCls} placeholder="Jane Smith" value={form.name} onChange={set("name")} />
+                  <input required autoFocus className={inputCls} placeholder="Jane Smith" value={form.name} onChange={set("name")} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5 uppercase tracking-wide">{t("Email")}</label>
@@ -724,7 +732,10 @@ const Staff = () => {
 
       {/* Delete Confirm */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setDeleteTarget(null); }}
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-7 text-center ring-1 ring-gray-900/5 dark:ring-white/10">
             <div className="w-14 h-14 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-red-100 dark:ring-red-800/50">
               <Trash2 size={24} className="text-red-500 dark:text-red-400" />
@@ -752,7 +763,10 @@ const Staff = () => {
           ? new Date(s.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
           : null;
         return (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 p-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setViewTarget(null); }}
+          >
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.20)] w-full max-w-md overflow-hidden ring-1 ring-gray-900/5 dark:ring-white/10">
               {/* Rich gradient header */}
               <div className="relative bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 px-6 pt-6 pb-16 overflow-hidden">
