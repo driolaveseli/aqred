@@ -25,8 +25,11 @@ A full-stack Management Information System for tracking staff, inventory, custom
 - **Two-factor authentication** — TOTP setup/verify/disable via an authenticator app
 - **Business operations** — staff, customers, products, suppliers, orders, and inventory management
 - **Sales & reporting** — revenue analytics, customer/employee reports, exportable CSV data
-- **Administration** — company management, role & permission editing, system activity logs, maintenance mode
-- **Multi-company support** — data is scoped per company for use by multiple organizations
+- **Command palette** — Cmd/Ctrl+K to jump to any page or run a quick action from the keyboard
+- **Multi-company support** — data is scoped per company, with a platform-level `super_admin` role that can create, suspend, or permanently remove companies
+- **Platform administration** — company management, role & permission editing, a real audit log (`system_logs`) covering both company- and platform-level actions, and a platform-wide maintenance mode
+- **Public contact form** — submissions are stored and reviewable from a super-admin inbox, not just a form that goes nowhere
+- **Dark mode** — throughout the entire app, not just the marketing pages
 
 ## Prerequisites
 
