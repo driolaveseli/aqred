@@ -43,3 +43,34 @@ describe("login - timing-safe email enumeration fix", () => {
     expect(compareSpy).toHaveBeenCalledWith("wrong-password", "$2b$10$fakehash");
   });
 });
+
+describe("login - suspended company", () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it("rejects a correct password when the user's company is suspended", async () => {
+    db.query.mockResolvedValueOnce({
+      rows: [{ id: 1, email: "user@suspended.com", password: "$2b$10$fakehash", company_is_active: false }],
+    });
+    jest.spyOn(bcrypt, "compare").mockResolvedValueOnce(true);
+
+    const res = await request(buildApp())
+      .post("/login")
+      .send({ email: "user@suspended.com", password: "correct-password" });
+
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe("COMPANY_SUSPENDED");
+  });
+
+  it("does not block a super_admin, whose company_is_active is always null", async () => {
+    db.query
+      .mockResolvedValueOnce({ rows: [{ id: 1, email: "super@aqred.com", password: "$2b$10$fakehash", company_is_active: null, role: "super_admin" }] })
+      .mockResolvedValueOnce({ rows: [] }); // 2FA prefs lookup
+    jest.spyOn(bcrypt, "compare").mockResolvedValueOnce(true);
+
+    const res = await request(buildApp())
+      .post("/login")
+      .send({ email: "super@aqred.com", password: "correct-password" });
+
+    expect(res.status).not.toBe(403);
+  });
+});

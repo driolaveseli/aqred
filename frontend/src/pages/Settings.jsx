@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useSystem } from "../context/SystemContext";
+import Toggle from "../components/UI/Toggle";
 import {
   getProfile, updateProfile, changePassword,
   getCompany, updateCompany,
@@ -25,19 +26,6 @@ const applyTheme = (t) => {
 };
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
-
-const Toggle = ({ checked, onChange, disabled }) => (
-  <button
-    onClick={() => !disabled && onChange(!checked)}
-    disabled={disabled}
-    className={`relative rounded-full transition-all flex-shrink-0 ${
-      checked ? "bg-violet-600 shadow-lg shadow-violet-500/30" : "bg-gray-200 dark:bg-gray-700"
-    } ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:scale-105"}`}
-    style={{ width: "2.5rem", height: "1.375rem" }}
-  >
-    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-transform ${checked ? "translate-x-5" : "translate-x-0"}`} />
-  </button>
-);
 
 const inputCls = "w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-all placeholder-gray-400 dark:placeholder-gray-600";
 const labelCls = "block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2";
@@ -294,7 +282,7 @@ export default function Settings() {
   // ── System ─────────────────────────────────────────────────────────────────
   const [system, setSystem] = useState({
     currency: "USD", dateFormat: "MM/DD/YYYY", language: "English",
-    theme: "Light", autoBackup: true, maintenanceMode: false,
+    theme: "Light", autoBackup: true,
   });
   const [backup, setBackup] = useState({ lastBackup: null, nextScheduled: "Daily at 22:00 UTC" });
 
@@ -307,7 +295,6 @@ export default function Settings() {
         dateFormat:      sys.data.dateFormat       || prev.dateFormat,
         language:        sys.data.language         || prev.language,
         autoBackup:      sys.data.autoBackup       === "true",
-        maintenanceMode: sys.data.maintenanceMode  === "true",
         theme,
       }));
       applyTheme(theme);
@@ -327,7 +314,6 @@ export default function Settings() {
         saves.push(updateSystemSettings({
           currency: system.currency, dateFormat: system.dateFormat,
           language: system.language, autoBackup: system.autoBackup,
-          maintenanceMode: system.maintenanceMode,
         }));
       }
       await Promise.all(saves);
@@ -970,75 +956,6 @@ export default function Settings() {
                       {loading.backup ? <Loader size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                       {loading.backup ? t("Running backup…") : t("Run Backup Now")}
                     </button>
-                  </div>
-                </div>
-
-                {/* Maintenance mode card */}
-                <div className={`relative overflow-hidden rounded-2xl border-2 transition-all ${
-                  system.maintenanceMode
-                    ? "border-amber-400/60 dark:border-amber-600/40 bg-gradient-to-br from-amber-50 to-orange-50/40 dark:from-amber-900/15 dark:to-orange-900/5"
-                    : "border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900"
-                }`}>
-                  {system.maintenanceMode && (
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(245,158,11,0.08),transparent_70%)] pointer-events-none" />
-                  )}
-
-                  <div className="relative p-5 border-b border-gray-100 dark:border-gray-800">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        system.maintenanceMode
-                          ? "bg-amber-100 dark:bg-amber-900/30"
-                          : "bg-gray-100 dark:bg-gray-800"
-                      }`}>
-                        <Clock size={16} className={system.maintenanceMode ? "text-amber-600 dark:text-amber-400" : "text-gray-400"} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100">Maintenance Mode</p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-500 mt-0.5">Restrict user access temporarily</p>
-                      </div>
-                      <Toggle checked={system.maintenanceMode} onChange={v => setSystem(s => ({ ...s, maintenanceMode: v }))} disabled={!isAdmin} />
-                    </div>
-                  </div>
-
-                  <div className="relative p-5 space-y-3">
-                    {system.maintenanceMode ? (
-                      <>
-                        <div className="flex items-center gap-2.5 p-3 bg-amber-100/60 dark:bg-amber-900/20 rounded-xl border border-amber-200/60 dark:border-amber-800/40">
-                          <div className="relative flex h-2.5 w-2.5 flex-shrink-0">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
-                          </div>
-                          <p className="text-xs font-bold text-amber-800 dark:text-amber-300">System is in maintenance mode</p>
-                        </div>
-                        <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-                          Users are currently blocked from accessing the platform. Disable maintenance mode to restore access.
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                          When enabled, all non-admin users will see a maintenance page. Use this when performing updates or database migrations.
-                        </p>
-                        <div className="grid grid-cols-1 gap-2">
-                          {[
-                            "Blocks all non-admin user logins",
-                            "Shows a maintenance page to users",
-                            "Admins retain full access",
-                          ].map((item, i) => (
-                            <div key={i} className="flex items-center gap-2">
-                              <div className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
-                              <p className="text-[11px] text-gray-400 dark:text-gray-600">{item}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-
-                    {!isAdmin && (
-                      <p className="text-[11px] text-gray-400 dark:text-gray-600 italic pt-1">
-                        Only administrators can toggle maintenance mode.
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>

@@ -333,11 +333,14 @@ exports.getSystemSettings = async (req, res) => {
 exports.updateSystemSettings = async (req, res) => {
   if (req.user?.role !== "admin")
     return res.status(403).json({ error: "Admin only" });
-  const { currency, dateFormat, language, autoBackup, maintenanceMode } = req.body;
+  // maintenanceMode is deliberately excluded here — system_settings has no
+  // company_id scoping, so it's a platform-wide switch. Letting any single
+  // company's admin flip it would lock out every other tenant; that's now
+  // exclusively a super_admin action (see routes/superAdmin.js).
+  const { currency, dateFormat, language, autoBackup } = req.body;
   try {
     const updates = { currency, dateFormat, language,
       autoBackup: autoBackup != null ? String(autoBackup) : null,
-      maintenanceMode: maintenanceMode != null ? String(maintenanceMode) : null,
     };
     for (const [key, value] of Object.entries(updates)) {
       if (value != null) {
@@ -348,8 +351,6 @@ exports.updateSystemSettings = async (req, res) => {
         );
       }
     }
-    // Invalidate the in-process maintenance-mode cache so it's re-read immediately
-    try { require("../middleware/maintenanceMode").invalidateCache(); } catch {}
     logEvent({ module: "settings", action: "system_settings_updated", req,
       description: "System settings updated" });
     res.json({ message: "System settings saved" });

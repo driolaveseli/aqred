@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Building2, Plus, Users, ShieldCheck, Trash2, X, Eye,
-  CheckCircle, UserPlus, ChevronDown, ChevronUp,
+  CheckCircle, UserPlus, ChevronDown, ChevronUp, Ban, RotateCcw,
 } from "lucide-react";
 import {
-  getCompanies, createCompany, assignAdmin, getCompanyUsers, deleteCompany,
+  getCompanies, createCompany, assignAdmin, getCompanyUsers, setCompanyStatus, deleteCompany,
 } from "../services/superAdminService";
 import useEscapeKey from "../hooks/useEscapeKey";
 import PageHeader from "../components/UI/PageHeader";
@@ -113,6 +113,18 @@ const CompanyManagement = () => {
     }
   };
 
+  const handleToggleStatus = async (co) => {
+    if (co.is_active && !window.confirm(`Suspend "${co.name}"? Its users won't be able to sign in until you reactivate it.`))
+      return;
+    try {
+      await setCompanyStatus(co.id, !co.is_active);
+      showToast(co.is_active ? `"${co.name}" suspended.` : `"${co.name}" reactivated.`);
+      load();
+    } catch (err) {
+      showToast(err.response?.data?.error || "Update failed.", "error");
+    }
+  };
+
   const handleDelete = async () => {
     try {
       await deleteCompany(deleteId);
@@ -153,11 +165,12 @@ const CompanyManagement = () => {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 mb-6">
         {[
           { label: "Total Companies", value: companies.length, color: "text-violet-600 dark:text-violet-400" },
           { label: "Total Users",     value: companies.reduce((s, c) => s + parseInt(c.user_count || 0), 0), color: "text-blue-600 dark:text-blue-400" },
           { label: "With Admin",      value: companies.filter((c) => c.admin_email).length, color: "text-green-600 dark:text-emerald-400" },
+          { label: "Suspended",      value: companies.filter((c) => !c.is_active).length, color: "text-red-600 dark:text-red-400" },
         ].map((s) => (
           <div key={s.label} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{s.label}</p>
@@ -177,16 +190,27 @@ const CompanyManagement = () => {
         )}
 
         {companies.map((co) => (
-          <div key={co.id} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
+          <div key={co.id} className={`bg-white dark:bg-gray-900 border rounded-2xl overflow-hidden ${
+            co.is_active ? "border-gray-100 dark:border-gray-800" : "border-red-200 dark:border-red-900/50"
+          }`}>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4">
               {/* Company icon */}
-              <div className="w-10 h-10 bg-violet-100 dark:bg-violet-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Building2 size={18} className="text-violet-600 dark:text-violet-400" />
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                co.is_active ? "bg-violet-100 dark:bg-violet-900/30" : "bg-red-100 dark:bg-red-900/30"
+              }`}>
+                <Building2 size={18} className={co.is_active ? "text-violet-600 dark:text-violet-400" : "text-red-500 dark:text-red-400"} />
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 dark:text-white">{co.name}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold text-gray-900 dark:text-white">{co.name}</p>
+                  {!co.is_active && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800/50">
+                      <Ban size={9} /> Suspended
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                   <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
                     <Users size={11} /> {co.user_count} user{co.user_count !== "1" ? "s" : ""}
@@ -209,6 +233,16 @@ const CompanyManagement = () => {
                 >
                   <Eye size={13} />
                   {expandedId === co.id ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                </button>
+                <button
+                  onClick={() => handleToggleStatus(co)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                    co.is_active
+                      ? "text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                      : "text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                  }`}
+                >
+                  {co.is_active ? <><Ban size={13} /> Suspend</> : <><RotateCcw size={13} /> Reactivate</>}
                 </button>
                 <button
                   onClick={() => openAssign(co)}
