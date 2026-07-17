@@ -7,6 +7,7 @@ import {
   getCompanies, createCompany, assignAdmin, getCompanyUsers, deleteCompany,
 } from "../services/superAdminService";
 import useEscapeKey from "../hooks/useEscapeKey";
+import PageHeader from "../components/UI/PageHeader";
 
 const inputCls =
   "w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent";
@@ -137,20 +138,19 @@ const CompanyManagement = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Company Management</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Platform-level control — create companies and assign their administrators
-          </p>
-        </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 self-start sm:self-auto"
-        >
-          <Plus size={16} /> New Company
-        </button>
-      </div>
+      <PageHeader
+        title="Company Management"
+        subtitle="Platform-level control — create companies and assign their administrators"
+        badges={[{ icon: Building2, label: `${companies.length} companies`, tone: "violet" }]}
+        actions={
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 self-start sm:self-auto"
+          >
+            <Plus size={16} /> New Company
+          </button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">

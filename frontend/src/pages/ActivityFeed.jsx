@@ -3,6 +3,7 @@ import { useSystem } from "../context/SystemContext";
 import { getActivity } from "../services/activityService";
 import Pagination from "../components/UI/Pagination";
 import EmptyState from "../components/UI/EmptyState";
+import PageHeader from "../components/UI/PageHeader";
 import {
   Activity,
   UserPlus,
@@ -90,16 +91,11 @@ const ActivityFeed = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{t("Activity Feed")}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Track all system events and user actions in real-time")}</p>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Activity size={16} className="text-violet-500 dark:text-violet-400" />
-          <span>{total} {t("events")}</span>
-        </div>
-      </div>
+      <PageHeader
+        title={t("Activity Feed")}
+        subtitle={t("Track all system events and user actions in real-time")}
+        badges={[{ icon: Activity, label: `${total} ${t("events")}`, tone: "violet" }]}
+      />
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center gap-1 mb-6 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-1.5 w-full sm:w-fit overflow-x-auto">

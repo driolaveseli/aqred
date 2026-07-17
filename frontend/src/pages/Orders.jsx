@@ -12,6 +12,7 @@ import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import Pagination from "../components/UI/Pagination";
+import PageHeader from "../components/UI/PageHeader";
 import useEscapeKey from "../hooks/useEscapeKey";
 
 const STATUSES   = ["Pending", "Processing", "Shipped", "Completed", "Cancelled"];
@@ -341,20 +342,21 @@ const Orders = () => {
   return (
     <div>
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t("Orders")}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Track and manage all customer orders")}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
-            <Download size={15} /> {t("Export CSV")}
-          </button>
-          <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all">
-            <Plus size={16} /> {t("New Order")}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t("Orders")}
+        subtitle={t("Track and manage all customer orders")}
+        badges={stats.pendingCount > 0 ? [{ icon: Clock, label: `${stats.pendingCount} ${t("pending")}`, tone: "amber" }] : []}
+        actions={
+          <>
+            <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
+              <Download size={15} /> {t("Export CSV")}
+            </button>
+            <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all">
+              <Plus size={16} /> {t("New Order")}
+            </button>
+          </>
+        }
+      />
 
       {/* ── Stat cards (clickable filter shortcuts) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">

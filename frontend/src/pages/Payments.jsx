@@ -3,6 +3,7 @@ import { CreditCard, Search, CheckCircle, Clock, XCircle, DollarSign, TrendingUp
 import EmptyState from "../components/UI/EmptyState";
 import SkeletonLoader from "../components/UI/SkeletonLoader";
 import Pagination from "../components/UI/Pagination";
+import PageHeader from "../components/UI/PageHeader";
 import { getPayments, createPayment, updatePayment, deletePayment } from "../services/paymentsService";
 import { getSales } from "../services/salesService";
 import { exportToCSV } from "../utils/exportCSV";
@@ -257,23 +258,30 @@ const Payments = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-y-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("Payments")}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Track and manage all payment transactions")}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
-            <Download size={15} /> {t("Export CSV")}
-          </button>
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all"
-          >
-            <Plus size={16} /> {t("Record Payment")}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t("Payments")}
+        subtitle={t("Track and manage all payment transactions")}
+        badges={
+          totalFailed > 0
+            ? [{ icon: AlertCircle, label: `${formatCurrency(totalFailed)} ${t("failed")}`, tone: "red" }]
+            : totalPending > 0
+            ? [{ icon: Clock, label: `${formatCurrency(totalPending)} ${t("pending")}`, tone: "amber" }]
+            : []
+        }
+        actions={
+          <>
+            <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
+              <Download size={15} /> {t("Export CSV")}
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all"
+            >
+              <Plus size={16} /> {t("Record Payment")}
+            </button>
+          </>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

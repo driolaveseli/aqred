@@ -10,6 +10,7 @@ import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import Pagination from "../components/UI/Pagination";
+import PageHeader from "../components/UI/PageHeader";
 import useEscapeKey from "../hooks/useEscapeKey";
 
 const BLANK = { name: "", description: "", price: "", stock: "", category: "Electronics", sku: "", reorder_point: "10" };
@@ -252,20 +253,23 @@ const Products = () => {
   return (
     <div>
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t("Products")}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Manage your product catalog and inventory levels")}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
-            <Download size={15} /> {t("Export CSV")}
-          </button>
-          <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all">
-            <Plus size={16} /> {t("Add Product")}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t("Products")}
+        subtitle={t("Manage your product catalog and inventory levels")}
+        badges={outOfStockCount > 0 ? [{ icon: AlertTriangle, label: `${outOfStockCount} ${t("out of stock")}`, tone: "red" }]
+          : lowStockCount > 0 ? [{ icon: AlertTriangle, label: `${lowStockCount} ${t("low stock")}`, tone: "amber" }]
+          : []}
+        actions={
+          <>
+            <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
+              <Download size={15} /> {t("Export CSV")}
+            </button>
+            <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all">
+              <Plus size={16} /> {t("Add Product")}
+            </button>
+          </>
+        }
+      />
 
       {/* ── Stat cards (clickable filter shortcuts) ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext";
 import EmptyState from "../components/UI/EmptyState";
 import SkeletonLoader from "../components/UI/SkeletonLoader";
 import Pagination from "../components/UI/Pagination";
+import PageHeader from "../components/UI/PageHeader";
 import useEscapeKey from "../hooks/useEscapeKey";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -504,15 +505,16 @@ const Invoices = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-y-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("Invoices")}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Generated automatically from Sales orders with at least one item")}</p>
-        </div>
-        <button onClick={handleExportCSV} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
-          <Download size={15} /> Export CSV
-        </button>
-      </div>
+      <PageHeader
+        title={t("Invoices")}
+        subtitle={t("Generated automatically from Sales orders with at least one item")}
+        badges={totalOverdue > 0 ? [{ icon: AlertCircle, label: `${formatCurrency(totalOverdue)} ${t("overdue")}`, tone: "red" }] : []}
+        actions={
+          <button onClick={handleExportCSV} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
+            <Download size={15} /> Export CSV
+          </button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">

@@ -15,6 +15,7 @@ import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import SkeletonLoader from "../components/UI/SkeletonLoader";
 import ChartTooltip from "../components/UI/ChartTooltip";
+import PageHeader from "../components/UI/PageHeader";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const RANGES = ["All Time", "This Year", "Last 3 Months", "This Month"];
@@ -255,20 +256,21 @@ const CustomerReports = () => {
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{t("Customer Reports")}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Complete customer activity linked to Orders, Invoices, and Payments")}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button onClick={load} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
-            <RefreshCw size={14} /> {t("Refresh")}
-          </button>
-          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
-            <Download size={15} /> {t("Export CSV")}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t("Customer Reports")}
+        subtitle={t("Complete customer activity linked to Orders, Invoices, and Payments")}
+        badges={total > 0 ? [{ icon: UserCheck, label: `${active} ${t("active")}`, tone: "emerald" }] : []}
+        actions={
+          <>
+            <button onClick={load} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
+              <RefreshCw size={14} /> {t("Refresh")}
+            </button>
+            <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
+              <Download size={15} /> {t("Export CSV")}
+            </button>
+          </>
+        }
+      />
 
       {/* Range filter */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit flex-wrap">

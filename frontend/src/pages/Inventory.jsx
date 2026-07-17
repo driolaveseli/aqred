@@ -10,6 +10,7 @@ import { exportToCSV } from "../utils/exportCSV";
 import { useSystem } from "../context/SystemContext";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../components/UI/Pagination";
+import PageHeader from "../components/UI/PageHeader";
 import useEscapeKey from "../hooks/useEscapeKey";
 
 const STANDARD_CATEGORIES = ["Electronics", "Furniture", "Accessories", "Office Supplies", "Software", "Hardware", "Other"];
@@ -196,23 +197,26 @@ const Inventory = () => {
   return (
     <div>
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t("Inventory")}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("Real-time stock levels — adjust quantities directly here")}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
-            <Download size={15} /> {t("Export CSV")}
-          </button>
-          <button
-            onClick={() => navigate("/products")}
-            className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all"
-          >
-            <ExternalLink size={15} /> {t("Manage Products")}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t("Inventory")}
+        subtitle={t("Real-time stock levels — adjust quantities directly here")}
+        badges={outOfStockCount > 0 ? [{ icon: AlertTriangle, label: `${outOfStockCount} ${t("out of stock")}`, tone: "red" }]
+          : lowStockCount > 0 ? [{ icon: AlertTriangle, label: `${lowStockCount} ${t("low stock")}`, tone: "amber" }]
+          : []}
+        actions={
+          <>
+            <button onClick={handleExport} className="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-95 transition-all">
+              <Download size={15} /> {t("Export CSV")}
+            </button>
+            <button
+              onClick={() => navigate("/products")}
+              className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 active:scale-95 transition-all"
+            >
+              <ExternalLink size={15} /> {t("Manage Products")}
+            </button>
+          </>
+        }
+      />
 
       {/* ── Stat cards (clickable filter shortcuts) ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
