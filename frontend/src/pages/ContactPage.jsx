@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Mail, BookOpen, CheckCircle, MessageSquare, ArrowRight } from "lucide-react";
+import { Mail, BookOpen, CheckCircle, MessageSquare, ArrowRight, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import PublicNavbar from "../components/PublicNavbar";
 import PublicFooter from "../components/PublicFooter";
+import { submitContact } from "../services/contactService";
 
 const inputClass =
   "w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors";
@@ -12,10 +13,24 @@ const ContactPage = () => {
     firstName: "", lastName: "", email: "", company: "", message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const set = (field) => (e) => setFormData({ ...formData, [field]: e.target.value });
 
-  const handleSubmit = (e) => { e.preventDefault(); setSubmitted(true); };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError("");
+    try {
+      await submitContact(formData);
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.response?.data?.error || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
   const handleReset = () => {
     setSubmitted(false);
     setFormData({ firstName: "", lastName: "", email: "", company: "", message: "" });
@@ -206,11 +221,18 @@ const ContactPage = () => {
                           />
                         </div>
 
+                        {error && (
+                          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
+                            <AlertCircle size={15} className="flex-shrink-0" /> {error}
+                          </div>
+                        )}
+
                         <button
                           type="submit"
-                          className="w-full inline-flex items-center justify-center gap-2 bg-violet-600 text-white rounded-xl px-4 py-3 text-sm font-bold hover:bg-violet-700 active:bg-violet-800 transition-colors shadow-md shadow-violet-200 dark:shadow-violet-900/30"
+                          disabled={submitting}
+                          className="w-full inline-flex items-center justify-center gap-2 bg-violet-600 text-white rounded-xl px-4 py-3 text-sm font-bold hover:bg-violet-700 active:bg-violet-800 transition-colors shadow-md shadow-violet-200 dark:shadow-violet-900/30 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                          Send Message <ArrowRight size={15} />
+                          {submitting ? "Sending..." : <>Send Message <ArrowRight size={15} /></>}
                         </button>
                       </form>
                     </>

@@ -29,6 +29,7 @@ import CustomerReports from "./pages/CustomerReports";
 import EmployeeReports from "./pages/EmployeeReports";
 import RevenueAnalytics from "./pages/RevenueAnalytics";
 import CompanyManagement from "./pages/CompanyManagement";
+import ContactMessages from "./pages/ContactMessages";
 import RolesPermissions from "./pages/RolesPermissions";
 import SystemLogs from "./pages/SystemLogs";
 import Settings from "./pages/Settings";
@@ -108,6 +109,7 @@ const App = () => (
         {/* ── Super Admin ────────────────────────────────────────────────── */}
         <Route path="/super-admin/companies" element={<Protected superAdminOnly><CompanyManagement /></Protected>} />
         <Route path="/super-admin/logs"      element={<Protected superAdminOnly><SystemLogs /></Protected>} />
+        <Route path="/super-admin/messages"  element={<Protected superAdminOnly><ContactMessages /></Protected>} />
 
         {/* ── Maintenance (public — shown when system is under maintenance) ── */}
         <Route path="/maintenance" element={<Maintenance />} />

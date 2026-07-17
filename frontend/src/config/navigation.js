@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Activity, UserCheck, Package, ShoppingCart, Truck,
   Boxes, TrendingUp, CreditCard, FileText, PieChart, Users, UserCog,
-  Shield, ScrollText, Building2,
+  Shield, ScrollText, Building2, Mail,
 } from "lucide-react";
 
 // Single source of truth for the app's navigation structure - both the
@@ -55,8 +55,9 @@ export const SUPER_ADMIN_GROUPS = [
   {
     label: "Platform Management",
     items: [
-      { name: "Companies",   path: "/super-admin/companies", icon: Building2,   keywords: ["company", "tenant"] },
-      { name: "System Logs", path: "/super-admin/logs",      icon: ScrollText,  keywords: ["audit", "log"] },
+      { name: "Companies",        path: "/super-admin/companies", icon: Building2,  keywords: ["company", "tenant"] },
+      { name: "Contact Messages", path: "/super-admin/messages",  icon: Mail,       keywords: ["contact", "inbox", "support"] },
+      { name: "System Logs",      path: "/super-admin/logs",      icon: ScrollText, keywords: ["audit", "log"] },
     ],
   },
 ];

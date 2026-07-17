@@ -25,9 +25,14 @@ app.use("/api/auth/register", registerLimiter);
 const checkCompanyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 app.use("/api/auth/check-company", checkCompanyLimiter);
 
+// Public contact form — generous enough for a real visitor, tight enough to block spam scripts
+const contactLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+app.use("/api/contact", contactLimiter);
+
 // ── Routes that bypass maintenance mode (auth + settings always accessible) ──
 app.use("/api/auth",     require("./routes/auth"));
 app.use("/api/settings", require("./routes/settings"));
+app.use("/api/contact",  require("./routes/contact"));
 
 // ── Maintenance-mode gate — blocks non-admin users when enabled ───────────────
 app.use(maintenanceMode);
