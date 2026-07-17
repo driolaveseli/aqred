@@ -23,8 +23,10 @@ const PrivateRoute = ({ children, allowedRoles, permission, superAdminOnly }) =>
 
   const isSuperAdmin = user?.role === "super_admin";
 
-  // super_admin can only access super-admin routes
-  if (isSuperAdmin && !superAdminOnly) {
+  // super_admin can only access super-admin routes — but never bounce them
+  // off of /change-password itself, or a super_admin with a pending forced
+  // password change would loop forever between this redirect and the one above.
+  if (isSuperAdmin && !superAdminOnly && location.pathname !== "/change-password") {
     return <Navigate to="/super-admin/companies" replace />;
   }
 
