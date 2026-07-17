@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import {
   ShoppingCart, Plus, Search, Download, Edit2, Trash2, X,
   CheckCircle, Clock, XCircle, Truck, Package, PlusCircle,
-  ChevronUp, ChevronDown, ChevronsUpDown, ChevronDown as ChevronDownSm,
+  ChevronDown as ChevronDownSm,
 } from "lucide-react";
 import { getOrders, getOrderItems, createOrder, updateOrder, deleteOrder } from "../services/ordersService";
 import { getCustomers } from "../services/customersService";
@@ -13,6 +13,7 @@ import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import Pagination from "../components/UI/Pagination";
 import PageHeader from "../components/UI/PageHeader";
+import SortableTh from "../components/Tables/SortableTh";
 import useEscapeKey from "../hooks/useEscapeKey";
 
 const STATUSES   = ["Pending", "Processing", "Shipped", "Completed", "Cancelled"];
@@ -40,14 +41,6 @@ const Toast = ({ msg, type, onClose }) => (
     <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100"><X size={14} /></button>
   </div>
 );
-
-/* ─── Sort icon ──────────────────────────────────────────────────────────── */
-const SortIcon = ({ field, sortField, sortDir }) => {
-  if (sortField !== field) return <ChevronsUpDown size={12} className="text-gray-300 dark:text-gray-600 ml-1 inline-block" />;
-  return sortDir === "asc"
-    ? <ChevronUp   size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />
-    : <ChevronDown size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />;
-};
 
 /* ─── Orders ─────────────────────────────────────────────────────────────── */
 const Orders = () => {
@@ -328,16 +321,6 @@ const Orders = () => {
   /* ── Stats (server-computed over the full unfiltered dataset for this company) ── */
   const totalRevenue = stats.totalRevenue;
 
-  /* ── Sortable TH ── */
-  const SortTh = ({ field, children, className = "" }) => (
-    <th
-      onClick={() => handleSort(field)}
-      className={`px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300 transition-colors ${className}`}
-    >
-      {children}<SortIcon field={field} sortField={sortField} sortDir={sortDir} />
-    </th>
-  );
-
   /* ════════════════════════════════════════════════════════════════════════ */
   return (
     <div>
@@ -442,12 +425,12 @@ const Orders = () => {
                     className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-violet-500 cursor-pointer"
                   />
                 </th>
-                <SortTh field="id">{t("Order ID")}</SortTh>
+                <SortableTh field="id" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Order ID")}</SortableTh>
                 <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Customer")}</th>
                 <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Items")}</th>
-                <SortTh field="total">{t("Total")}</SortTh>
+                <SortableTh field="total" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Total")}</SortableTh>
                 <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Status")}</th>
-                <SortTh field="date">{t("Date")}</SortTh>
+                <SortableTh field="date" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Date")}</SortableTh>
                 <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Actions")}</th>
               </tr>
             </thead>

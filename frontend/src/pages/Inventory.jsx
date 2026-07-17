@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Boxes, Search, AlertTriangle, TrendingDown, Package, X, CheckCircle,
   Download, ExternalLink, Minus, Plus, Edit2,
-  ChevronUp, ChevronDown, ChevronsUpDown,
 } from "lucide-react";
 import EmptyState from "../components/UI/EmptyState";
 import { getProducts, updateStock } from "../services/productsService";
@@ -11,6 +10,7 @@ import { useSystem } from "../context/SystemContext";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../components/UI/Pagination";
 import PageHeader from "../components/UI/PageHeader";
+import SortableTh from "../components/Tables/SortableTh";
 import useEscapeKey from "../hooks/useEscapeKey";
 
 const STANDARD_CATEGORIES = ["Electronics", "Furniture", "Accessories", "Office Supplies", "Software", "Hardware", "Other"];
@@ -34,14 +34,6 @@ const Toast = ({ msg, type, onClose }) => (
     <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100"><X size={14} /></button>
   </div>
 );
-
-/* ─── Sort icon ──────────────────────────────────────────────────────────── */
-const SortIcon = ({ field, sortField, sortDir }) => {
-  if (sortField !== field) return <ChevronsUpDown size={12} className="text-gray-300 dark:text-gray-600 ml-1 inline-block" />;
-  return sortDir === "asc"
-    ? <ChevronUp   size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />
-    : <ChevronDown size={12} className="text-violet-500 dark:text-violet-400 ml-1 inline-block" />;
-};
 
 const DELTA_PRESETS = [-10, -5, -1, +1, +5, +10];
 
@@ -177,16 +169,6 @@ const Inventory = () => {
       );
     } catch { showToast("Export failed.", "error"); }
   };
-
-  /* ── Sortable TH ── */
-  const SortTh = ({ field, children, className = "" }) => (
-    <th
-      onClick={() => handleSort(field)}
-      className={`px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-600 dark:hover:text-gray-300 transition-colors ${className}`}
-    >
-      {children}<SortIcon field={field} sortField={sortField} sortDir={sortDir} />
-    </th>
-  );
 
   /* ── Adjust modal preview ── */
   const previewStatus  = adjusting ? getStatus(Number(newStock || 0), adjusting.reorder_point) : null;
@@ -328,12 +310,12 @@ const Inventory = () => {
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800">
                 <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("SKU")}</th>
-                <SortTh field="name">{t("Product")}</SortTh>
-                <SortTh field="category">{t("Category")}</SortTh>
-                <SortTh field="stock">{t("Stock")}</SortTh>
+                <SortableTh field="name" className="px-4 py-3.5" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Product")}</SortableTh>
+                <SortableTh field="category" className="px-4 py-3.5" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Category")}</SortableTh>
+                <SortableTh field="stock" className="px-4 py-3.5" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Stock")}</SortableTh>
                 <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Reorder")}</th>
                 <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Unit Price")}</th>
-                <SortTh field="value">{t("Value")}</SortTh>
+                <SortableTh field="value" className="px-4 py-3.5" sortField={sortField} sortDir={sortDir} onSort={handleSort}>{t("Value")}</SortableTh>
                 <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Status")}</th>
                 <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{t("Actions")}</th>
               </tr>
