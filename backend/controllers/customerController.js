@@ -48,7 +48,7 @@ const createCustomer = async (req, res) => {
       description: `Customer created: ${name}`, metadata: { id: result.rows[0].id } });
     createNotification({ company_id: req.user.company_id, title: "New Customer",
       message: `${name} has been added as a customer`,
-      type: "info", link: "/customers" });
+      type: "info", link: "/customers", requiredPermission: "Manage Customers" });
     res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });

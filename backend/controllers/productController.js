@@ -80,7 +80,7 @@ const updateStock = async (req, res) => {
     if (Number(stock) <= (p.reorder_point ?? 10)) {
       createNotification({ company_id: req.user.company_id, title: "Low Stock Alert",
         message: `${p.name} is running low — ${stock} unit(s) remaining`,
-        type: "warning", link: "/inventory" });
+        type: "warning", link: "/inventory", requiredPermission: "View Inventory" });
     }
     res.json(p);
   } catch (err) {

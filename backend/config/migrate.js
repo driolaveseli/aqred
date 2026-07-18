@@ -523,6 +523,14 @@ const addContactReplies = async () => {
   await db.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS replied_by_name TEXT`);
 };
 
+// Notifications are company-wide, but their `link` often points at a page
+// gated behind a specific permission (e.g. /payments needs "Manage Payments").
+// Without this, an employee role can see a notification whose link 404s them
+// out via PrivateRoute. NULL means visible to everyone in the company.
+const addNotificationPermissions = async () => {
+  await db.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS required_permission VARCHAR(50)`);
+};
+
 // Ordered, one-time migrations. Add new entries here going forward — each
 // runs exactly once, ever, tracked by name in schema_migrations.
 const MIGRATIONS = [
@@ -530,6 +538,7 @@ const MIGRATIONS = [
   { name: "002_contact_messages", run: addContactMessages },
   { name: "003_company_status", run: addCompanyStatus },
   { name: "004_contact_replies", run: addContactReplies },
+  { name: "005_notification_permissions", run: addNotificationPermissions },
 ];
 
 const migrate = async () => {

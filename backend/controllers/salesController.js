@@ -55,7 +55,7 @@ const createSale = async (req, res) => {
       metadata: { id: order.id, total: order.total, items: items.length } });
     createNotification({ company_id: req.user.company_id, title: "New Sale",
       message: `Sale #${order.id} created — $${Number(order.total).toFixed(2)}`,
-      type: "success", link: "/sales" });
+      type: "success", link: "/sales", requiredPermission: "View Sales" });
     res.status(201).json(order);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -84,7 +84,7 @@ const updateSaleStatus = async (req, res) => {
       metadata: { id: req.params.id, status } });
     createNotification({ company_id: req.user.company_id, title: "Sale Updated",
       message: `Sale #${req.params.id} marked as ${status}`,
-      type: "info", link: "/sales" });
+      type: "info", link: "/sales", requiredPermission: "View Sales" });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
