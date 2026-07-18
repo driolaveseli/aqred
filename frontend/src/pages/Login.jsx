@@ -185,7 +185,7 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/login", formData);
+      const { data } = await api.post("/auth/login", { ...formData, remember: rememberMe });
       if (data.requires2FA) {
         setTempToken(data.tempToken);
         setStep("totp");

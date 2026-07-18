@@ -6,7 +6,7 @@ const { logEvent } = require("../utils/logger");
 const { sendMail } = require("../utils/mailer");
 
 const SECRET = require("../config/jwtSecret");
-const { signToken, fetchPermissions, COOKIE_OPTS } = require("../utils/authToken");
+const { signToken, fetchPermissions, cookieOpts } = require("../utils/authToken");
 const { ALL_PERMS, MANAGER_PERMS, EMPLOYEE_PERMS } = require("../config/defaultRolePermissions");
 
 // A bcrypt hash with no matching password, used to keep login's response time
@@ -15,12 +15,14 @@ const { ALL_PERMS, MANAGER_PERMS, EMPLOYEE_PERMS } = require("../config/defaultR
 // letting an attacker enumerate valid emails purely by timing the response.
 const DUMMY_HASH = "$2b$10$FC9EM8HbhN6l6gEZdTn8kOgotn2BRf.iwTmDvptWWuv/Oxr5XLfmi";
 
-// Short-lived token issued when 2FA is required — only authorises the 2FA step
-const signTempToken = (userId) =>
-  jwt.sign({ id: userId, twoFAPending: true }, SECRET, { expiresIn: "5m" });
+// Short-lived token issued when 2FA is required — only authorises the 2FA step.
+// Carries `remember` through the round-trip so the "Keep me signed in"
+// checkbox from the credentials step still applies once TOTP is verified.
+const signTempToken = (userId, remember = true) =>
+  jwt.sign({ id: userId, twoFAPending: true, remember }, SECRET, { expiresIn: "5m" });
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, remember = true } = req.body;
   try {
     const result = await db.query(
       `SELECT u.*, COALESCE(c.name, u.company_name) AS company_name, c.is_active AS company_is_active
@@ -61,12 +63,12 @@ exports.login = async (req, res) => {
 
     if (twoFAEnabled) {
       // Issue a short-lived temp token — real JWT only after TOTP is verified
-      const tempToken = signTempToken(user.id);
+      const tempToken = signTempToken(user.id, remember);
       return res.json({ requires2FA: true, tempToken });
     }
 
     const permissions = await fetchPermissions(user.role, user.company_id);
-    const token = signToken(user, permissions);
+    const token = signToken(user, permissions, remember);
 
     req.user = { id: user.id, name: user.name, role: user.role };
     logEvent({ level: "INFO", module: "auth", action: "login", req,
@@ -75,7 +77,7 @@ exports.login = async (req, res) => {
     // Token only ever goes in the httpOnly cookie, never the JSON body — a
     // token in response.data is readable by any JS, which defeats the point
     // of httpOnly (keeping it out of reach of XSS).
-    res.cookie("token", token, COOKIE_OPTS);
+    res.cookie("token", token, cookieOpts(remember));
     res.json({
       user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions, mustChangePassword: !!user.must_change_password },
     });
@@ -130,7 +132,7 @@ exports.verify2FALogin = async (req, res) => {
     if (!valid) return res.status(401).json({ message: "Invalid verification code. Please try again." });
 
     const permissions = await fetchPermissions(user.role, user.company_id);
-    const token = signToken(user, permissions);
+    const token = signToken(user, permissions, payload.remember);
 
     req.user = { id: user.id, name: user.name, role: user.role };
     logEvent({ level: "SECURITY", module: "auth", action: "login_2fa", req,
@@ -139,7 +141,7 @@ exports.verify2FALogin = async (req, res) => {
     // Token only ever goes in the httpOnly cookie, never the JSON body — a
     // token in response.data is readable by any JS, which defeats the point
     // of httpOnly (keeping it out of reach of XSS).
-    res.cookie("token", token, COOKIE_OPTS);
+    res.cookie("token", token, cookieOpts(payload.remember));
     res.json({
       user: { id: user.id, name: user.name, email: user.email, role: user.role, company_name: user.company_name, permissions, mustChangePassword: !!user.must_change_password },
     });
@@ -209,7 +211,7 @@ exports.register = async (req, res) => {
       description: role === "admin"
         ? `New company "${finalCompanyName}" created by ${name} (${email})`
         : `New account registered: ${name} (${email}), joined ${finalCompanyName}` });
-    res.cookie("token", token, COOKIE_OPTS);
+    res.cookie("token", token, cookieOpts());
     res.status(201).json({ user: { ...user, permissions, mustChangePassword: false }, companyCreated: role === "admin" });
   } catch (err) {
     res.status(500).json({ message: "Registration failed. Please try again." });
