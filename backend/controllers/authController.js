@@ -6,6 +6,7 @@ const { logEvent } = require("../utils/logger");
 
 const SECRET = require("../config/jwtSecret");
 const { signToken, fetchPermissions, COOKIE_OPTS } = require("../utils/authToken");
+const { ALL_PERMS, MANAGER_PERMS, EMPLOYEE_PERMS } = require("../config/defaultRolePermissions");
 
 // A bcrypt hash with no matching password, used to keep login's response time
 // constant whether or not the email exists — otherwise a nonexistent email
@@ -199,6 +200,17 @@ exports.register = async (req, res) => {
       companyId = newCo.rows[0].id;
       finalCompanyName = newCo.rows[0].name;
       role = "admin";
+
+      // role_permissions is scoped per company (see migrate.js) — a fresh
+      // company starts with no rows at all until this seeds them, same as
+      // the super-admin "create company" flow in routes/superAdmin.js.
+      await db.query(
+        `INSERT INTO role_permissions (role, permissions, company_id) VALUES
+           ('admin',    $1, $4),
+           ('manager',  $2, $4),
+           ('employee', $3, $4)`,
+        [JSON.stringify(ALL_PERMS), JSON.stringify(MANAGER_PERMS), JSON.stringify(EMPLOYEE_PERMS), companyId]
+      );
     }
 
     const result = await db.query(
