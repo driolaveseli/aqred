@@ -77,7 +77,7 @@ This runs database migrations automatically on startup and starts the API at `ht
 - **Company admin** (full access to Dashboard, Business Operations, Reports, Administration): `admin@aqred.com` / `admin123`
 - **Platform super-admin** (manages companies across the platform, at `/super-admin/companies`): `superadmin@aqred.com` / `superadmin123`
 
-Log in at `http://localhost:3000/login` with either.
+Log in at `http://localhost:3000/login` with either. Both accounts are seeded with `must_change_password` set, so the first login prompts you to set a new password before continuing to the dashboard — that's expected, not a bug.
 
 Optional: seed sample data for a fuller demo:
 
