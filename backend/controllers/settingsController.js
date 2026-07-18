@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const speakeasy = require("speakeasy");
 const QRCode = require("qrcode");
 const { logEvent } = require("../utils/logger");
-const { signToken, fetchPermissions, COOKIE_OPTS } = require("../utils/authToken");
+const { signToken, fetchPermissions, cookieOpts } = require("../utils/authToken");
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -125,17 +125,18 @@ exports.changePassword = async (req, res) => {
       description: `Password changed for user ${req.user.id}` });
 
     // Re-issue a token without mustChangePassword — the one already in the
-    // client's hands still carries the old flag for the rest of its 8h life.
-    // company_name isn't in the JWT payload itself, so look it up fresh
-    // (same COALESCE-join pattern login/me use) rather than lose it.
+    // client's hands still carries the old flag for the rest of its life
+    // (up to 30 days if this session was "remembered"). Look company_name up
+    // fresh (same COALESCE-join pattern login/me use) rather than trust the
+    // JWT's copy, since it can now be up to 30 days stale.
     const companyRow = await db.query(
       `SELECT COALESCE(c.name, u.company_name) AS company_name
        FROM users u LEFT JOIN companies c ON c.id = u.company_id WHERE u.id = $1`,
       [req.user.id]
     );
     const permissions = await fetchPermissions(req.user.role, req.user.company_id);
-    const token = signToken({ ...req.user, must_change_password: false }, permissions);
-    res.cookie("token", token, COOKIE_OPTS);
+    const token = signToken({ ...req.user, must_change_password: false }, permissions, req.user.remember);
+    res.cookie("token", token, cookieOpts(req.user.remember));
     res.json({
       message: "Password updated successfully",
       user: { id: req.user.id, name: req.user.name, email: req.user.email, role: req.user.role,
