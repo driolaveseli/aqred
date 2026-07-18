@@ -1,26 +1,12 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
-  Settings, LogOut, ChevronLeft, ChevronRight, Building2, X,
+  Settings, ChevronLeft, ChevronRight, Building2, X,
 } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
 import { useSystem } from "../../context/SystemContext";
 import { NAV_GROUPS, SUPER_ADMIN_GROUPS } from "../../config/navigation";
-
-const ROLE_CONFIG = {
-  super_admin: { label: "Super Admin", badge: "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400",           dot: "bg-red-500"     },
-  admin:       { label: "Admin",       badge: "bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400", dot: "bg-violet-500"  },
-  manager:     { label: "Manager",     badge: "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",         dot: "bg-blue-500"    },
-  employee:    { label: "Employee",    badge: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400", dot: "bg-emerald-500" },
-};
-
-/* ─── Helpers ───────────────────────────────────────────────────────────── */
-const getInitials = (name = "") => {
-  const parts = name.trim().split(" ");
-  return parts.length >= 2
-    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-    : name.slice(0, 2).toUpperCase();
-};
+import { ROLE_CONFIG, getInitials } from "../../utils/roleDisplay";
 
 /* ─── Avatar ────────────────────────────────────────────────────────────── */
 const Avatar = ({ name, size = "md" }) => (
@@ -159,34 +145,15 @@ const SettingsLink = ({ expanded, t }) => (
   </NavLink>
 );
 
-/* ─── LogoutBtn ─────────────────────────────────────────────────────────── */
-const LogoutBtn = ({ onClick, expanded, t }) => (
-  <button
-    onClick={onClick}
-    title={!expanded ? "Sign out" : undefined}
-    className={[
-      "group flex items-center rounded-xl text-sm font-medium w-full",
-      "select-none outline-none transition-colors duration-200 ease-out",
-      "bg-transparent text-gray-500 dark:text-gray-400",
-      "hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400",
-      expanded ? "gap-3 px-3 py-[9px]" : "justify-center p-[9px]",
-    ].join(" ")}
-  >
-    <LogOut
-      size={16}
-      className="flex-shrink-0 transition-colors duration-200 text-gray-400 dark:text-gray-500 group-hover:text-red-500"
-    />
-    {expanded && <span className="leading-none">{t("Sign out")}</span>}
-  </button>
-);
-
 /* ─── UserCard ──────────────────────────────────────────────────────────── */
-const UserCard = ({ user, role, expanded, onLogout, t }) => {
+/* Sign out lives in the Navbar's account menu (the one identity touchpoint
+ * that's always visible, on every screen size and sidebar state) rather than
+ * duplicated here as a second, inconsistent entry point. */
+const UserCard = ({ user, role, expanded, t }) => {
   const rc = ROLE_CONFIG[role] || ROLE_CONFIG.employee;
   return (
     <div className="flex-shrink-0 border-t border-gray-100 dark:border-gray-800 px-2 pt-2 pb-3 space-y-0.5">
       <SettingsLink expanded={expanded} t={t} />
-      <LogoutBtn onClick={onLogout} expanded={expanded} t={t} />
 
       <div className="pt-2">
         {expanded ? (
@@ -254,7 +221,7 @@ const SidebarHeader = ({ collapsed, onAction, isClose = false }) => (
 );
 
 /* ─── SidebarBody ───────────────────────────────────────────────────────── */
-const SidebarBody = ({ expanded, visibleGroups, user, role, onLogout, t }) => (
+const SidebarBody = ({ expanded, visibleGroups, user, role, t }) => (
   <div className="flex flex-col flex-1 overflow-hidden">
     <nav className={[
       "flex-1 overflow-y-auto overflow-x-hidden py-2",
@@ -270,14 +237,13 @@ const SidebarBody = ({ expanded, visibleGroups, user, role, onLogout, t }) => (
         />
       ))}
     </nav>
-    <UserCard user={user} role={role} expanded={expanded} onLogout={onLogout} t={t} />
+    <UserCard user={user} role={role} expanded={expanded} t={t} />
   </div>
 );
 
 /* ─── Sidebar ────────────────────────────────────────────────────────────── */
 const Sidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
-  const navigate  = useNavigate();
-  const { user, logout, hasPermission } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { t } = useSystem();
   const role = user?.role || "employee";
 
@@ -292,9 +258,7 @@ const Sidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
         .map((g) => ({ ...g, items: g.items.filter(canSee) }))
         .filter((g) => g.items.length > 0);
 
-  const handleLogout = () => { logout(); navigate("/"); };
-
-  const bodyProps = { visibleGroups, user, role, onLogout: handleLogout, t };
+  const bodyProps = { visibleGroups, user, role, t };
 
   const base = "flex flex-col bg-white dark:bg-gray-900 border-r border-gray-100/80 dark:border-gray-800 shadow-[1px_0_12px_rgba(0,0,0,0.04)]";
 
