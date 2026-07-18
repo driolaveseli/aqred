@@ -102,6 +102,7 @@ const createOrder = async (req, res) => {
           message: `${p.name} is low on stock (${p.stock} remaining).`,
           type: "warning",
           link: "/products",
+          requiredPermission: "Manage Products",
         });
       }
     }
@@ -126,6 +127,7 @@ const createOrder = async (req, res) => {
       message: `Order #${String(order.id).padStart(4, "0")} created — $${total.toFixed(2)} (${items.length} item${items.length !== 1 ? "s" : ""})`,
       type: "info",
       link: "/orders",
+      requiredPermission: "Manage Orders",
     });
 
     res.status(201).json(order);
@@ -193,6 +195,7 @@ const updateOrder = async (req, res) => {
             message: `${p.name} is low on stock (${p.stock} remaining).`,
             type: "warning",
             link: "/products",
+            requiredPermission: "Manage Products",
           });
         }
       }

@@ -59,7 +59,7 @@ const createPayment = async (req, res) => {
       metadata: { id: result.rows[0].id, order_id, amount, status } });
     createNotification({ company_id: req.user.company_id, title: "Payment Received",
       message: `$${Number(amount).toFixed(2)} payment recorded for order #${order_id}`,
-      type: "success", link: "/payments" });
+      type: "success", link: "/payments", requiredPermission: "Manage Payments" });
     res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -76,7 +76,7 @@ const updatePayment = async (req, res) => {
       metadata: { id: req.params.id, status } });
     createNotification({ company_id: req.user.company_id, title: "Payment Updated",
       message: `Payment #${req.params.id} status changed to ${status}`,
-      type: "info", link: "/payments" });
+      type: "info", link: "/payments", requiredPermission: "Manage Payments" });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
