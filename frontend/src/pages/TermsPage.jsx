@@ -5,7 +5,7 @@ import PublicFooter from "../components/PublicFooter";
 const SECTIONS = [
   {
     title: "1. About this document",
-    body: "Aqred is a portfolio/academic project (Bachelor's thesis system), not a commercial product. This page is a sample Terms of Service included so the registration flow doesn't link to a dead page — it is illustrative only and is not a binding legal agreement.",
+    body: "Aqred is a portfolio project, not a commercial product. This page is a sample Terms of Service included so the registration flow doesn't link to a dead page — it is illustrative only and is not a binding legal agreement.",
   },
   {
     title: "2. Account registration",
@@ -39,7 +39,7 @@ const TermsPage = () => (
         <div className="flex items-start gap-3 p-4 bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800/40 rounded-xl mb-10">
           <Info size={16} className="text-violet-500 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-violet-700 dark:text-violet-300">
-            This is a sample document for a portfolio/thesis project — not a real legal agreement.
+            This is a sample document for a portfolio project — not a real legal agreement.
           </p>
         </div>
         <div className="space-y-8">

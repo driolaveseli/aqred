@@ -30,9 +30,10 @@ __pycache__/
 # Backups
 backups/
 
-# Thesis documents and figures (root-level only - leftover from the old
-# thesis repo; unscoped versions of these rules used to also swallow real
-# app files like frontend/public/index.html without anyone noticing)
+# Old root-level documents and generated figures (root-level only - leftover
+# from an earlier version of this repo; unscoped versions of these rules
+# used to also swallow real app files like frontend/public/index.html
+# without anyone noticing)
 /*.docx
 /*.pdf
 /*.xlsx
