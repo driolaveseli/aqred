@@ -7,9 +7,9 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { NAV_GROUPS, SUPER_ADMIN_GROUPS } from "../../config/navigation";
 
-const CommandPalette = ({ open, onClose }) => {
+const CommandPalette = ({ open, onClose, onRequestSignOut }) => {
   const navigate = useNavigate();
-  const { user, logout, hasPermission } = useAuth();
+  const { user, hasPermission } = useAuth();
   const role = user?.role || "employee";
 
   const [query, setQuery] = useState("");
@@ -83,8 +83,7 @@ const CommandPalette = ({ open, onClose }) => {
     if (!item) return;
     onClose();
     if (item.id === "qa-logout") {
-      logout();
-      navigate("/");
+      onRequestSignOut();
       return;
     }
     if (item.section === "Quick actions") {
@@ -92,7 +91,7 @@ const CommandPalette = ({ open, onClose }) => {
       return;
     }
     navigate(item.path);
-  }, [navigate, logout, onClose]);
+  }, [navigate, onRequestSignOut, onClose]);
 
   const handleKeyDown = (e) => {
     if (e.key === "ArrowDown") {
