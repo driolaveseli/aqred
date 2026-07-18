@@ -6,6 +6,7 @@ const { requireRole } = require("../middleware/authMiddleware");
 const { ALL_PERMS, MANAGER_PERMS, EMPLOYEE_PERMS } = require("../config/defaultRolePermissions");
 const ContactMessage = require("../models/contactModel");
 const { logEvent } = require("../utils/logger");
+const { sendMail } = require("../utils/mailer");
 
 // All routes in this file require super_admin
 router.use(requireRole("super_admin"));
@@ -215,6 +216,40 @@ router.patch("/contact-messages/:id/read", async (req, res) => {
   try {
     const result = await ContactMessage.markRead(req.params.id);
     if (!result.rows[0]) return res.status(404).json({ error: "Message not found" });
+    logEvent({ module: "super-admin", action: "contact_message_read", req,
+      description: `Marked contact message from ${result.rows[0].email} as read`,
+      metadata: { message_id: req.params.id } });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/super-admin/contact-messages/:id/reply — actually respond to the
+// submitter by email (or console-log it, same SMTP-optional fallback as the
+// rest of the app) and record what was sent so the thread isn't lost.
+router.post("/contact-messages/:id/reply", async (req, res) => {
+  const replyMessage = (req.body.message || "").trim();
+  if (!replyMessage) return res.status(400).json({ error: "Reply message is required" });
+  try {
+    const original = await ContactMessage.getById(req.params.id);
+    if (!original.rows[0]) return res.status(404).json({ error: "Message not found" });
+    const msg = original.rows[0];
+
+    await sendMail({
+      to: msg.email,
+      subject: `Re: your message to Aqred`,
+      fallbackLabel: "Contact Reply",
+      html: `<p>Hi ${msg.first_name},</p>
+             <p>Thanks for reaching out to Aqred. Here's our response to your message:</p>
+             <blockquote style="margin:0 0 1em;padding-left:1em;border-left:3px solid #ccc;color:#555">${msg.message}</blockquote>
+             <p>${replyMessage.replace(/\n/g, "<br>")}</p>`,
+    });
+
+    const result = await ContactMessage.reply(req.params.id, replyMessage, req.user.name);
+    logEvent({ module: "super-admin", action: "contact_message_replied", req,
+      description: `Replied to contact message from ${msg.email}`,
+      metadata: { message_id: req.params.id } });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });

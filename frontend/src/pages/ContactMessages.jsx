@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Mail, Trash2, X, CheckCircle, Building2 } from "lucide-react";
+import { Mail, Trash2, X, CheckCircle, Building2, Reply, Send } from "lucide-react";
 import { useSystem } from "../context/SystemContext";
 import EmptyState from "../components/UI/EmptyState";
 import PageHeader from "../components/UI/PageHeader";
 import useEscapeKey from "../hooks/useEscapeKey";
-import { getContactMessages, markContactRead, deleteContactMessage } from "../services/contactService";
+import { getContactMessages, markContactRead, replyToContactMessage, deleteContactMessage } from "../services/contactService";
 
 const Toast = ({ msg, type, onClose }) => (
   <div className={`fixed bottom-5 right-5 z-50 animate-toast-in flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium
@@ -21,6 +21,8 @@ const ContactMessages = () => {
   const [toast, setToast] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [sending, setSending] = useState(false);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -45,11 +47,28 @@ const ContactMessages = () => {
 
   const openView = async (m) => {
     setViewing(m);
+    setReplyText("");
     if (m.status === "new") {
       try {
         await markContactRead(m.id);
         setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, status: "read" } : x)));
       } catch { /* not critical if this silently fails */ }
+    }
+  };
+
+  const handleReply = async () => {
+    if (!replyText.trim()) return;
+    setSending(true);
+    try {
+      const { data } = await replyToContactMessage(viewing.id, replyText.trim());
+      setMessages((prev) => prev.map((x) => (x.id === data.id ? data : x)));
+      setViewing(data);
+      setReplyText("");
+      showToast("Reply sent.");
+    } catch {
+      showToast("Failed to send reply.", "error");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -99,9 +118,16 @@ const ContactMessages = () => {
                   <div className="flex items-center gap-2">
                     {m.status === "new" && <span className="w-1.5 h-1.5 rounded-full bg-violet-500 flex-shrink-0" />}
                     <div>
-                      <p className={`text-sm ${m.status === "new" ? "font-bold text-gray-900 dark:text-white" : "font-medium text-gray-600 dark:text-gray-400"}`}>
-                        {m.first_name} {m.last_name}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-sm ${m.status === "new" ? "font-bold text-gray-900 dark:text-white" : "font-medium text-gray-600 dark:text-gray-400"}`}>
+                          {m.first_name} {m.last_name}
+                        </p>
+                        {m.status === "replied" && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded-full">
+                            <Reply size={9} /> Replied
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-400 dark:text-gray-500">{m.email}</p>
                     </div>
                   </div>
@@ -156,6 +182,36 @@ const ContactMessages = () => {
               <p className="text-xs text-gray-400 dark:text-gray-500 pt-2 border-t border-gray-100 dark:border-gray-800">
                 Received {formatDate(viewing.created_at)}
               </p>
+
+              {viewing.status === "replied" ? (
+                <div className="bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/40 rounded-xl p-4">
+                  <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-2">
+                    <Reply size={12} /> Your reply
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{viewing.reply_message}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                    Sent {formatDate(viewing.replied_at)}{viewing.replied_by_name ? ` by ${viewing.replied_by_name}` : ""}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Reply</label>
+                  <textarea
+                    rows={4}
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder={`Write a reply to ${viewing.first_name}...`}
+                    className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-gray-900/60 text-slate-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+                  />
+                  <button
+                    onClick={handleReply}
+                    disabled={sending || !replyText.trim()}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send size={14} /> {sending ? "Sending..." : "Send Reply"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
