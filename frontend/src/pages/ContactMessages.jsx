@@ -136,12 +136,24 @@ const ContactMessages = () => {
                 <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-sm truncate">{m.message}</td>
                 <td className="px-5 py-4 text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">{formatDate(m.created_at)}</td>
                 <td className="px-5 py-4">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDeleteId(m.id); }}
-                    className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="flex items-center gap-1 justify-end">
+                    {m.status !== "replied" && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); openView(m); }}
+                        title="Reply"
+                        className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                      >
+                        <Reply size={14} />
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteId(m.id); }}
+                      title="Delete"
+                      className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
