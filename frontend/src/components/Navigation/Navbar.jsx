@@ -36,6 +36,7 @@ const Navbar = ({ onMenuToggle, onOpenPalette }) => {
   const { user, logout } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
   const [notifs, setNotifs]         = useState([]);
   const notifsRef  = useRef(null);
   const accountRef = useRef(null);
@@ -95,9 +96,10 @@ const Navbar = ({ onMenuToggle, onOpenPalette }) => {
   }, []);
 
   useEscapeKey(showAccount, () => setShowAccount(false));
+  useEscapeKey(confirmingSignOut, () => setConfirmingSignOut(false));
 
   const handleSignOut = async () => {
-    setShowAccount(false);
+    setConfirmingSignOut(false);
     await logout();
     navigate("/");
   };
@@ -402,7 +404,7 @@ const Navbar = ({ onMenuToggle, onOpenPalette }) => {
                   Settings
                 </button>
                 <button
-                  onClick={handleSignOut}
+                  onClick={() => { setShowAccount(false); setConfirmingSignOut(true); }}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors group"
                 >
                   <LogOut size={15} className="text-gray-400 dark:text-gray-500 group-hover:text-red-500" />
@@ -413,6 +415,27 @@ const Navbar = ({ onMenuToggle, onOpenPalette }) => {
           )}
         </div>
       </div>
+
+      {/* Sign-out confirm — a data-entry app makes losing unsaved work a real
+          cost of a misclick, unlike consumer apps where re-logging in is free */}
+      {confirmingSignOut && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={(e) => { if (e.target === e.currentTarget) setConfirmingSignOut(false); }}
+        >
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
+            <div className="w-12 h-12 bg-violet-50 dark:bg-violet-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <LogOut size={22} className="text-violet-500 dark:text-violet-400" />
+            </div>
+            <h3 className="font-bold text-gray-900 dark:text-white mb-1">Sign out?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">Any unsaved changes on this page will be lost.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmingSignOut(false)} className="flex-1 px-4 py-2 text-sm border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95">Cancel</button>
+              <button onClick={handleSignOut} className="flex-1 px-4 py-2 text-sm font-semibold bg-violet-600 text-white rounded-lg hover:bg-violet-700 active:scale-95">Sign out</button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
