@@ -2,10 +2,6 @@
 
 A full-stack Management Information System for tracking staff, inventory, customers, orders, sales, and revenue.
 
-## Background
-
-This started as my university thesis project. After the thesis was done, I stripped out the academic material (chapters, generated figures, questionnaire data) and spent a focused pass hardening the codebase into something closer to a real product — removed hardcoded secrets, added CI and a real test suite, fixed several security and multi-tenancy bugs, and rebuilt a few flows (registration, activity logging, pagination) that were originally stubbed out. The commit history reflects that hardening pass rather than the original thesis timeline.
-
 ## Screenshots
 
 ![Landing page](docs/screenshots/landing.png)
