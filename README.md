@@ -41,8 +41,8 @@ A full-stack Management Information System for tracking staff, inventory, custom
 ### 1. Clone and install dependencies
 
 ```bash
-git clone https://github.com/driolaveseli/aqred-mis.git
-cd aqred-mis
+git clone https://github.com/driolaveseli/aqred.git
+cd aqred
 
 cd backend && npm install
 cd ../frontend && npm install
