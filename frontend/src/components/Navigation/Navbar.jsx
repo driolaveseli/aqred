@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Bell, Search, Home, X, Check, CheckCheck, Menu, DollarSign, ShoppingCart, AlertTriangle, Package, TrendingUp, UserCheck, Info } from "lucide-react";
+import { Bell, Search, Home, X, Check, CheckCheck, Menu, DollarSign, ShoppingCart, AlertTriangle, Package, TrendingUp, UserCheck, Info, Settings, LogOut, Building2 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { ROLE_CONFIG, getInitials } from "../../utils/roleDisplay";
+import useEscapeKey from "../../hooks/useEscapeKey";
 import {
   getNotifications,
   markRead,
@@ -31,10 +33,12 @@ const POLL_INTERVAL = 30_000; // 30 seconds
 
 const Navbar = ({ onMenuToggle, onOpenPalette }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
   const [notifs, setNotifs]         = useState([]);
   const notifsRef  = useRef(null);
+  const accountRef = useRef(null);
   const pollRef    = useRef(null);
 
   const unread = notifs.filter((n) => !n.is_read).length;
@@ -83,10 +87,20 @@ const Navbar = ({ onMenuToggle, onOpenPalette }) => {
     const handler = (e) => {
       if (notifsRef.current && !notifsRef.current.contains(e.target))
         setShowNotifs(false);
+      if (accountRef.current && !accountRef.current.contains(e.target))
+        setShowAccount(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useEscapeKey(showAccount, () => setShowAccount(false));
+
+  const handleSignOut = async () => {
+    setShowAccount(false);
+    await logout();
+    navigate("/");
+  };
 
   const timeAgo = (ts) => {
     const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
@@ -96,7 +110,8 @@ const Navbar = ({ onMenuToggle, onOpenPalette }) => {
     return `${Math.floor(diff / 86400)}d ago`;
   };
 
-  const avatarInitials = (user?.name || "U").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  const avatarInitials = getInitials(user?.name || "U");
+  const roleConfig = ROLE_CONFIG[user?.role] || ROLE_CONFIG.employee;
 
   return (
     <header className="h-16 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800 px-4 flex items-center justify-between sticky top-0 z-40 flex-shrink-0 shadow-sm dark:shadow-gray-900">
@@ -337,16 +352,66 @@ const Navbar = ({ onMenuToggle, onOpenPalette }) => {
         {/* Divider */}
         <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
 
-        {/* User avatar — full card lives in the sidebar */}
-        <button
-          onClick={() => navigate("/settings")}
-          className="p-1 rounded-full hover:ring-2 hover:ring-violet-200 transition-all group"
-          title={user?.name || "Profile & Settings"}
-        >
-          <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
-            <span className="text-[11px] font-bold text-white leading-none">{avatarInitials}</span>
-          </div>
-        </button>
+        {/* Account menu */}
+        <div ref={accountRef} className="relative">
+          <button
+            onClick={() => setShowAccount((v) => !v)}
+            className="p-1 rounded-full hover:ring-2 hover:ring-violet-200 dark:hover:ring-violet-800 transition-all group"
+            title={user?.name || "Account"}
+          >
+            <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+              <span className="text-[11px] font-bold text-white leading-none">{avatarInitials}</span>
+            </div>
+          </button>
+
+          {showAccount && (
+            <div className="absolute right-0 top-12 w-64 rounded-2xl overflow-hidden z-50
+              bg-white dark:bg-[#111318]
+              shadow-2xl shadow-violet-500/10 dark:shadow-black/70
+              border border-gray-100 dark:border-white/[0.07]">
+
+              {/* Identity header */}
+              <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-white/[0.06]">
+                <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm flex-shrink-0">
+                  <span className="text-xs font-bold text-white leading-none">{avatarInitials}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{user?.name || "User"}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{user?.email}</p>
+                </div>
+              </div>
+
+              <div className="px-4 py-2.5 border-b border-gray-100 dark:border-white/[0.06] flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${roleConfig.badge}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${roleConfig.dot}`} />
+                  {roleConfig.label}
+                </span>
+                {user?.company_name && (
+                  <span className="flex items-center gap-1 text-[11px] text-gray-400 dark:text-gray-500 truncate">
+                    <Building2 size={10} /> {user.company_name === "AQred" ? "Aqred" : user.company_name}
+                  </span>
+                )}
+              </div>
+
+              <div className="py-1.5">
+                <button
+                  onClick={() => { setShowAccount(false); navigate("/settings"); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors"
+                >
+                  <Settings size={15} className="text-gray-400 dark:text-gray-500" />
+                  Settings
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors group"
+                >
+                  <LogOut size={15} className="text-gray-400 dark:text-gray-500 group-hover:text-red-500" />
+                  Sign out
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
