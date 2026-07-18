@@ -315,6 +315,11 @@ const Register = () => {
 
   const header = HEADER_COPY[step];
   const invitedCount = (inviteResults || []).filter((r) => r.status === "invited").length;
+  // Default to the "create" step count (4 steps incl. Invite team) since that's
+  // the common case, and only drop to "join" (3 steps) once the live
+  // company-check confirms you're joining one that already exists.
+  const willJoinExisting = !companyCreated && companyCheck.checked && companyCheck.exists;
+  const willCreateCompany = !willJoinExisting;
 
   return (
     <div className="min-h-screen flex bg-white dark:bg-gray-900">
@@ -376,7 +381,7 @@ const Register = () => {
                 </h1>
                 <p className="text-violet-200/70 text-sm mb-5">{header.desc}</p>
 
-                <ProgressStrip step={step} companyCreated={companyCreated} />
+                <ProgressStrip step={step} companyCreated={willCreateCompany} />
               </div>
             </div>
 

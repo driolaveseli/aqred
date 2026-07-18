@@ -7,7 +7,7 @@ const signToken = (user, permissions) =>
   jwt.sign(
     {
       id: user.id, name: user.name, email: user.email, role: user.role,
-      company_id: user.company_id, permissions,
+      company_id: user.company_id, company_name: user.company_name, permissions,
       mustChangePassword: !!user.must_change_password,
     },
     SECRET,
