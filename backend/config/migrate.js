@@ -513,12 +513,23 @@ const addCompanyStatus = async () => {
   await db.query(`ALTER TABLE companies ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true`);
 };
 
+// Lets a super_admin actually respond to a contact message from within the
+// app instead of just viewing/deleting it. reply_message + replied_at record
+// what was sent; replied_by_name is denormalized (like system_logs.user_name)
+// so the record survives even if the admin account is later deleted.
+const addContactReplies = async () => {
+  await db.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS reply_message TEXT`);
+  await db.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS replied_at TIMESTAMP`);
+  await db.query(`ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS replied_by_name TEXT`);
+};
+
 // Ordered, one-time migrations. Add new entries here going forward — each
 // runs exactly once, ever, tracked by name in schema_migrations.
 const MIGRATIONS = [
   { name: "001_legacy_bootstrap", run: legacyBootstrap },
   { name: "002_contact_messages", run: addContactMessages },
   { name: "003_company_status", run: addCompanyStatus },
+  { name: "004_contact_replies", run: addContactReplies },
 ];
 
 const migrate = async () => {

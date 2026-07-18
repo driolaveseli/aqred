@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const speakeasy = require("speakeasy");
 const { logEvent } = require("../utils/logger");
+const { sendMail } = require("../utils/mailer");
 
 const SECRET = require("../config/jwtSecret");
 const { signToken, fetchPermissions, COOKIE_OPTS } = require("../utils/authToken");
@@ -17,23 +18,6 @@ const DUMMY_HASH = "$2b$10$FC9EM8HbhN6l6gEZdTn8kOgotn2BRf.iwTmDvptWWuv/Oxr5XLfmi
 // Short-lived token issued when 2FA is required — only authorises the 2FA step
 const signTempToken = (userId) =>
   jwt.sign({ id: userId, twoFAPending: true }, SECRET, { expiresIn: "5m" });
-
-// Sends a real email if SMTP is configured, otherwise logs it — same fallback
-// used everywhere in this app so the flow is demonstrable without SMTP creds.
-const sendMail = async ({ to, subject, html, fallbackLabel }) => {
-  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-    const nodemailer = require("nodemailer");
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: false,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-    await transporter.sendMail({ from: `"Aqred MIS" <${process.env.SMTP_USER}>`, to, subject, html });
-  } else {
-    console.log(`[${fallbackLabel}] To: ${to}\n${html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()}`);
-  }
-};
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
