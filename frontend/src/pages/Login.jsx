@@ -180,12 +180,13 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e, override) => {
+    e?.preventDefault();
+    const creds = override || formData;
     setError("");
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/login", { ...formData, remember: rememberMe });
+      const { data } = await api.post("/auth/login", { ...creds, remember: rememberMe });
       if (data.requires2FA) {
         setTempToken(data.tempToken);
         setStep("totp");
@@ -202,6 +203,13 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // One-click sign-in for the seeded demo accounts. Fills the visible fields
+  // too, so it's clear what's being submitted.
+  const signInAsDemo = (email, password) => {
+    setFormData({ email, password });
+    handleSubmit(null, { email, password });
   };
 
   const handleVerify2FA = async (e) => {
@@ -493,6 +501,37 @@ const Login = () => {
                 )}
               </button>
             </form>
+
+            {/* Demo accounts — one-click sign-in for reviewers */}
+            <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700/60">
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.14em] text-center mb-2.5">
+                Demo accounts
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "Company admin", email: "admin@aqred.com", password: "admin123" },
+                  { label: "Super-admin", email: "superadmin@aqred.com", password: "superadmin123" },
+                ].map(({ label, email, password }) => (
+                  <button
+                    key={email}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => signInAsDemo(email, password)}
+                    title={`${email} · ${password}`}
+                    className="rounded-lg border border-gray-200 dark:border-gray-700 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300
+                      hover:border-violet-300 dark:hover:border-violet-700 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50/40 dark:hover:bg-violet-900/10
+                      focus:outline-none focus:ring-2 focus:ring-violet-500/20
+                      transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-2 text-center font-mono text-[10px] leading-relaxed text-slate-400 dark:text-slate-500">
+                <p>admin@aqred.com · admin123</p>
+                <p>superadmin@aqred.com · superadmin123</p>
+              </div>
+            </div>
 
             {/* Security badges */}
             <SecurityBadges />
