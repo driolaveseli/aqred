@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mis_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mis_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    # Uncomment to connect a local psql client:
+    # ports:
+    #   - "5432:5432"
+
+  backend:
+    build: ./backend
+    environment:
+      # Plain http on localhost, so the auth cookie must not be Secure-only
+      NODE_ENV: development
+      DB_USER: postgres
+      DB_HOST: db
+      DB_NAME: mis_db
+      DB_PASSWORD: postgres
+      DB_PORT: "5432"
+      FRONTEND_URL: http://localhost:3000
+      # Local demo only — a real deployment sets its own secret in backend/.env
+      JWT_SECRET: local-demo-secret-not-for-production
+    command: sh -c "node scripts/seedDemo.js && node server.js"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null http://localhost:5000 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 90s
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

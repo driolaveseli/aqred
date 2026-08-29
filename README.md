@@ -31,12 +31,35 @@ A full-stack Management Information System for tracking staff, inventory, custom
 - **Public contact form** — submissions are stored and reviewable from a super-admin inbox, not just a form that goes nowhere
 - **Dark mode** — throughout the entire app, not just the marketing pages
 
-## Prerequisites
+## Quick start (Docker)
+
+The fastest way to run the whole stack — no local Node or PostgreSQL needed:
+
+```bash
+git clone https://github.com/driolaveseli/aqred.git
+cd aqred
+docker compose up
+```
+
+This builds the app, starts PostgreSQL, runs migrations, and loads sample data
+(~1,000 products, ~300 orders) on first boot. When the logs settle, open
+**http://localhost:3000**.
+
+Sign in with a demo account — or click one of the buttons on the login screen:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Company admin | `admin@aqred.com` | `admin123` |
+| Platform super-admin | `superadmin@aqred.com` | `superadmin123` |
+
+Stop with `docker compose down` (add `-v` to also wipe the database and start fresh).
+
+## Prerequisites (manual setup)
 
 - Node.js 18+
 - PostgreSQL 14+ running locally
 
-## Setup
+## Manual setup
 
 ### 1. Clone and install dependencies
 
@@ -79,11 +102,10 @@ This runs database migrations automatically on startup and starts the API at `ht
 
 Log in at `http://localhost:3000/login` with either. Both accounts are seeded with `must_change_password` set, so the first login prompts you to set a new password before continuing to the dashboard — that's expected, not a bug.
 
-Optional: seed sample data for a fuller demo:
+Optional: load sample data (~1,000 products, ~300 orders) and let the demo accounts skip the first-login password change:
 
 ```bash
-node scripts/seedProducts.js
-node scripts/seedOrders.js
+node scripts/seedDemo.js
 ```
 
 ### 5. Run the frontend
