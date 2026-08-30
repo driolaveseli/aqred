@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ShieldCheck, BarChart2, Users, Package, Shield,
-  Mail, Lock, Eye, EyeOff, Activity, TrendingUp, ArrowRight, X,
+  Mail, Lock, Eye, EyeOff, PlayCircle, ArrowRight, X,
 } from "lucide-react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -69,32 +69,18 @@ const LeftPanel = ({ headline, subtext }) => (
         ))}
       </div>
 
-      {/* Live stats card */}
+      {/* Demo note */}
       <div className="bg-white/[0.08] border border-white/[0.12] backdrop-blur-sm rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">Live System</span>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-6 h-6 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0">
+            <PlayCircle size={13} className="text-violet-200" />
           </div>
-          <Activity size={12} className="text-white/30" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">Demo environment</span>
         </div>
-        <div className="grid grid-cols-4 gap-1.5">
-          {[
-            { label: "Orders",    value: "89" },
-            { label: "Customers", value: "138" },
-            { label: "Revenue",   value: "$24k" },
-            { label: "Users",     value: "24" },
-          ].map(({ label, value }) => (
-            <div key={label} className="bg-white/10 rounded-xl p-2 text-center">
-              <p className="text-[8px] text-white/40 uppercase tracking-wide mb-0.5">{label}</p>
-              <p className="text-xs font-extrabold text-white leading-none">{value}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 pt-3 border-t border-white/[0.08] flex items-center gap-1.5">
-          <TrendingUp size={10} className="text-emerald-400" />
-          <span className="text-[10px] text-white/40">Revenue up 18.4% this month</span>
-        </div>
+        <p className="text-[13px] text-violet-100/70 leading-relaxed">
+          Explore the full system pre-loaded with sample data — sign in with one of
+          the demo accounts on the right. No signup needed.
+        </p>
       </div>
     </div>
 
@@ -104,25 +90,6 @@ const LeftPanel = ({ headline, subtext }) => (
       </div>
       <p className="text-xs text-violet-300/60">Protected with JWT authentication & optional 2FA</p>
     </div>
-  </div>
-);
-
-// ── Security badge row ────────────────────────────────────────────────────────
-const SecurityBadges = () => (
-  <div className="flex items-center justify-center gap-2 pt-5 border-t border-gray-100 dark:border-gray-700/60">
-    {[
-      { icon: ShieldCheck, label: "SSL Encrypted" },
-      { icon: Lock,        label: "JWT Auth" },
-      { icon: Shield,      label: "2FA Ready" },
-    ].map(({ icon: Icon, label }) => (
-      <div
-        key={label}
-        className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 rounded-full"
-      >
-        <Icon size={10} className="text-violet-500 dark:text-violet-400 flex-shrink-0" />
-        <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">{label}</span>
-      </div>
-    ))}
   </div>
 );
 
@@ -180,18 +147,19 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = async (e, override) => {
+  const handleSubmit = async (e, override, rememberOverride) => {
     e?.preventDefault();
     const creds = override || formData;
+    const remember = rememberOverride ?? rememberMe;
     setError("");
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/login", { ...creds, remember: rememberMe });
+      const { data } = await api.post("/auth/login", { ...creds, remember });
       if (data.requires2FA) {
         setTempToken(data.tempToken);
         setStep("totp");
       } else {
-        login(data.user, rememberMe);
+        login(data.user, remember);
         navigate(data.user.role === "super_admin" ? "/super-admin/companies" : "/dashboard");
       }
     } catch (err) {
@@ -206,10 +174,12 @@ const Login = () => {
   };
 
   // One-click sign-in for the seeded demo accounts. Fills the visible fields
-  // too, so it's clear what's being submitted.
+  // too, so it's clear what's being submitted, and keeps the session so a
+  // reviewer who closes the tab isn't bounced back to login.
   const signInAsDemo = (email, password) => {
+    setRememberMe(true);
     setFormData({ email, password });
-    handleSubmit(null, { email, password });
+    handleSubmit(null, { email, password }, true);
   };
 
   const handleVerify2FA = async (e) => {
@@ -346,8 +316,6 @@ const Login = () => {
                   ← Back to sign in
                 </button>
               </form>
-
-              <SecurityBadges />
             </div>
           </div>
         </RightShell>
@@ -532,9 +500,6 @@ const Login = () => {
                 <p>superadmin@aqred.com · superadmin123</p>
               </div>
             </div>
-
-            {/* Security badges */}
-            <SecurityBadges />
           </div>
         </div>
 
