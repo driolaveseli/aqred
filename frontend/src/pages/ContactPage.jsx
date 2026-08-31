@@ -59,7 +59,7 @@ const ContactPage = () => {
         <div className="max-w-5xl mx-auto px-6 pb-24">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
 
-            {/* Left — contact info panel */}
+            {/* Left - contact info panel */}
             <div className="lg:col-span-2">
               <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-violet-600 via-violet-600 to-indigo-700 p-8 text-white shadow-xl shadow-violet-200/50 dark:shadow-violet-900/30">
                 {/* Decorative circles */}
@@ -102,7 +102,7 @@ const ContactPage = () => {
               </div>
             </div>
 
-            {/* Right — form */}
+            {/* Right - form */}
             <div className="lg:col-span-3">
               <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
                 {/* Gradient top bar */}

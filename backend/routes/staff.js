@@ -43,7 +43,7 @@ router.post("/", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     // must_change_password = true: this is a temporary password set by the
-    // admin, not one the employee chose — they're forced to replace it with
+    // admin, not one the employee chose - they're forced to replace it with
     // one only they know on first login (see requirePasswordChange.js).
     const userResult = await db.query(
       `INSERT INTO users (name, email, password, role, company_name, company_id, must_change_password)
@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
     );
     const user = userResult.rows[0];
 
-    // Upsert employee HR record — update existing if found (backfill may have created one), else insert
+    // Upsert employee HR record - update existing if found (backfill may have created one), else insert
     const empUpd = await db.query(
       `UPDATE employees SET name=$1, position=$2, department=$3, salary=$4, status=$5
        WHERE email=$6 AND company_id=$7`,
@@ -97,11 +97,11 @@ router.put("/:id", async (req, res) => {
     if (!old.rows[0]) return res.status(404).json({ error: "Staff member not found" });
     const oldEmail = old.rows[0].email;
 
-    // Build user update — only update password if a new one was supplied
+    // Build user update - only update password if a new one was supplied
     let userResult;
     if (password && password.trim().length > 0) {
       const hashed = await bcrypt.hash(password, 10);
-      // An admin-set password is temporary, same as at creation — force a change.
+      // An admin-set password is temporary, same as at creation - force a change.
       userResult = await db.query(
         `UPDATE users SET name=$1, email=$2, role=$3, password=$4, must_change_password=true, updated_at=NOW()
          WHERE id=$5 AND company_id=$6

@@ -49,7 +49,7 @@ const Navbar = ({ onMenuToggle, onOpenPalette, onRequestSignOut }) => {
       const { data } = await getNotifications();
       setNotifs(data);
     } catch {
-      // silently ignore — don't crash navbar on network error
+      // silently ignore - don't crash navbar on network error
     }
   }, []);
 
@@ -119,7 +119,7 @@ const Navbar = ({ onMenuToggle, onOpenPalette, onRequestSignOut }) => {
           <Menu size={20} />
         </button>
 
-        {/* Aqred wordmark — only visible on mobile where sidebar is hidden */}
+        {/* Aqred wordmark - only visible on mobile where sidebar is hidden */}
         <Link to="/dashboard" className="md:hidden flex items-center gap-1.5">
           <div className="w-7 h-7 bg-violet-600 rounded-lg flex items-center justify-center">
             <span className="text-white text-xs font-black select-none">A</span>
@@ -129,7 +129,7 @@ const Navbar = ({ onMenuToggle, onOpenPalette, onRequestSignOut }) => {
           </span>
         </Link>
 
-        {/* Search — opens the command palette (Cmd+K / Ctrl+K also works anywhere) */}
+        {/* Search - opens the command palette (Cmd+K / Ctrl+K also works anywhere) */}
         <button
           onClick={onOpenPalette}
           className="relative hidden sm:flex items-center gap-2 w-60 lg:w-72 pl-9 pr-2.5 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-400 dark:text-gray-500 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-white dark:hover:bg-gray-800 transition-all"

@@ -38,7 +38,7 @@ exports.getProfile = async (req, res) => {
 };
 
 // Company name is a property of the company (see getCompany/updateCompany
-// below), never edited from an individual's own profile — only name, email
+// below), never edited from an individual's own profile - only name, email
 // and timezone are personal.
 exports.updateProfile = async (req, res) => {
   const { name, email, timezone } = req.body;
@@ -124,7 +124,7 @@ exports.changePassword = async (req, res) => {
     logEvent({ level: "SECURITY", module: "settings", action: "password_changed", req,
       description: `Password changed for user ${req.user.id}` });
 
-    // Re-issue a token without mustChangePassword — the one already in the
+    // Re-issue a token without mustChangePassword - the one already in the
     // client's hands still carries the old flag for the rest of its life
     // (up to 30 days if this session was "remembered"). Look company_name up
     // fresh (same COALESCE-join pattern login/me use) rather than trust the
@@ -334,7 +334,7 @@ exports.getSystemSettings = async (req, res) => {
 exports.updateSystemSettings = async (req, res) => {
   if (req.user?.role !== "admin")
     return res.status(403).json({ error: "Admin only" });
-  // maintenanceMode is deliberately excluded here — system_settings has no
+  // maintenanceMode is deliberately excluded here - system_settings has no
   // company_id scoping, so it's a platform-wide switch. Letting any single
   // company's admin flip it would lock out every other tenant; that's now
   // exclusively a super_admin action (see routes/superAdmin.js).

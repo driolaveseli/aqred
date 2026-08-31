@@ -27,9 +27,9 @@ const Customer = {
 
     const dataParams = [...params, limit, offset];
     const dataSql = `SELECT * FROM customers ${where} ORDER BY ${sortCol} ${sortDir}, id ASC LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`;
-    // Filtered count — drives pagination, reflects search/status.
+    // Filtered count - drives pagination, reflects search/status.
     const countSql = `SELECT COUNT(*)::int AS count FROM customers ${where}`;
-    // Stats — company-wide KPI cards, deliberately unfiltered: the status tabs
+    // Stats - company-wide KPI cards, deliberately unfiltered: the status tabs
     // (Active/Inactive/Pending) are themselves rendered as these same cards, so
     // filtering stats by the active status would make the other cards read 0.
     const statsSql = `

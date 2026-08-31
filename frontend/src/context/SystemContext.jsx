@@ -58,7 +58,7 @@ export const SystemProvider = ({ children }) => {
   };
 
   const refresh = useCallback(async () => {
-    // Skip if not authenticated — avoids triggering the 401 auto-logout interceptor
+    // Skip if not authenticated - avoids triggering the 401 auto-logout interceptor
     if (!localStorage.getItem("token")) return;
     try {
       const sysRes = await getSystemSettings();
@@ -72,7 +72,7 @@ export const SystemProvider = ({ children }) => {
       setSettings(next);
       saveCached(next);
       applyLanguage(next.language);
-    } catch { /* ignore — keep cached/defaults */ }
+    } catch { /* ignore - keep cached/defaults */ }
   }, []);
 
   // Directly update context state without an API call (used by Settings for immediate apply)

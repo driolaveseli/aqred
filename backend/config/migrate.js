@@ -9,7 +9,7 @@ const db = require("./db");
 //
 // The pre-existing body of this file (~460 lines, all still fully idempotent)
 // is kept as a single migration, "001_legacy_bootstrap", rather than being
-// sliced into artificial fine-grained steps — its statements are ordered and
+// sliced into artificial fine-grained steps - its statements are ordered and
 // interdependent (e.g. companies before anything that FKs into it), so
 // splitting it apart is a real risk for very little benefit. New migrations
 // from this point on are added as new, separately-tracked entries below.
@@ -47,11 +47,11 @@ const legacyBootstrap = async () => {
   `);
 
   // Set on any admin-provisioned account (new staff, a password reset, a
-  // company/admin created via the super-admin panel) — cleared once the
+  // company/admin created via the super-admin panel) - cleared once the
   // user changes their own password. Enforced in requirePasswordChange.js.
   await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT false`);
 
-  // Core business tables — these were historically created by hand outside
+  // Core business tables - these were historically created by hand outside
   // of any migration script, so a genuinely fresh database was missing them
   // entirely (every ALTER TABLE below would fail silently). Shapes here
   // match the columns added further down, so those ALTERs become no-ops
@@ -131,7 +131,7 @@ const legacyBootstrap = async () => {
     )
   `);
 
-  // Add missing columns (safe — IF NOT EXISTS)
+  // Add missing columns (safe - IF NOT EXISTS)
   await db.query(`ALTER TABLE employees ADD COLUMN IF NOT EXISTS department VARCHAR(50)`);
   await db.query(`ALTER TABLE employees ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'Active'`);
   await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS sku VARCHAR(50)`);
@@ -188,7 +188,7 @@ const legacyBootstrap = async () => {
   // Add company_id to system_logs for multi-tenant scoping
   await db.query(`ALTER TABLE system_logs ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id)`);
   // users.company_id is normally added further down, but the backfill below
-  // reads it — ensure it exists first (safe/idempotent if already added).
+  // reads it - ensure it exists first (safe/idempotent if already added).
   await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id)`);
   // Backfill existing logs by looking up the user's company
   await db.query(`
@@ -197,7 +197,7 @@ const legacyBootstrap = async () => {
   `);
 
   // role_permissions: stores which named permissions each role has, scoped
-  // per company — a single global row per role meant one company's admin
+  // per company - a single global row per role meant one company's admin
   // editing "manager" permissions changed behavior for every company on the
   // platform. super_admin's permissions are fixed platform-wide and hardcoded
   // in authToken.js instead (it was never editable through this UI anyway).
@@ -209,7 +209,7 @@ const legacyBootstrap = async () => {
     )
   `);
   await db.query(`ALTER TABLE role_permissions ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id) ON DELETE CASCADE`);
-  // Drop the old role-only PK before backfilling — otherwise inserting a second
+  // Drop the old role-only PK before backfilling - otherwise inserting a second
   // row for the same role name (one per company) violates the old constraint.
   await db.query(`ALTER TABLE role_permissions DROP CONSTRAINT IF EXISTS role_permissions_pkey`);
 
@@ -238,10 +238,10 @@ const legacyBootstrap = async () => {
     await db.query(`DELETE FROM role_permissions WHERE company_id IS NULL AND role IN ('admin','manager','employee')`);
     console.log("✅ Backfilled role_permissions to per-company rows");
   }
-  // super_admin permissions are hardcoded now (see authToken.js) — drop any legacy row
+  // super_admin permissions are hardcoded now (see authToken.js) - drop any legacy row
   await db.query(`DELETE FROM role_permissions WHERE role = 'super_admin'`);
 
-  // Every remaining row is now company-scoped — enforce it.
+  // Every remaining row is now company-scoped - enforce it.
   await db.query(`ALTER TABLE role_permissions ALTER COLUMN company_id SET NOT NULL`);
   await db.query(`
     DO $$ BEGIN
@@ -357,7 +357,7 @@ const legacyBootstrap = async () => {
   if (saExists.rows.length === 0) {
     const bcrypt = require("bcrypt");
     const hashed = await bcrypt.hash("superadmin123", 10);
-    // must_change_password: true — this is a well-known demo password
+    // must_change_password: true - this is a well-known demo password
     // documented in the README, not a real credential. Force it to be
     // replaced before the account can do anything, same as any other
     // admin-provisioned account.
@@ -378,7 +378,7 @@ const legacyBootstrap = async () => {
   if (adminExists.rows.length === 0) {
     const bcrypt = require("bcrypt");
     const hashed = await bcrypt.hash("admin123", 10);
-    // Same reasoning as the super admin above — force a real password before use.
+    // Same reasoning as the super admin above - force a real password before use.
     await db.query(
       `INSERT INTO users (name, email, password, role, company_name, company_id, must_change_password)
        VALUES ($1, $2, $3, $4, $5, (SELECT id FROM companies WHERE name = 'Aqred'), true)`,
@@ -388,7 +388,7 @@ const legacyBootstrap = async () => {
   }
 
   // Retroactively close the same gap for databases that seeded these two
-  // bootstrap accounts before must_change_password was added above — force
+  // bootstrap accounts before must_change_password was added above - force
   // it on if (and only if) the account is still sitting at the documented
   // default password, so an admin who already changed theirs is untouched.
   {
@@ -473,7 +473,7 @@ const legacyBootstrap = async () => {
 
   // ── Indices ──────────────────────────────────────────────────────────────
   // Every list/report query filters by company_id (multi-tenant scoping) and
-  // these FK columns are joined constantly — neither had an index before,
+  // these FK columns are joined constantly - neither had an index before,
   // meaning every one of those queries was a sequential scan.
   await db.query(`CREATE INDEX IF NOT EXISTS idx_employees_company_id      ON employees(company_id)`);
   await db.query(`CREATE INDEX IF NOT EXISTS idx_products_company_id      ON products(company_id)`);
@@ -488,7 +488,7 @@ const legacyBootstrap = async () => {
   await db.query(`CREATE INDEX IF NOT EXISTS idx_payments_order_id        ON payments(order_id)`);
 };
 
-// Public contact form submissions (marketing site) — not company-scoped,
+// Public contact form submissions (marketing site) - not company-scoped,
 // since the submitter isn't necessarily logged in or tied to any company.
 const addContactMessages = async () => {
   await db.query(`
@@ -531,7 +531,7 @@ const addNotificationPermissions = async () => {
   await db.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS required_permission VARCHAR(50)`);
 };
 
-// Ordered, one-time migrations. Add new entries here going forward — each
+// Ordered, one-time migrations. Add new entries here going forward - each
 // runs exactly once, ever, tracked by name in schema_migrations.
 const MIGRATIONS = [
   { name: "001_legacy_bootstrap", run: legacyBootstrap },

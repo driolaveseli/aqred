@@ -267,9 +267,9 @@ const Hero = () => (
         </p>
       </div>
 
-      {/* Dashboard preview — with floating stat cards on xl screens */}
+      {/* Dashboard preview - with floating stat cards on xl screens */}
       <div className="relative max-w-2xl mx-auto">
-        {/* Floating left card — order notification */}
+        {/* Floating left card - order notification */}
         <div className="hidden xl:flex absolute -left-52 top-[22%] z-20 flex-col gap-0 w-[188px] bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-gray-200/70 dark:shadow-black/50 p-4">
           <div className="flex items-center gap-2.5 mb-3">
             <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
@@ -289,7 +289,7 @@ const Hero = () => (
           </div>
         </div>
 
-        {/* Floating right card — revenue */}
+        {/* Floating right card - revenue */}
         <div className="hidden xl:flex absolute -right-52 top-[10%] z-20 flex-col w-[188px] bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl shadow-gray-200/70 dark:shadow-black/50 p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Monthly Revenue</p>
@@ -450,7 +450,7 @@ const HowItWorks = () => (
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-        {/* Connecting dashed line — desktop */}
+        {/* Connecting dashed line - desktop */}
         <div className="hidden md:block absolute top-10 left-[calc(16.67%+3.5rem)] right-[calc(16.67%+3.5rem)] h-px border-t-2 border-dashed border-violet-200 dark:border-violet-800/60" />
 
         {STEPS.map(({ step, title, desc }) => (
@@ -540,7 +540,7 @@ const WhyChoose = () => (
           </div>
         </div>
 
-        {/* Right — roles card */}
+        {/* Right - roles card */}
         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden shadow-lg shadow-gray-100/80 dark:shadow-black/30">
           <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-slate-50/80 dark:bg-gray-900/40">
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">

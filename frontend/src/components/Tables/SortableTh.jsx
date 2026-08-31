@@ -1,6 +1,6 @@
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 
-// Shared sortable <th> — click toggles sort on `field`, arrow reflects the
+// Shared sortable <th> - click toggles sort on `field`, arrow reflects the
 // current sortField/sortDir. Previously duplicated verbatim (component +
 // sort-icon logic) inside several page components; defining it there meant a
 // new identity every render of that page, so React remounted every header

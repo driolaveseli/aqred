@@ -110,7 +110,7 @@ const Orders = () => {
 
   useEffect(() => {
     // "New Order" form needs the full customer/product lists for its dropdowns,
-    // not just one paginated page — fetch with a limit comfortably above current volumes.
+    // not just one paginated page - fetch with a limit comfortably above current volumes.
     getCustomers({ limit: 5000 }).then(({ data }) => setCustomers(data.data)).catch(() => {});
     getProducts({ limit: 5000 }).then(({ data }) => setProducts(data.data)).catch(() => {});
     if (location.state?.openCreate) openAdd();

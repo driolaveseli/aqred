@@ -3,7 +3,7 @@
  *
  * Runs migrations, loads the sample catalogue/orders the first time, and lets
  * the two documented demo accounts sign in without the first-login password
- * change. Safe to run repeatedly — sample data only loads when the products
+ * change. Safe to run repeatedly - sample data only loads when the products
  * table is empty.
  *
  * Run: node scripts/seedDemo.js

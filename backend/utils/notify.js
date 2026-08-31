@@ -1,7 +1,7 @@
 const db = require("../config/db");
 
 /**
- * Insert a company-scoped notification. Fire-and-forget — never throws.
+ * Insert a company-scoped notification. Fire-and-forget - never throws.
  *
  * @param {object} opts
  * @param {number}  opts.company_id  - target company (skip if null/undefined)

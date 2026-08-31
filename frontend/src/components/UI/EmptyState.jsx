@@ -2,7 +2,7 @@ import { Inbox } from "lucide-react";
 
 /* Original, on-brand empty-state artwork: a ghosted list panel with the
    section's own icon floating above it in the same gradient badge the 404
-   page uses. Monochrome violet and low-contrast on purpose — it signals
+   page uses. Monochrome violet and low-contrast on purpose - it signals
    "nothing here yet" without pulling focus from the message. */
 const EmptyArt = ({ icon: Icon = Inbox }) => (
   <div className="relative mx-auto mb-5 h-[104px] w-[150px] select-none" aria-hidden="true">

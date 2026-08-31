@@ -39,13 +39,13 @@ const Order = {
       GROUP BY o.id, c.name
       ORDER BY ${sortCol} ${sortDir}, o.id DESC
       LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`;
-    // Filtered count — drives pagination, reflects search/status/dateRange.
+    // Filtered count - drives pagination, reflects search/status/dateRange.
     const countSql = `
       SELECT COUNT(*)::int AS count
       FROM orders o
       LEFT JOIN customers c ON c.id = o.customer_id
       ${where}`;
-    // Stats — company-wide KPI cards. Deliberately unfiltered: the status tabs
+    // Stats - company-wide KPI cards. Deliberately unfiltered: the status tabs
     // (Pending/Processing/Completed) are themselves rendered as these same cards,
     // so filtering stats by the active status would make the other cards read 0.
     // Matches original client behavior (computed from the full unfiltered orders list).

@@ -9,7 +9,7 @@ const maintenanceMode = async (req, res, next) => {
     try {
       const r = await db.query("SELECT value FROM system_settings WHERE key = 'maintenanceMode'");
       cache = { enabled: r.rows[0]?.value === "true", checkedAt: now };
-    } catch { /* DB unavailable — allow through */ }
+    } catch { /* DB unavailable - allow through */ }
   }
 
   const role = req.user?.role;

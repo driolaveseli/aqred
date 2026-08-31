@@ -17,7 +17,7 @@ import useEscapeKey from "../hooks/useEscapeKey";
 // ─── helpers ────────────────────────────────────────────────────────────────
 // Invoice status (Paid/Partially Paid/Unpaid/Overdue/Cancelled) is now computed
 // server-side (see salesModel.js INVOICE_BASE_CTE) so it can be filtered/sorted
-// in SQL — the row already arrives with `invoice_status` set.
+// in SQL - the row already arrives with `invoice_status` set.
 
 const statusConfig = {
   Paid:             { icon: CheckCircle,  cls: "bg-green-50 dark:bg-emerald-900/20 text-green-600 dark:text-emerald-400 border-green-200 dark:border-emerald-800" },

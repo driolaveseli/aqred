@@ -12,7 +12,7 @@
   color: #f5f3ff;
 }
 
-/* ── Dark Mode — uses Tailwind's "class" strategy (.dark on <html>) ─────────── */
+/* ── Dark Mode - uses Tailwind's "class" strategy (.dark on <html>) ─────────── */
 
 .dark body {
   background-color: #0f172a;
@@ -33,7 +33,7 @@
 .dark .text-gray-500 { color: #6b7280 !important; }
 .dark .text-gray-400 { color: #4b5563 !important; }
 
-/* Slate text — used in Aqred wordmark (text-slate-800) and headings */
+/* Slate text - used in Aqred wordmark (text-slate-800) and headings */
 .dark .text-slate-900 { color: #f8fafc !important; }
 .dark .text-slate-800 { color: #f1f5f9 !important; }
 .dark .text-slate-700 { color: #e2e8f0 !important; }
@@ -60,7 +60,7 @@
   color: #4b5563 !important;
 }
 
-/* Browser autofill overrides — light mode */
+/* Browser autofill overrides - light mode */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -71,7 +71,7 @@ input:-webkit-autofill:active {
   caret-color: #111827 !important;
 }
 
-/* Browser autofill overrides — dark mode */
+/* Browser autofill overrides - dark mode */
 html.dark input:-webkit-autofill,
 html.dark input:-webkit-autofill:hover,
 html.dark input:-webkit-autofill:focus,
@@ -122,19 +122,19 @@ html.dark input:-webkit-autofill:active {
   scrollbar-color: #ddd6fe transparent;
 }
 
-/* WebKit — light mode */
+/* WebKit - light mode */
 ::-webkit-scrollbar        { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track  { background: transparent; }
 ::-webkit-scrollbar-thumb  { background: #ddd6fe; border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
 ::-webkit-scrollbar-corner { background: transparent; }
 
-/* Firefox — dark mode */
+/* Firefox - dark mode */
 .dark * {
   scrollbar-color: #374151 transparent;
 }
 
-/* WebKit — dark mode */
+/* WebKit - dark mode */
 .dark ::-webkit-scrollbar-track { background: transparent; }
 .dark ::-webkit-scrollbar-thumb { background: #374151; border-radius: 999px; }
 .dark ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }

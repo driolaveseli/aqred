@@ -1,6 +1,6 @@
 import axios from "axios";
 
-// The JWT lives only in an httpOnly cookie the server sets on login — never
+// The JWT lives only in an httpOnly cookie the server sets on login - never
 // in JS-readable storage, so withCredentials is all that's needed to send it.
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",

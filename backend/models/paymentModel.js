@@ -28,14 +28,14 @@ const Payment = {
       ${where}
       ORDER BY p.created_at DESC
       LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`;
-    // Filtered count — drives pagination, reflects search/status.
+    // Filtered count - drives pagination, reflects search/status.
     const countSql = `
       SELECT COUNT(*)::int AS count
       FROM payments p
       LEFT JOIN orders o ON p.order_id = o.id
       LEFT JOIN customers c ON o.customer_id = c.id
       ${where}`;
-    // Stats — company-wide KPI cards, deliberately unfiltered: the status tabs
+    // Stats - company-wide KPI cards, deliberately unfiltered: the status tabs
     // (Completed/Pending/Failed) are themselves rendered as these same cards, so
     // filtering stats by the active status would make the other cards read 0.
     const statsSql = `

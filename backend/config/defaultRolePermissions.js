@@ -17,7 +17,7 @@ const EMPLOYEE_PERMS = [
   "View Dashboard", "View Sales", "View Inventory", "View Reports", "Manage Orders", "System Settings",
 ];
 
-// Platform-level super_admin permissions — fixed, not company-scoped, not
+// Platform-level super_admin permissions - fixed, not company-scoped, not
 // editable through the Roles & Permissions UI (which always excludes it).
 const SUPER_ADMIN_PERMS = [...ALL_PERMS, "Manage Companies"];
 

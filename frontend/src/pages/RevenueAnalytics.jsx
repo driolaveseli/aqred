@@ -240,7 +240,7 @@ const RevenueAnalytics = () => {
           )}
         </div>
 
-        {/* Category breakdown — donut */}
+        {/* Category breakdown - donut */}
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Revenue by Category</h3>
           {loading ? (

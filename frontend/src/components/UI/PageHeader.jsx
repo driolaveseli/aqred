@@ -7,7 +7,7 @@ const TONE = {
   gray:    "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400",
 };
 
-// Shared "hero" header shell used at the top of every page — gradient wash,
+// Shared "hero" header shell used at the top of every page - gradient wash,
 // top accent bar, optional contextual badges, title/subtitle, right-aligned
 // actions. Mirrors the treatment Dashboard.jsx originated.
 const PageHeader = ({ title, subtitle, badges = [], actions }) => (

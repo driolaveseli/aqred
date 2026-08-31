@@ -577,7 +577,7 @@ const Sales = () => {
             </div>
           </div>
 
-          {/* Recent Orders summary — full management is in Management → Orders */}
+          {/* Recent Orders summary - full management is in Management → Orders */}
           {RecentOrdersWidget}
         </>
       )}

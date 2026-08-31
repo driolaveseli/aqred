@@ -3,7 +3,7 @@ const SECRET = require("../config/jwtSecret");
 
 /**
  * Non-blocking middleware: attaches req.user from JWT if present and valid.
- * Never rejects the request — routes that need strict auth use requireAdmin.
+ * Never rejects the request - routes that need strict auth use requireAdmin.
  */
 const parseUser = (req, _res, next) => {
   try {
@@ -12,7 +12,7 @@ const parseUser = (req, _res, next) => {
       req.user = jwt.verify(token, SECRET);
     }
   } catch {
-    // Invalid / expired token — leave req.user undefined
+    // Invalid / expired token - leave req.user undefined
   }
   next();
 };

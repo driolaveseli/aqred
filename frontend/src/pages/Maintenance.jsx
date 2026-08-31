@@ -13,7 +13,7 @@ export default function Maintenance() {
       navigate("/dashboard");
     } catch (err) {
       if (err.response?.status !== 503) {
-        // Maintenance mode is off (got a different error like 401) — go to login
+        // Maintenance mode is off (got a different error like 401) - go to login
         navigate("/login");
       }
       // Still 503 → stay on this page (the interceptor won't redirect again
@@ -27,7 +27,7 @@ export default function Maintenance() {
       try {
         await api.get("/dashboard/stats");
         navigate("/dashboard");
-      } catch { /* still in maintenance or unauthenticated — ignore */ }
+      } catch { /* still in maintenance or unauthenticated - ignore */ }
     }, 30_000);
     return () => clearInterval(id);
   }, [navigate]);

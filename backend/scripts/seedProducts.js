@@ -1,7 +1,7 @@
 /**
  * Seed 1000 realistic products into mis_db, linked to Aqred.
  * Run: node backend/scripts/seedProducts.js
- * Safe to re-run — skips duplicates via ON CONFLICT on sku.
+ * Safe to re-run - skips duplicates via ON CONFLICT on sku.
  */
 
 const pool = require("../config/db");

@@ -3,7 +3,7 @@ const pool = require("../config/db");
 const SORT_COLUMNS = { name: "name", category: "category", price: "price", stock: "stock", value: "(price * stock)" };
 
 // Used only for the paginated rows query. The stats query intentionally does NOT
-// use this — stats are company-wide KPI cards (Total Value/Low Stock/Out of Stock),
+// use this - stats are company-wide KPI cards (Total Value/Low Stock/Out of Stock),
 // and the stock-status tabs are themselves driven by those same cards, so filtering
 // stats by the active stockFilter would make cards like "Out of Stock" read 0 the
 // moment "Low Stock" is selected. Matches the original client-side behavior, where
@@ -34,9 +34,9 @@ const Product = {
 
     const dataParams = [...params, limit, offset];
     const dataSql = `SELECT * FROM products ${where} ORDER BY ${sortCol} ${sortDir}, id ASC LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`;
-    // Filtered count — drives pagination ("Showing X-Y of N"), reflects search/category/stockFilter.
+    // Filtered count - drives pagination ("Showing X-Y of N"), reflects search/category/stockFilter.
     const countSql = `SELECT COUNT(*)::int AS count FROM products ${where}`;
-    // Stats — company-wide KPI cards, deliberately unfiltered (see comment above).
+    // Stats - company-wide KPI cards, deliberately unfiltered (see comment above).
     const statsSql = `
       SELECT
         COUNT(*)::int AS total,
@@ -44,7 +44,7 @@ const Product = {
         COUNT(*) FILTER (WHERE stock > 0 AND stock <= COALESCE(reorder_point, 10))::int AS low_stock_count,
         COUNT(*) FILTER (WHERE stock = 0)::int AS out_of_stock_count
       FROM products WHERE company_id = $1`;
-    // Distinct categories actually in use — drives the category filter/tabs so they
+    // Distinct categories actually in use - drives the category filter/tabs so they
     // always reflect real data instead of a fixed guessed list.
     const categoriesSql = `
       SELECT DISTINCT category FROM products

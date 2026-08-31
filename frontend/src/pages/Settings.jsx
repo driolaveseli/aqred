@@ -151,7 +151,7 @@ export default function Settings() {
     } finally { setLoad("profile", false); }
   };
 
-  // ── Company (admin only — renames the company itself, not a personal field) ─
+  // ── Company (admin only - renames the company itself, not a personal field) ─
   const [company, setCompany] = useState({ name: "", memberCount: 0 });
   useEffect(() => {
     if (!isAdmin) return;

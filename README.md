@@ -21,19 +21,19 @@ A full-stack Management Information System for tracking staff, inventory, custom
 
 ## Features
 
-- **Authentication & RBAC** — JWT-based login with `admin`, `manager`, `employee`, and `super_admin` roles, each with scoped access to different modules
-- **Two-factor authentication** — TOTP setup/verify/disable via an authenticator app
-- **Business operations** — staff, customers, products, suppliers, orders, and inventory management
-- **Sales & reporting** — revenue analytics, customer/employee reports, exportable CSV data
-- **Command palette** — Cmd/Ctrl+K to jump to any page or run a quick action from the keyboard
-- **Multi-company support** — data is scoped per company, with a platform-level `super_admin` role that can create, suspend, or permanently remove companies
-- **Platform administration** — company management, role & permission editing, a real audit log (`system_logs`) covering both company- and platform-level actions, and a platform-wide maintenance mode
-- **Public contact form** — submissions are stored and reviewable from a super-admin inbox, not just a form that goes nowhere
-- **Dark mode** — throughout the entire app, not just the marketing pages
+- **Authentication & RBAC** - JWT-based login with `admin`, `manager`, `employee`, and `super_admin` roles, each with scoped access to different modules
+- **Two-factor authentication** - TOTP setup/verify/disable via an authenticator app
+- **Business operations** - staff, customers, products, suppliers, orders, and inventory management
+- **Sales & reporting** - revenue analytics, customer/employee reports, exportable CSV data
+- **Command palette** - Cmd/Ctrl+K to jump to any page or run a quick action from the keyboard
+- **Multi-company support** - data is scoped per company, with a platform-level `super_admin` role that can create, suspend, or permanently remove companies
+- **Platform administration** - company management, role & permission editing, a real audit log (`system_logs`) covering both company- and platform-level actions, and a platform-wide maintenance mode
+- **Public contact form** - submissions are stored and reviewable from a super-admin inbox, not just a form that goes nowhere
+- **Dark mode** - throughout the entire app, not just the marketing pages
 
 ## Quick start (Docker)
 
-The fastest way to run the whole stack — no local Node or PostgreSQL needed:
+The fastest way to run the whole stack - no local Node or PostgreSQL needed:
 
 ```bash
 git clone https://github.com/driolaveseli/aqred.git
@@ -45,7 +45,7 @@ This builds the app, starts PostgreSQL, runs migrations, and loads sample data
 (~1,000 products, ~300 orders) on first boot. When the logs settle, open
 **http://localhost:3000**.
 
-Sign in with a demo account — or click one of the buttons on the login screen:
+Sign in with a demo account - or click one of the buttons on the login screen:
 
 | Role | Email | Password |
 |------|-------|----------|
@@ -86,7 +86,7 @@ cd backend
 cp .env.example .env
 ```
 
-Edit `backend/.env` and fill in your own values — at minimum `DB_PASSWORD` (your local Postgres password) and `JWT_SECRET` (generate one with the command in the example file). SMTP settings are optional; without them, password-reset tokens are logged to the console instead of emailed.
+Edit `backend/.env` and fill in your own values - at minimum `DB_PASSWORD` (your local Postgres password) and `JWT_SECRET` (generate one with the command in the example file). SMTP settings are optional; without them, password-reset tokens are logged to the console instead of emailed.
 
 ### 4. Run the backend
 
@@ -100,7 +100,7 @@ This runs database migrations automatically on startup and starts the API at `ht
 - **Company admin** (full access to Dashboard, Business Operations, Reports, Administration): `admin@aqred.com` / `admin123`
 - **Platform super-admin** (manages companies across the platform, at `/super-admin/companies`): `superadmin@aqred.com` / `superadmin123`
 
-Log in at `http://localhost:3000/login` with either. Both accounts are seeded with `must_change_password` set, so the first login prompts you to set a new password before continuing to the dashboard — that's expected, not a bug.
+Log in at `http://localhost:3000/login` with either. Both accounts are seeded with `must_change_password` set, so the first login prompts you to set a new password before continuing to the dashboard - that's expected, not a bug.
 
 Optional: load sample data (~1,000 products, ~300 orders) and let the demo accounts skip the first-login password change:
 
@@ -148,4 +148,4 @@ frontend/
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

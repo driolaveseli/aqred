@@ -55,10 +55,10 @@ const Sales = {
       SELECT * FROM base WHERE 1=1 ${where}
       ORDER BY COALESCE(order_date, created_at) DESC
       LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`;
-    // Filtered count — drives pagination, reflects search/status.
+    // Filtered count - drives pagination, reflects search/status.
     const countSql = `${INVOICE_BASE_CTE}
       SELECT COUNT(*)::int AS count FROM base WHERE 1=1 ${where}`;
-    // Stats — company-wide KPI cards, deliberately unfiltered by search/status: the
+    // Stats - company-wide KPI cards, deliberately unfiltered by search/status: the
     // status tabs (Paid/Partially Paid/Overdue) are themselves rendered as these
     // same cards, so filtering stats by the active status would make the other
     // cards read 0. Only the CTE's intrinsic company/item-count scoping applies.
@@ -106,7 +106,7 @@ const Sales = {
         0
       );
 
-      // Validate stock — also ensure product belongs to this company
+      // Validate stock - also ensure product belongs to this company
       for (const item of items) {
         const { rows } = await client.query(
           "SELECT stock, name FROM products WHERE id = $1 AND company_id = $2",

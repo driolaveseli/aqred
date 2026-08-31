@@ -170,7 +170,7 @@ const Payments = () => {
 
   useEffect(() => {
     // "Record Payment" form needs the full order list for its dropdown, not just
-    // one paginated page — fetch with a limit comfortably above current volumes.
+    // one paginated page - fetch with a limit comfortably above current volumes.
     getSales({ limit: 5000 }).then(({ data }) => setOrders(data.data.filter((o) => o.status !== "Cancelled"))).catch(() => {});
   }, []);
 

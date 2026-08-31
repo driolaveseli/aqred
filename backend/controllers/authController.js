@@ -10,12 +10,12 @@ const { signToken, fetchPermissions, cookieOpts } = require("../utils/authToken"
 const { ALL_PERMS, MANAGER_PERMS, EMPLOYEE_PERMS } = require("../config/defaultRolePermissions");
 
 // A bcrypt hash with no matching password, used to keep login's response time
-// constant whether or not the email exists — otherwise a nonexistent email
+// constant whether or not the email exists - otherwise a nonexistent email
 // returns immediately while a wrong password takes a real bcrypt.compare,
 // letting an attacker enumerate valid emails purely by timing the response.
 const DUMMY_HASH = "$2b$10$FC9EM8HbhN6l6gEZdTn8kOgotn2BRf.iwTmDvptWWuv/Oxr5XLfmi";
 
-// Short-lived token issued when 2FA is required — only authorises the 2FA step.
+// Short-lived token issued when 2FA is required - only authorises the 2FA step.
 // Carries `remember` through the round-trip so the "Keep me signed in"
 // checkbox from the credentials step still applies once TOTP is verified.
 const signTempToken = (userId, remember = true) =>
@@ -62,7 +62,7 @@ exports.login = async (req, res) => {
     const twoFAEnabled = prefsResult.rows[0]?.two_factor_enabled === true;
 
     if (twoFAEnabled) {
-      // Issue a short-lived temp token — real JWT only after TOTP is verified
+      // Issue a short-lived temp token - real JWT only after TOTP is verified
       const tempToken = signTempToken(user.id, remember);
       return res.json({ requires2FA: true, tempToken });
     }
@@ -74,7 +74,7 @@ exports.login = async (req, res) => {
     logEvent({ level: "INFO", module: "auth", action: "login", req,
       description: `${user.name} logged in (${user.role})` });
 
-    // Token only ever goes in the httpOnly cookie, never the JSON body — a
+    // Token only ever goes in the httpOnly cookie, never the JSON body - a
     // token in response.data is readable by any JS, which defeats the point
     // of httpOnly (keeping it out of reach of XSS).
     res.cookie("token", token, cookieOpts(remember));
@@ -138,7 +138,7 @@ exports.verify2FALogin = async (req, res) => {
     logEvent({ level: "SECURITY", module: "auth", action: "login_2fa", req,
       description: `${user.name} completed 2FA login` });
 
-    // Token only ever goes in the httpOnly cookie, never the JSON body — a
+    // Token only ever goes in the httpOnly cookie, never the JSON body - a
     // token in response.data is readable by any JS, which defeats the point
     // of httpOnly (keeping it out of reach of XSS).
     res.cookie("token", token, cookieOpts(payload.remember));
@@ -173,7 +173,7 @@ exports.register = async (req, res) => {
 
     // Two paths: join an existing company as an employee, or create a brand
     // new one and become its admin (first user of a company is always its
-    // admin — mirrors how the super-admin "create company" flow provisions
+    // admin - mirrors how the super-admin "create company" flow provisions
     // the first admin in routes/superAdmin.js).
     const coRes = await db.query("SELECT id, name FROM companies WHERE LOWER(name) = LOWER($1)", [companyName]);
     let companyId, role, finalCompanyName;
@@ -187,7 +187,7 @@ exports.register = async (req, res) => {
       finalCompanyName = newCo.rows[0].name;
       role = "admin";
 
-      // role_permissions is scoped per company (see migrate.js) — a fresh
+      // role_permissions is scoped per company (see migrate.js) - a fresh
       // company starts with no rows at all until this seeds them, same as
       // the super-admin "create company" flow in routes/superAdmin.js.
       await db.query(
@@ -218,7 +218,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// GET /api/auth/check-company?name=... — public, read-only lookup used by the
+// GET /api/auth/check-company?name=... - public, read-only lookup used by the
 // registration wizard to tell the user upfront whether they're joining an
 // existing company or about to create a new one.
 exports.checkCompany = async (req, res) => {
@@ -232,7 +232,7 @@ exports.checkCompany = async (req, res) => {
   }
 };
 
-// POST /api/auth/invite-teammates — only the admin who just created a company
+// POST /api/auth/invite-teammates - only the admin who just created a company
 // can invite others into it (registration's "create new company" path).
 exports.inviteTeammates = async (req, res) => {
   if (req.user.role !== "admin")

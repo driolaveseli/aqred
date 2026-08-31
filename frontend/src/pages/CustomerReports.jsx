@@ -282,7 +282,7 @@ const CustomerReports = () => {
         ))}
       </div>
 
-      {/* Row 1 — Customer KPIs */}
+      {/* Row 1 - Customer KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard label={t("Total Customers")}    value={total}              icon={Users}       color="text-violet-600 dark:text-violet-400" bg="bg-violet-50 dark:bg-violet-900/20" />
         <KPICard label={t("Active")}             value={active}             icon={UserCheck}   color="text-green-600 dark:text-emerald-400"  bg="bg-green-50 dark:bg-emerald-900/20"  sub={`${inactive} inactive · ${pending} pending`} />
@@ -290,7 +290,7 @@ const CustomerReports = () => {
         <KPICard label={t("At-Risk Customers")}  value={atRisk.length}      icon={Clock}       color="text-orange-600 dark:text-orange-400" bg="bg-orange-50 dark:bg-orange-900/20" sub="No orders in 60+ days" />
       </div>
 
-      {/* Row 2 — Financial KPIs */}
+      {/* Row 2 - Financial KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard label={t("Total Revenue")}          value={fmt(totalRevenue)}     icon={TrendingUp}  color="text-gray-900 dark:text-white"   bg="bg-gray-50 dark:bg-gray-800"   />
         <KPICard label={t("Total Collected")}        value={fmt(totalCollected)}   icon={DollarSign}  color="text-green-600 dark:text-emerald-400"  bg="bg-green-50 dark:bg-emerald-900/20"  />
@@ -320,7 +320,7 @@ const CustomerReports = () => {
         </div>
       </div>
 
-      {/* Charts Row 1 — Growth + Status */}
+      {/* Charts Row 1 - Growth + Status */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t("New Customers by Month")}</h3>
@@ -365,7 +365,7 @@ const CustomerReports = () => {
         </div>
       </div>
 
-      {/* Charts Row 2 — Order Frequency + Collection */}
+      {/* Charts Row 2 - Order Frequency + Collection */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t("Order Frequency Distribution")}</h3>

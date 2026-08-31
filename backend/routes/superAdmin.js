@@ -11,7 +11,7 @@ const { sendMail } = require("../utils/mailer");
 // All routes in this file require super_admin
 router.use(requireRole("super_admin"));
 
-// GET /api/super-admin/maintenance-mode — current platform-wide state
+// GET /api/super-admin/maintenance-mode - current platform-wide state
 router.get("/maintenance-mode", async (req, res) => {
   try {
     const r = await db.query("SELECT value FROM system_settings WHERE key = 'maintenanceMode'");
@@ -21,9 +21,9 @@ router.get("/maintenance-mode", async (req, res) => {
   }
 });
 
-// PATCH /api/super-admin/maintenance-mode — platform-wide, so exclusively
+// PATCH /api/super-admin/maintenance-mode - platform-wide, so exclusively
 // super_admin's call, not any single company's admin (system_settings has
-// no company_id scoping — see settingsController.updateSystemSettings).
+// no company_id scoping - see settingsController.updateSystemSettings).
 router.patch("/maintenance-mode", async (req, res) => {
   const { enabled } = req.body;
   if (typeof enabled !== "boolean")
@@ -43,7 +43,7 @@ router.patch("/maintenance-mode", async (req, res) => {
   }
 });
 
-// GET /api/super-admin/companies — all companies with admin + user counts
+// GET /api/super-admin/companies - all companies with admin + user counts
 router.get("/companies", async (req, res) => {
   try {
     const result = await db.query(`
@@ -63,7 +63,7 @@ router.get("/companies", async (req, res) => {
   }
 });
 
-// POST /api/super-admin/companies — create company + first admin in one step
+// POST /api/super-admin/companies - create company + first admin in one step
 router.post("/companies", async (req, res) => {
   const { company_name, admin_name, admin_email, admin_password } = req.body;
   if (!company_name || !admin_name || !admin_email || !admin_password)
@@ -78,7 +78,7 @@ router.post("/companies", async (req, res) => {
     const coRes = await db.query("INSERT INTO companies (name) VALUES ($1) RETURNING *", [company_name]);
     const company = coRes.rows[0];
 
-    // Every company gets its own admin/manager/employee permission rows —
+    // Every company gets its own admin/manager/employee permission rows -
     // role_permissions is scoped per company (see migrate.js), so a fresh
     // company starts with no rows at all until this seeds them.
     await db.query(
@@ -104,7 +104,7 @@ router.post("/companies", async (req, res) => {
   }
 });
 
-// PUT /api/super-admin/companies/:id/admin — add a new admin to an existing company
+// PUT /api/super-admin/companies/:id/admin - add a new admin to an existing company
 router.put("/companies/:id/admin", async (req, res) => {
   const { id } = req.params;
   const { name, email, password } = req.body;
@@ -132,7 +132,7 @@ router.put("/companies/:id/admin", async (req, res) => {
   }
 });
 
-// GET /api/super-admin/companies/:id/users — list users of a company
+// GET /api/super-admin/companies/:id/users - list users of a company
 router.get("/companies/:id/users", async (req, res) => {
   const { id } = req.params;
   try {
@@ -146,7 +146,7 @@ router.get("/companies/:id/users", async (req, res) => {
   }
 });
 
-// PATCH /api/super-admin/companies/:id/status — suspend or reactivate, short
+// PATCH /api/super-admin/companies/:id/status - suspend or reactivate, short
 // of the permanent, cascading delete below
 router.patch("/companies/:id/status", async (req, res) => {
   const { id } = req.params;
@@ -170,7 +170,7 @@ router.patch("/companies/:id/status", async (req, res) => {
   }
 });
 
-// DELETE /api/super-admin/companies/:id — delete company + all its data
+// DELETE /api/super-admin/companies/:id - delete company + all its data
 router.delete("/companies/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -201,7 +201,7 @@ router.delete("/companies/:id", async (req, res) => {
   }
 });
 
-// GET /api/super-admin/contact-messages — inbound submissions from the public contact form
+// GET /api/super-admin/contact-messages - inbound submissions from the public contact form
 router.get("/contact-messages", async (req, res) => {
   try {
     const result = await ContactMessage.getAll();
@@ -225,7 +225,7 @@ router.patch("/contact-messages/:id/read", async (req, res) => {
   }
 });
 
-// POST /api/super-admin/contact-messages/:id/reply — actually respond to the
+// POST /api/super-admin/contact-messages/:id/reply - actually respond to the
 // submitter by email (or console-log it, same SMTP-optional fallback as the
 // rest of the app) and record what was sent so the thread isn't lost.
 router.post("/contact-messages/:id/reply", async (req, res) => {

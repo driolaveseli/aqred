@@ -94,7 +94,7 @@ const LeftPanel = ({ headline, subtext }) => (
 );
 
 // ── Right panel shell (shared) ──────────────────────────────────────────────
-// Defined at module scope, not inside Login — a component recreated on every
+// Defined at module scope, not inside Login - a component recreated on every
 // render (e.g. one defined inline in a render body) gets a new identity each
 // time, so React tears down and rebuilds its whole subtree instead of
 // reconciling it. Since the email/password inputs render as children of this
@@ -470,7 +470,7 @@ const Login = () => {
               </button>
             </form>
 
-            {/* Demo accounts — one-click sign-in for reviewers */}
+            {/* Demo accounts - one-click sign-in for reviewers */}
             <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700/60">
               <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.14em] text-center mb-2.5">
                 Demo accounts

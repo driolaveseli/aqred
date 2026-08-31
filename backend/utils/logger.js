@@ -1,7 +1,7 @@
 const db = require("../config/db");
 
 /**
- * Write a log entry. Fire-and-forget — never throws so it can never
+ * Write a log entry. Fire-and-forget - never throws so it can never
  * break the operation it is called from.
  *
  * @param {object} opts

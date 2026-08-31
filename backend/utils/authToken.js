@@ -21,7 +21,7 @@ const signToken = (user, permissions, remember = true) =>
 
 const fetchPermissions = async (role, companyId) => {
   // super_admin is platform-level (no company_id) and its permissions are
-  // fixed — never editable through the per-company Roles & Permissions UI.
+  // fixed - never editable through the per-company Roles & Permissions UI.
   if (role === "super_admin") return SUPER_ADMIN_PERMS;
   try {
     const r = await db.query(

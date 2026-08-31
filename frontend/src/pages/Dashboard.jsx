@@ -324,7 +324,7 @@ const Dashboard = () => {
       {/* ── 4. Revenue / Orders Trend + Order Status ─────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {/* Trend chart — 2/3 */}
+        {/* Trend chart - 2/3 */}
         <div className="lg:col-span-2">
           <Section
             title={t(metricLabel + " Trend")}
@@ -422,7 +422,7 @@ const Dashboard = () => {
           </Section>
         </div>
 
-        {/* Order status — 1/3 */}
+        {/* Order status - 1/3 */}
         <Section
           title={t("Order Status")}
           subtitle={`${statusTotal} orders total`}
@@ -632,7 +632,7 @@ const Dashboard = () => {
       {/* ── 6. Product Categories + Quick Access ────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {/* Product categories — visible when data exists */}
+        {/* Product categories - visible when data exists */}
         {(loading || cats.length > 0) && (
           <Section title="Product Categories" subtitle="Inventory by category" action="View products" to="/products">
             <div className="px-5 py-4">
@@ -680,7 +680,7 @@ const Dashboard = () => {
           </Section>
         )}
 
-        {/* Quick Access — spans remaining cols */}
+        {/* Quick Access - spans remaining cols */}
         <div className={cats.length > 0 || loading ? "lg:col-span-2" : "lg:col-span-3"}>
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5 h-full">
             <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4">Quick Access</h3>

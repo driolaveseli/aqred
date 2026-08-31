@@ -17,7 +17,7 @@ const requireActiveCompany = async (req, res, next) => {
       const r = await db.query("SELECT id FROM companies WHERE is_active = false");
       suspendedIds = new Set(r.rows.map((row) => row.id));
       checkedAt = now;
-    } catch { /* DB unavailable — fail open, same as maintenanceMode */ }
+    } catch { /* DB unavailable - fail open, same as maintenanceMode */ }
   }
 
   if (suspendedIds.has(req.user.company_id)) {

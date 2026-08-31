@@ -26,7 +26,7 @@ const DEFAULT_COLOR = "#94a3b8";
 
 // Built-in roles, shown even before the roles list has loaded. Custom roles
 // created via Roles & Permissions are merged in at runtime (see availableRoles
-// below) — otherwise a custom role could be created but never assigned to anyone.
+// below) - otherwise a custom role could be created but never assigned to anyone.
 const BUILT_IN_ROLES = ["admin", "manager", "employee"];
 const DEPTS = ["Engineering", "Sales", "Marketing", "Support", "HR", "Finance", "Operations"];
 
@@ -98,7 +98,7 @@ const SortIcon = ({ col, sortCol, sortDir }) => {
     : <ChevronDown size={12} className="ml-1 inline text-violet-500 dark:text-violet-400" />;
 };
 
-// Module scope, not inside Staff — see components/Tables/SortableTh.jsx for
+// Module scope, not inside Staff - see components/Tables/SortableTh.jsx for
 // why a component redefined on every render is unsafe.
 const SortTh = ({ col, children, sortCol, sortDir, onSort }) => (
   <th

@@ -23,11 +23,11 @@ app.use("/api/auth/2fa",    loginLimiter);
 const registerLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
 app.use("/api/auth/register", registerLimiter);
 
-// Public, unauthenticated lookup used by the registration wizard — more generous than register/login
+// Public, unauthenticated lookup used by the registration wizard - more generous than register/login
 const checkCompanyLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 app.use("/api/auth/check-company", checkCompanyLimiter);
 
-// Public contact form — generous enough for a real visitor, tight enough to block spam scripts
+// Public contact form - generous enough for a real visitor, tight enough to block spam scripts
 const contactLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
 app.use("/api/contact", contactLimiter);
 
@@ -36,7 +36,7 @@ app.use("/api/auth",     require("./routes/auth"));
 app.use("/api/settings", require("./routes/settings"));
 app.use("/api/contact",  require("./routes/contact"));
 
-// ── Maintenance-mode gate — blocks non-admin users when enabled ───────────────
+// ── Maintenance-mode gate - blocks non-admin users when enabled ───────────────
 app.use(maintenanceMode);
 
 // ── Require valid JWT for all remaining routes ────────────────────────────────
@@ -52,7 +52,7 @@ app.use("/api/super-admin", require("./routes/superAdmin"));
 app.use("/api/logs",          require("./routes/logs"));
 app.use("/api/notifications", require("./routes/notifications"));
 
-// ── Company-scoped routes (super_admin blocked — they have no company data) ───
+// ── Company-scoped routes (super_admin blocked - they have no company data) ───
 app.use("/api", blockSuperAdmin);
 app.use("/api/staff",     require("./routes/staff"));
 app.use("/api/employees", require("./routes/employees")); // read-only, see routes/employees.js

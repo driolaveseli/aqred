@@ -50,7 +50,7 @@ const NavItem = ({ item, expanded, t }) => {
     >
       {({ isActive }) => (
         <>
-          {/* Left accent bar — only in expanded mode */}
+          {/* Left accent bar - only in expanded mode */}
           {expanded && (
             <span
               className={[

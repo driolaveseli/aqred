@@ -66,7 +66,7 @@ exports.getOverview = async (req, res) => {
         WHERE company_id = $1
       `, [companyId]),
 
-      // Monthly revenue trend — last 12 months
+      // Monthly revenue trend - last 12 months
       db.query(`
         SELECT
           TO_CHAR(DATE_TRUNC('month', order_date), 'Mon')          AS name,

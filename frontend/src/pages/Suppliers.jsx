@@ -54,7 +54,7 @@ const Toast = ({ msg, type, onClose }) => (
 );
 
 /* ─── Inline status badge ── */
-// Module scope, not inside Suppliers — see SortableTh.jsx for why a
+// Module scope, not inside Suppliers - see SortableTh.jsx for why a
 // component redefined on every render is unsafe.
 const StatusBadge = ({ supplier, statusPopover, onTogglePopover, onStatusChange, t }) => (
   <div className="relative inline-block" data-status-popover>

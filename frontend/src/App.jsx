@@ -44,9 +44,9 @@ const ScrollToTop = () => {
 };
 
 // Wraps a page in DashboardLayout + PrivateRoute.
-// permission     — named permission the user must have (checked against user.permissions[])
-// requireAdmin   — hard-lock to admin role regardless of permissions config
-// superAdminOnly — only accessible by super_admin role
+// permission     - named permission the user must have (checked against user.permissions[])
+// requireAdmin   - hard-lock to admin role regardless of permissions config
+// superAdminOnly - only accessible by super_admin role
 const Protected = ({ children, permission, requireAdmin, superAdminOnly }) => (
   <PrivateRoute
     permission={permission}
@@ -113,7 +113,7 @@ const App = () => (
         <Route path="/super-admin/messages"  element={<Protected superAdminOnly><ContactMessages /></Protected>} />
         <Route path="/super-admin/settings"  element={<Protected superAdminOnly><PlatformSettings /></Protected>} />
 
-        {/* ── Maintenance (public — shown when system is under maintenance) ── */}
+        {/* ── Maintenance (public - shown when system is under maintenance) ── */}
         <Route path="/maintenance" element={<Maintenance />} />
 
         {/* ── Catch-all ─────────────────────────────────────────────────── */}

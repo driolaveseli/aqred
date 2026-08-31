@@ -69,7 +69,7 @@ const SalesReports = () => {
 
   useEffect(() => { load(); }, [load]);
 
-  // Monthly data is already range-filtered by the backend — sum directly
+  // Monthly data is already range-filtered by the backend - sum directly
   const totalRevenue   = reportData.monthly.reduce((s, m) => s + parseFloat(m.revenue || 0), 0);
   const totalOrders    = reportData.monthly.reduce((s, m) => s + parseInt(m.orders || 0), 0);
   const avgOrder       = totalOrders ? totalRevenue / totalOrders : 0;
@@ -267,7 +267,7 @@ const SalesReports = () => {
         </div>
       </div>
 
-      {/* Orders Table — filtered by selected date range */}
+      {/* Orders Table - filtered by selected date range */}
       <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <h3 className="font-semibold text-gray-900 dark:text-white">Orders — {range}</h3>
