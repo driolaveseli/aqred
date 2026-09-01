@@ -13,5 +13,7 @@ beforeEach(() => {
 
 test("renders the landing page for an unauthenticated visitor", () => {
   render(<App />);
-  expect(screen.getByText(/get started free/i)).toBeInTheDocument();
+  expect(
+    screen.getByText(/aqred gives teams a unified platform/i)
+  ).toBeInTheDocument();
 });

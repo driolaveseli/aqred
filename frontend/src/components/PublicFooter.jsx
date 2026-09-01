@@ -52,9 +52,19 @@ const PublicFooter = () => (
     </div>
 
     <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-5">
-      <p className="text-center text-sm text-slate-400 dark:text-slate-500">
-        © {new Date().getFullYear()} Aqred. All rights reserved.
-      </p>
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+        <p className="text-sm text-slate-400 dark:text-slate-500">
+          © {new Date().getFullYear()} Aqred. All rights reserved.
+        </p>
+        <a
+          href="https://github.com/driolaveseli/aqred"
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+        >
+          Source on GitHub
+        </a>
+      </div>
     </div>
   </footer>
 );
