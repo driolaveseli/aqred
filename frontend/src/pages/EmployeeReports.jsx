@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Download, Users, TrendingUp, Award, Clock, AlertCircle } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie,
+  PieChart, Pie, Cell,
 } from "recharts";
 import { getEmployees } from "../services/employeesService";
 import { exportToCSV } from "../utils/exportCSV";
@@ -134,7 +134,9 @@ const EmployeeReports = () => {
                 <XAxis type="number" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
                 <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} width={90} />
                 <Tooltip />
-                <Bar dataKey="value" name="Employees" radius={[0, 4, 4, 0]} data={deptData.map((e) => ({ ...e, fill: e.color }))} />
+                <Bar dataKey="value" name="Employees" radius={[0, 4, 4, 0]}>
+                  {deptData.map((e) => <Cell key={e.name} fill={e.color} />)}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
