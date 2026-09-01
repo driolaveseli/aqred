@@ -158,7 +158,7 @@ async function main() {
       const dueDate   = new Date(orderDate.getTime() + randInt(14, 45) * 24 * 60 * 60 * 1000);
       const note      = pick(NOTES);
 
-      // Pick 1–5 distinct products that have enough remaining stock
+      // Pick 1-5 distinct products that have enough remaining stock
       const itemCount     = randInt(1, 5);
       const eligible      = products.filter(p => stockMap[p.id] >= 1);
       if (eligible.length === 0) {
@@ -206,7 +206,7 @@ async function main() {
       // Auto-create payment record for Completed orders
       if (status === "Completed" && total > 0) {
         const method      = pick(PAYMENT_METHODS);
-        // Payment date is 0–7 days after order date
+        // Payment date is 0-7 days after order date
         const paymentDate = new Date(orderDate.getTime() + randInt(0, 7) * 24 * 60 * 60 * 1000);
         await client.query(
           `INSERT INTO payments (order_id, amount, method, status, notes, payment_date)

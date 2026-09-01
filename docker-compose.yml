@@ -28,7 +28,7 @@ services:
       DB_PASSWORD: postgres
       DB_PORT: "5432"
       FRONTEND_URL: http://localhost:3000
-      # Local demo only — a real deployment sets its own secret in backend/.env
+      # Local demo only - a real deployment sets its own secret in backend/.env
       JWT_SECRET: local-demo-secret-not-for-production
     command: sh -c "node scripts/seedDemo.js && node server.js"
     depends_on:
