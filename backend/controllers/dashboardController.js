@@ -32,6 +32,7 @@ exports.getOverview = async (req, res) => {
       statusRes,
       recentOrdersRes,
       lowStockRes,
+      stockAlertRes,
       categoryRes,
     ] = await Promise.all([
 
@@ -107,14 +108,23 @@ exports.getOverview = async (req, res) => {
         LIMIT 5
       `, [companyId]),
 
-      // Low-stock products
+      // Low-stock products - a short list for the widget, plus company-wide counts
+      // for the "needs attention" banner (the list is capped, the counts are not)
       db.query(`
         SELECT id, name, stock, reorder_point, category
         FROM products
         WHERE company_id = $1
-          AND stock <= reorder_point
+          AND stock <= COALESCE(reorder_point, 10)
         ORDER BY stock ASC
         LIMIT 6
+      `, [companyId]),
+
+      db.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE stock = 0)::INT                                        AS out_of_stock,
+          COUNT(*) FILTER (WHERE stock > 0 AND stock <= COALESCE(reorder_point, 10))::INT AS low_stock
+        FROM products
+        WHERE company_id = $1
       `, [companyId]),
 
       // Product category distribution
@@ -149,6 +159,7 @@ exports.getOverview = async (req, res) => {
       statusBreakdown: statusRes.rows,
       recentOrders: recentOrdersRes.rows,
       lowStock:     lowStockRes.rows,
+      stockAlerts:  stockAlertRes.rows[0] || { out_of_stock: 0, low_stock: 0 },
       categories:   categoryRes.rows,
     });
   } catch (err) {

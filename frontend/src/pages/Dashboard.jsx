@@ -157,7 +157,8 @@ const Dashboard = () => {
             revenue_this_month: 0, revenue_last_month: 0,
             orders_this_month: 0, orders_last_month: 0,
           },
-          monthly: [], statusBreakdown: [], recentOrders: [], lowStock: [], categories: [],
+          monthly: [], statusBreakdown: [], recentOrders: [], lowStock: [],
+          stockAlerts: { out_of_stock: 0, low_stock: 0 }, categories: [],
         });
       } catch {}
     } finally {
@@ -172,6 +173,7 @@ const Dashboard = () => {
   const statuses = data?.statusBreakdown || [];
   const recent   = data?.recentOrders    || [];
   const lowStock = data?.lowStock        || [];
+  const stockAlerts = data?.stockAlerts  || { out_of_stock: 0, low_stock: 0 };
   const cats     = data?.categories      || [];
 
   /* Derived */
@@ -185,7 +187,8 @@ const Dashboard = () => {
   const chartData = monthly.slice(-chartPeriod);
 
   /* Alert counts */
-  const alertCount = (kpi.pending_orders || 0) + lowStock.filter(p => p.stock === 0).length;
+  const restockCount = stockAlerts.out_of_stock + stockAlerts.low_stock;
+  const alertCount   = (kpi.pending_orders || 0) + stockAlerts.out_of_stock;
 
   /* Header strings */
   const hour      = new Date().getHours();
@@ -272,19 +275,19 @@ const Dashboard = () => {
                   <ArrowRight size={10}/>
                 </Link>
               )}
-              {lowStock.filter(p => p.stock === 0).length > 0 && (
+              {stockAlerts.out_of_stock > 0 && (
                 <Link to="/inventory"
                   className="text-xs text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200 font-medium flex items-center gap-1 transition-colors">
                   <Package size={11}/>
-                  {lowStock.filter(p => p.stock === 0).length} product{lowStock.filter(p => p.stock === 0).length !== 1 ? "s" : ""} out of stock
+                  {stockAlerts.out_of_stock} product{stockAlerts.out_of_stock !== 1 ? "s" : ""} out of stock
                   <ArrowRight size={10}/>
                 </Link>
               )}
-              {lowStock.filter(p => p.stock > 0).length > 0 && (
+              {stockAlerts.low_stock > 0 && (
                 <Link to="/inventory"
                   className="text-xs text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200 font-medium flex items-center gap-1 transition-colors">
                   <AlertTriangle size={11}/>
-                  {lowStock.filter(p => p.stock > 0).length} product{lowStock.filter(p => p.stock > 0).length !== 1 ? "s" : ""} low on stock
+                  {stockAlerts.low_stock} product{stockAlerts.low_stock !== 1 ? "s" : ""} low on stock
                   <ArrowRight size={10}/>
                 </Link>
               )}
@@ -557,7 +560,7 @@ const Dashboard = () => {
         </Section>
 
         <Section title={t("Low Stock Alerts")} action={t("View inventory")} to="/inventory"
-          subtitle={lowStock.length > 0 ? `${lowStock.length} product${lowStock.length !== 1 ? "s" : ""} need restocking` : undefined}>
+          subtitle={restockCount > 0 ? `${restockCount} product${restockCount !== 1 ? "s" : ""} need restocking` : undefined}>
           {loading ? (
             <div className="divide-y divide-gray-50 dark:divide-gray-800/60">
               {Array.from({ length: 5 }).map((_, i) => (
