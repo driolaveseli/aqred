@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Fragment } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   CheckCircle, Users, BarChart2, Shield, Package,
-  Mail, Lock, Eye, EyeOff, Activity, TrendingUp,
+  Mail, Lock, Eye, EyeOff, PlayCircle,
   ArrowRight, ArrowLeft, User, Briefcase, ShieldCheck,
   Check, Loader, Sparkles, Plus, X, PartyPopper,
 } from "lucide-react";
@@ -126,32 +126,17 @@ const LeftPanel = () => (
         ))}
       </div>
 
-      {/* Live stats card */}
+      {/* Demo note */}
       <div className="bg-white/[0.08] border border-white/[0.12] backdrop-blur-sm rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">Live System</span>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-6 h-6 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0">
+            <PlayCircle size={13} className="text-violet-200" />
           </div>
-          <Activity size={12} className="text-white/30" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">Just looking around?</span>
         </div>
-        <div className="grid grid-cols-4 gap-1.5">
-          {[
-            { label: "Orders",    value: "89" },
-            { label: "Customers", value: "138" },
-            { label: "Revenue",   value: "$24k" },
-            { label: "Users",     value: "24" },
-          ].map(({ label, value }) => (
-            <div key={label} className="bg-white/10 rounded-xl p-2 text-center">
-              <p className="text-[8px] text-white/40 uppercase tracking-wide mb-0.5">{label}</p>
-              <p className="text-xs font-extrabold text-white leading-none">{value}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 pt-3 border-t border-white/[0.08] flex items-center gap-1.5">
-          <TrendingUp size={10} className="text-emerald-400" />
-          <span className="text-[10px] text-white/40">Revenue up 18.4% this month</span>
-        </div>
+        <p className="text-[13px] text-violet-100/70 leading-relaxed">
+          You don't need an account to explore. <Link to="/login" className="underline decoration-white/30 hover:text-white hover:decoration-white">Sign in with a demo account</Link> instead.
+        </p>
       </div>
     </div>
 
@@ -160,7 +145,7 @@ const LeftPanel = () => (
       <div className="w-6 h-6 bg-white/10 border border-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
         <CheckCircle size={12} className="text-violet-300" />
       </div>
-      <p className="text-xs text-violet-300/60">Free to get started — no credit card required</p>
+      <p className="text-xs text-violet-300/60">Free to get started - set up in under a minute</p>
     </div>
   </div>
 );

@@ -302,21 +302,25 @@ const Stats = () => (
 );
 
 // ── Features ──────────────────────────────────────────────────────────────────
-const FEATURES = [
-  { icon: Users,        title: "Employee Management", desc: "Manage your entire workforce - departments, positions, salaries, and employment status - all in one place.", gradient: "from-violet-500 to-purple-600" },
-  { icon: UserCheck,    title: "Customer Management", desc: "A complete customer directory with contact details, company info, and a full history of linked orders.", gradient: "from-blue-500 to-indigo-600" },
-  { icon: Package,      title: "Product & Inventory", desc: "Track your catalog in real time. Monitor stock levels, manage SKUs, and catch low inventory early.", gradient: "from-emerald-500 to-teal-600" },
-  { icon: ShoppingCart, title: "Order Management",    desc: "Create and manage orders end-to-end - link customers and employees, track every status change.", gradient: "from-amber-500 to-orange-500" },
-  { icon: FileText,     title: "Invoices & Payments", desc: "Track invoices, manage payment status, and keep a clear financial picture across all transactions.", gradient: "from-rose-500 to-pink-600" },
-  { icon: BarChart2,    title: "Reports & Analytics", desc: "Interactive dashboards with charts for revenue, orders, and customer trends. Export anything to CSV.", gradient: "from-violet-500 to-indigo-600" },
-  { icon: Activity,     title: "Activity Feed",       desc: "A real-time log of every significant action - who did what, when, and from which IP address.", gradient: "from-cyan-500 to-blue-600" },
-  { icon: Shield,       title: "Role-Based Access",   desc: "Granular permissions per role. Admins can customize exactly what each role can see and do.", gradient: "from-violet-600 to-purple-700" },
+const FEATURES_SMALL = [
+  { icon: Users,        title: "Employee Management", desc: "Departments, positions, salaries, and employment status.", gradient: "from-violet-500 to-purple-600" },
+  { icon: UserCheck,    title: "Customer Management", desc: "Contact records, company details, and full order history.", gradient: "from-blue-500 to-indigo-600" },
+  { icon: Package,      title: "Product & Inventory", desc: "Live stock levels, SKUs, categories, and low-stock alerts.", gradient: "from-emerald-500 to-teal-600" },
+  { icon: ShoppingCart, title: "Order Management",    desc: "Orders linked end to end to customers and employees.", gradient: "from-amber-500 to-orange-500" },
+  { icon: FileText,     title: "Invoices & Payments", desc: "Payment status tracking and a clear financial picture.", gradient: "from-rose-500 to-pink-600" },
+  { icon: Activity,     title: "Activity Feed",       desc: "A running log of who changed what, when, and from where.", gradient: "from-cyan-500 to-blue-600" },
+];
+
+const ROLE_COVERAGE = [
+  { role: "Admin",    count: "7 / 7", pct: 100, cls: "bg-violet-500" },
+  { role: "Manager",  count: "6 / 7", pct: 84,  cls: "bg-blue-500" },
+  { role: "Employee", count: "1 / 7", pct: 16,  cls: "bg-emerald-500" },
 ];
 
 const Features = () => (
-  <section className="bg-white py-28 dark:bg-gray-900">
+  <section className="bg-white py-24 dark:bg-gray-900">
     <div className="mx-auto max-w-6xl px-6">
-      <Reveal className="mb-16 max-w-xl">
+      <Reveal className="mb-14 max-w-xl">
         <SectionLabel>Features</SectionLabel>
         <SectionHeading>
           Built for real{" "}
@@ -325,25 +329,70 @@ const Features = () => (
           </span>
         </SectionHeading>
         <SectionBody>
-          Every module is designed to work together, giving you a complete operational
-          picture without switching between tools.
+          Every module shares the same data, so you get one operational picture
+          instead of a dozen disconnected tools.
         </SectionBody>
       </Reveal>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {FEATURES.map(({ icon: Icon, title, desc, gradient }, idx) => (
-          <Reveal key={title} delay={(idx % 4) * 60} y={18}>
-            <div
-              className="group h-full rounded-2xl border border-gray-100 bg-white p-5 transition-all duration-300
-                hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-100/50
-                dark:border-gray-700 dark:bg-gray-800 dark:hover:border-violet-700 dark:hover:shadow-violet-900/20"
-            >
-              <div className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} shadow-md transition-transform duration-300 group-hover:scale-110`}>
-                <Icon size={18} className="text-white" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* featured tile: Reports & Analytics, with a real screenshot */}
+        <Reveal className="sm:col-span-2">
+          <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-100/50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-violet-700 dark:hover:shadow-violet-900/20">
+            <div className="p-6">
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 shadow-md transition-transform duration-300 group-hover:scale-110">
+                <BarChart2 size={18} className="text-white" />
               </div>
-              <h3 className="mb-1.5 text-sm font-bold tracking-tight text-slate-900 dark:text-white">{title}</h3>
-              <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">{desc}</p>
+              <h3 className="mb-1.5 text-base font-bold tracking-tight text-slate-900 dark:text-white">Reports &amp; Analytics</h3>
+              <p className="max-w-md text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                Interactive dashboards for revenue, orders, and customer trends -
+                with one-click CSV export on every view.
+              </p>
             </div>
+            <div className="relative mt-auto border-t border-gray-100 dark:border-gray-700">
+              <img
+                src="/shot-analytics.png"
+                alt="Aqred revenue analytics with KPI cards and a multi-month trend chart"
+                loading="lazy"
+                className="block h-36 w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white dark:from-gray-800" />
+            </div>
+          </article>
+        </Reveal>
+
+        {/* role coverage tile */}
+        <Reveal delay={80}>
+          <article className="group flex h-full flex-col justify-center rounded-2xl border border-gray-100 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-100/50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-violet-700 dark:hover:shadow-violet-900/20">
+            <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 shadow-md transition-transform duration-300 group-hover:scale-110">
+              <Shield size={18} className="text-white" />
+            </div>
+            <h3 className="mb-1.5 text-base font-bold tracking-tight text-slate-900 dark:text-white">Role-Based Access</h3>
+            <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+              Each role sees only the modules it needs, and admins can fine-tune every permission.
+            </p>
+            <div className="mt-6 space-y-3">
+              {ROLE_COVERAGE.map(({ role, count, pct, cls }) => (
+                <div key={role} className="flex items-center gap-3">
+                  <span className="w-16 flex-shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400">{role}</span>
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+                    <div className={`h-full rounded-full ${cls}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="w-10 flex-shrink-0 text-right text-[11px] font-medium tabular-nums text-slate-400 dark:text-slate-500">{count}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+        </Reveal>
+
+        {FEATURES_SMALL.map(({ icon: Icon, title, desc, gradient }, idx) => (
+          <Reveal key={title} delay={120 + idx * 60}>
+            <article className="group h-full rounded-2xl border border-gray-100 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-100/50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-violet-700 dark:hover:shadow-violet-900/20">
+              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} shadow-md transition-transform duration-300 group-hover:scale-110`}>
+                <Icon size={17} className="text-white" />
+              </div>
+              <h3 className="mb-1 text-sm font-bold tracking-tight text-slate-900 dark:text-white">{title}</h3>
+              <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">{desc}</p>
+            </article>
           </Reveal>
         ))}
       </div>
@@ -353,7 +402,7 @@ const Features = () => (
           to="/features"
           className="group inline-flex items-center gap-1.5 text-sm font-semibold text-violet-600 transition-colors hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
         >
-          See full feature breakdown
+          See the full feature breakdown
           <ChevronRight size={15} className="transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
@@ -362,61 +411,134 @@ const Features = () => (
 );
 
 // ── How it works ──────────────────────────────────────────────────────────────
-const STEPS = [
+const STORY_STEPS = [
   {
     step: "01",
-    title: "Create your account",
-    desc: "Register with your name, email, and company name. Your isolated workspace is ready instantly.",
+    title: "Create your workspace",
+    desc: "Register with your name, email, and company name. Your isolated workspace is ready in seconds.",
+    img: "/story-register.png",
+    alt: "Aqred sign-up form for creating a new company workspace",
   },
   {
     step: "02",
-    title: "Set up your team",
-    desc: "Add employees and assign roles - Admin, Manager, or Employee - so each person sees exactly what they need.",
+    title: "Set up your roles",
+    desc: "Decide what Admins, Managers, and Employees can see and do - module by module.",
+    img: "/story-roles.png",
+    alt: "Aqred roles and permissions screen showing module access per role",
   },
   {
     step: "03",
     title: "Run your operations",
-    desc: "Add customers, products, and orders. Track performance, review analytics, and export reports - all from one dashboard.",
+    desc: "Add customers, products, and orders, then track performance and export reports from one dashboard.",
+    img: "/story-dashboard.png",
+    alt: "Aqred dashboard showing revenue, orders, and inventory alerts",
   },
 ];
 
-const HowItWorks = () => (
-  <section className="bg-slate-50 py-28 dark:bg-gray-800/20">
-    <div className="mx-auto max-w-5xl px-6">
-      <Reveal className="mb-20 text-center">
-        <SectionLabel>How it works</SectionLabel>
-        <SectionHeading center>
-          Up and running{" "}
-          <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-            in minutes
-          </span>
-        </SectionHeading>
-        <SectionBody center className="max-w-md">
-          No complicated setup. Three steps and your whole team is in.
-        </SectionBody>
-      </Reveal>
-
-      <div className="relative grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="absolute left-[calc(16.67%+3.5rem)] right-[calc(16.67%+3.5rem)] top-10 hidden h-px border-t-2 border-dashed border-violet-200 md:block dark:border-violet-800/60" />
-
-        {STEPS.map(({ step, title, desc }, idx) => (
-          <Reveal key={step} delay={idx * 120} className="group relative flex flex-col items-center text-center">
-            <div className="relative z-10 mb-8">
-              <div className="flex h-20 w-20 flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300
-                group-hover:-translate-y-1 group-hover:border-violet-200 group-hover:shadow-lg group-hover:shadow-violet-100/40
-                dark:border-gray-700 dark:bg-gray-800 dark:group-hover:border-violet-700 dark:group-hover:shadow-violet-900/20">
-                <span className="mb-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-400 dark:text-violet-500">Step</span>
-                <span className="bg-gradient-to-br from-violet-600 to-indigo-600 bg-clip-text text-2xl font-black leading-none text-transparent">{step}</span>
-              </div>
-            </div>
-            <h3 className="mb-2 text-base font-bold tracking-tight text-slate-900 dark:text-white">{title}</h3>
-            <p className="max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">{desc}</p>
-          </Reveal>
-        ))}
-      </div>
+const StoryFrame = ({ img, alt }) => (
+  <figure className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xl shadow-gray-200/60 dark:border-gray-700 dark:bg-gray-800 dark:shadow-black/40">
+    <div className="flex items-center gap-1.5 border-b border-gray-100 bg-gray-50 px-3.5 py-2.5 dark:border-gray-700/80 dark:bg-gray-900">
+      <span className="h-2 w-2 rounded-full bg-red-400/90" />
+      <span className="h-2 w-2 rounded-full bg-amber-400/90" />
+      <span className="h-2 w-2 rounded-full bg-emerald-400/90" />
     </div>
-  </section>
+    <img src={img} alt={alt} loading="lazy" className="block w-full" style={{ aspectRatio: "1800 / 1108", objectFit: "cover", objectPosition: "top" }} />
+  </figure>
 );
+
+const HowItWorks = () => {
+  const [active, setActive] = useState(0);
+  const stepRefs = useRef([]);
+  const reduced = prefersReducedMotion();
+
+  useEffect(() => {
+    if (reduced || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActive(Number(entry.target.dataset.idx));
+        });
+      },
+      { threshold: 0.6, rootMargin: "-25% 0px -25% 0px" }
+    );
+    stepRefs.current.forEach((el) => el && io.observe(el));
+    return () => io.disconnect();
+  }, [reduced]);
+
+  return (
+    <section className="bg-slate-50 py-24 dark:bg-gray-800/20">
+      <div className="mx-auto max-w-6xl px-6">
+        <Reveal className="mb-14 text-center">
+          <SectionLabel>How it works</SectionLabel>
+          <SectionHeading center>
+            Up and running{" "}
+            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+              in minutes
+            </span>
+          </SectionHeading>
+          <SectionBody center className="max-w-md">
+            No rollout project, no training week. Three steps and your whole team is in.
+          </SectionBody>
+        </Reveal>
+
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-16">
+          {/* steps */}
+          <div className="space-y-3">
+            {STORY_STEPS.map(({ step, title, desc, img, alt }, idx) => (
+              <Reveal key={step} delay={idx * 90}>
+                <div
+                  ref={(el) => { stepRefs.current[idx] = el; }}
+                  data-idx={idx}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setActive(idx)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActive(idx); } }}
+                  className={`cursor-pointer rounded-2xl border p-5 transition-all duration-300 ${
+                    active === idx
+                      ? "border-violet-200 bg-white shadow-lg shadow-violet-100/60 dark:border-violet-700/70 dark:bg-gray-800"
+                      : "border-transparent hover:bg-white/70 dark:hover:bg-gray-800/40"
+                  }`}
+                >
+                  <div className="mb-2 flex items-center gap-3">
+                    <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-black transition-colors ${
+                      active === idx
+                        ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white"
+                        : "bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
+                    }`}>
+                      {step}
+                    </span>
+                    <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">{title}</h3>
+                  </div>
+                  <p className="pl-11 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{desc}</p>
+
+                  {/* inline visual on mobile / tablet */}
+                  <div className="mt-4 pl-11 lg:hidden">
+                    <StoryFrame img={img} alt={alt} />
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          {/* crossfading visual (desktop) */}
+          <Reveal delay={120} className="hidden lg:block">
+            <div className="relative">
+              {STORY_STEPS.map(({ img, alt }, idx) => (
+                <div
+                  key={img}
+                  aria-hidden={idx !== active}
+                  className={`transition-opacity duration-500 ${idx === active ? "relative opacity-100" : "absolute inset-0 opacity-0"}`}
+                >
+                  <StoryFrame img={img} alt={alt} />
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 // ── Why choose ────────────────────────────────────────────────────────────────
 const BENEFITS = [
@@ -448,7 +570,7 @@ const ROLES = [
 ];
 
 const WhyChoose = () => (
-  <section className="bg-white py-28 dark:bg-gray-900">
+  <section className="bg-white py-24 dark:bg-gray-900">
     <div className="mx-auto max-w-5xl px-6">
       <div className="grid grid-cols-1 items-start gap-16 lg:grid-cols-2">
         <Reveal>
