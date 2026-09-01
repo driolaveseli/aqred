@@ -25,7 +25,7 @@ const TermsPage = () => (
   <div className="min-h-screen bg-white dark:bg-gray-900 font-sans antialiased">
     <PublicNavbar />
     <main className="pt-16">
-      <div className="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-50 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 py-16 pt-24 text-center">
+      <div className="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-50 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 pt-16 pb-8 text-center">
         <div className="inline-flex items-center gap-2 bg-violet-50 dark:bg-violet-900/30 border border-violet-100 dark:border-violet-800 text-violet-700 dark:text-violet-300 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
           <FileText size={12} className="text-violet-500" />
           Terms & Conditions

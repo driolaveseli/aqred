@@ -604,7 +604,7 @@ const DocumentationPage = () => {
       <main className="pt-16">
 
         {/* Hero */}
-        <div className="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 pt-24 pb-16 text-center px-6">
+        <div className="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 pt-16 pb-10 text-center px-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-800 rounded-full mb-6 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
             <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-indigo-600 dark:text-indigo-400">Documentation</span>

@@ -226,7 +226,7 @@ const FeaturesPage = () => (
     <main className="pt-16">
 
       {/* ── Hero ── */}
-      <div className="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-50 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 py-20 pt-28 text-center">
+      <div className="bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-50 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 pt-16 pb-10 text-center">
         {/* pill badge */}
         <div className="inline-flex items-center gap-2 bg-violet-50 dark:bg-violet-900/30 border border-violet-100 dark:border-violet-800 text-violet-700 dark:text-violet-300 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
           <Zap size={12} className="text-violet-500" />
