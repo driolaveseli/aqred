@@ -21,7 +21,7 @@ const INVOICE_BASE_CTE = `
     FROM orders o
     LEFT JOIN customers c ON o.customer_id = c.id
     LEFT JOIN (
-      SELECT order_id, COUNT(*) AS item_count FROM order_items GROUP BY order_id
+      SELECT order_id, COUNT(*)::int AS item_count FROM order_items GROUP BY order_id
     ) item_agg ON item_agg.order_id = o.id
     LEFT JOIN (
       SELECT order_id, SUM(amount) AS amount_paid FROM payments WHERE LOWER(status) = 'completed' GROUP BY order_id
